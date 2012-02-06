@@ -6,6 +6,7 @@ import sqlalchemy.orm
 import sqlalchemy.orm.properties
 import sqlalchemy.types
 
+
 def get_schema_from_column(property_, registry):
     """ Build and return a Colander SchemaNode
         using information stored in the column property.
@@ -21,41 +22,32 @@ def get_schema_from_column(property_, registry):
     registry['fields'].append(property_.key)
 
     if isinstance(column.type, sqlalchemy.types.Boolean):
-
         type_ = colander.Boolean()
 
     elif isinstance(column.type, sqlalchemy.types.Date):
-
         type_ = colander.Date()
 
     elif isinstance(column.type, sqlalchemy.types.DateTime):
-
         type_ = colander.DateTime()
 
     elif isinstance(column.type, sqlalchemy.types.Enum):
-
         type_ = colander.String()
         validator = colander.OneOf(column.type.enums)
 
     elif isinstance(column.type, sqlalchemy.types.Float):
-
         type_ = colander.Float()
 
     elif isinstance(column.type, sqlalchemy.types.Integer):
-
         type_ = colander.Integer()
 
     elif isinstance(column.type, sqlalchemy.types.String):
-
         type_ = colander.String()
         validator = colander.Length(0, column.type.length)
 
     elif isinstance(column.type, sqlalchemy.types.Numeric):
-
         type_ = colander.Decimal()
 
     elif isinstance(column.type, sqlalchemy.types.Time):
-
         type_ = colander.Time()
 
     else:
@@ -73,9 +65,11 @@ def get_schema_from_column(property_, registry):
                                validator=validator,
                                missing=missing)
 
-def get_schema_from_relationship(property_,
-                                 registry,
-                                 get_schema_from_column=get_schema_from_column):
+
+def get_schema_from_relationship(
+                        property_,
+                        registry,
+                        get_schema_from_column=get_schema_from_column):
     """ Build and return a Colander SchemaNode
         using information stored in the relationship property.
     """
@@ -106,6 +100,7 @@ def get_schema_from_relationship(property_,
 
     return node
 
+
 def get_schema(entity,
                get_schema_from_column=get_schema_from_column,
                get_schema_from_relationship=get_schema_from_relationship):
@@ -114,7 +109,7 @@ def get_schema(entity,
     # {'attr1': value1, 'attr2': value2, ...}
     schema = colander.SchemaNode(colander.Mapping())
     registry = {
-        'id': None, # The name of the field used to identify the entity.
+        'id': None,  # The name of the field used to identify the entity.
         'fields': [],
         'relationships': {
             'one': {},
@@ -128,13 +123,10 @@ def get_schema(entity,
         raise NotImplemented('Composite primary keys are not supported.')
 
     for prop in mapper.iterate_properties:
-
         if isinstance(prop, sqlalchemy.orm.properties.ColumnProperty):
-
             node = get_schema_from_column(prop, registry)
 
         elif isinstance(prop, sqlalchemy.orm.properties.RelationshipProperty):
-
             node = get_schema_from_relationship(prop, get_schema_from_column)
 
         else:
@@ -144,6 +136,7 @@ def get_schema(entity,
 
     setattr(schema, '__colanderalchemy__', registry)
     return schema
+
 
 def get_registry(schema):
     return getattr(schema, '__colanderalchemy__')

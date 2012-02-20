@@ -3,181 +3,196 @@
 
 import colander
 import colanderalchemy
+import logging
 import sqlalchemy
-#from sqlalchemy.orm import backref
 import sqlalchemy.ext.declarative
 import sqlalchemy.orm
+import sqlalchemy.schema
 import unittest
+
+
+log = logging.getLogger(__name__)
+Base = sqlalchemy.ext.declarative.declarative_base()
+
+
+class Account(Base):
+    __tablename__ = 'accounts'
+    email = sqlalchemy.Column(sqlalchemy.Unicode(256), primary_key=True)
+    name = sqlalchemy.Column(sqlalchemy.Unicode(128), nullable=False)
+    surname = sqlalchemy.Column(sqlalchemy.Unicode(128), nullable=False)
+    gender = sqlalchemy.Column(sqlalchemy.Enum(u'M', u'F'), nullable=False)
+
+
+class Theme(Base):
+    __tablename__ = 'themes'
+    name = sqlalchemy.Column(sqlalchemy.Unicode(256), primary_key=True)
+    description = sqlalchemy.Column(sqlalchemy.UnicodeText, default='')
+    author_id = sqlalchemy.Column(sqlalchemy.Unicode(256),
+                                  sqlalchemy.ForeignKey('accounts.email'),
+                                  primary_key=True)
+    author = sqlalchemy.orm.relationship('Account', backref='themes')
+
+
+class Template(Base):
+    __tablename__ = 'templates'
+    __table_args__ = (
+        sqlalchemy.schema.ForeignKeyConstraint(['theme_name',
+                                                'theme_author_id'],
+                                               ['themes.name',
+                                                'themes.author_id'],
+                                               onupdate='CASCADE',
+                                               ondelete='CASCADE'),
+    )
+    name = sqlalchemy.Column(sqlalchemy.Unicode(128), primary_key=True)
+    theme_name = sqlalchemy.Column(sqlalchemy.Unicode(256),
+                                   primary_key=True)
+    theme_author_id = sqlalchemy.Column(sqlalchemy.Unicode(256),
+                                        primary_key=True)
+    theme = sqlalchemy.orm.relationship('Theme')
 
 
 class TestsBase(unittest.TestCase):
 
     def setUp(self):
-
-        Base = sqlalchemy.ext.declarative.declarative_base()
-
-        class StringColumn(Base):
-            __tablename__ = 'string_column'
-            id = sqlalchemy.Column(sqlalchemy.Integer,
-                                   primary_key=True)
-            name = sqlalchemy.Column(sqlalchemy.Unicode(8))
-
-        class StringColumnNotNullable(Base):
-            __tablename__ = 'string_column_not_nullable'
-            id = sqlalchemy.Column(sqlalchemy.Integer,
-                                   primary_key=True)
-            name = sqlalchemy.Column(sqlalchemy.Unicode(8),
-                                     nullable=False)
-
-        class StringColumnWithDefault(Base):
-            __tablename__ = 'string_column_with_default'
-            id = sqlalchemy.Column(sqlalchemy.Integer,
-                                   primary_key=True)
-            name = sqlalchemy.Column(sqlalchemy.Unicode(8),
-                                     default=u'Default Value')
-
-        class StringColumnAsPK(Base):
-            __tablename__ = 'string_column_as_pk'
-            name = sqlalchemy.Column(sqlalchemy.Unicode(8),
-                                     primary_key=True)
-            string_column_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                                 sqlalchemy.ForeignKey('string_column.id'))
-            string_column = sqlalchemy.orm.relationship('StringColumn',
-                                                        backref=sqlalchemy.orm.backref('pk_column',
-                                                                                       uselist=False))
-
-        class EnumColumn(StringColumnWithDefault):
-            choice = sqlalchemy.Column(sqlalchemy.Enum(u'A', u'B'))
-            string_column_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                                 sqlalchemy.ForeignKey('string_column.id'))
-            string_column = sqlalchemy.orm.relationship('StringColumn', backref='enum_columns')
-
         self.engine = sqlalchemy.create_engine('sqlite://')
         Base.metadata.bind = self.engine
         Base.metadata.create_all(self.engine)
         self.Session = sqlalchemy.orm.sessionmaker(bind=self.engine)
         self.session = self.Session()
+        self.account = colanderalchemy.Schema(Account, self.session)
+        self.theme = colanderalchemy.Schema(Theme, self.session)
+        self.template = colanderalchemy.Schema(Template, self.session)
 
-        self.StringColumn = StringColumn
-        self.StringColumnNotNullable = StringColumnNotNullable
-        self.StringColumnWithDefault = StringColumnWithDefault
-        self.StringColumnAsPK = StringColumnAsPK
-        self.EnumColumn = EnumColumn
+    def tearDown(self):
+        self.session.rollback()
+        self.session.close()
 
-        def tearDown(self):
-            self.session.close()
-            self.Session.close()
-            self.engine.close()
+    def test_account(self):
+        # Test for required fields (ex. primary keys).
+        self.assertRaises(colander.Invalid,
+                          self.account.deserialize,
+                          {})
+        # Test below fails due to nullable fields.
+        self.assertRaises(colander.Invalid,
+                          self.account.deserialize,
+                          {'email': 'mailbox@domain.tld'})
+        self.assertRaises(colander.Invalid,
+                          self.account.deserialize,
+                          {'email': 'mailbox@domain.tld',
+                           'name': 'My Name.'})
+        self.assertRaises(colander.Invalid,
+                          self.account.deserialize,
+                          {'email': 'mailbox@domain.tld',
+                           'name': 'My Name.',
+                           'surname': 'My Surname.'})
+        self.assertRaises(colander.Invalid,
+                          self.account.deserialize,
+                          {'email': 'mailbox@domain.tld',
+                           'name': 'My Name.',
+                           'surname': 'My Surname.',
+                           'gender': 'A'})
 
-    def test_string_column(self):
-        schema = colanderalchemy.get_schema(self.StringColumn)
+    def test_theme(self):
 
         self.assertRaises(colander.Invalid,
-                          schema.deserialize, {})
+                          self.theme.deserialize,
+                          {})
         self.assertRaises(colander.Invalid,
-                          schema.deserialize, {'name': 'A Name.'})
+                          self.theme.deserialize,
+                          {'name': 'My Name.'})
         self.assertRaises(colander.Invalid,
-                          schema.deserialize, {'id': 'A Name.'})
+                          self.theme.deserialize,
+                          {'author_id': 'mailbox@domain.tld'})
+        self.assertRaises(colander.Invalid,
+                          self.theme.deserialize,
+                          {'name': 'My Name.',
+                           'author_id': 'mailbox@domain.tld',
+                           'author': None})
+        self.assertRaises(colander.Invalid,
+                          self.theme.deserialize,
+                          {'name': 'My Name.',
+                           'author_id': 'mailbox@domain.tld',
+                           'author': {}})
 
-        self.assertEqual({'id': 1, 'name': None, 'enum_columns': [], 'pk_column': None},
-                         schema.deserialize({'id': 1}))
-
-        registry = colanderalchemy.get_registry(schema)
-        self.assertEqual(registry.id, 'id')
-        self.assertEqual(registry.fields, ['id', 'name'])
-        self.assertIn('enum_columns', registry.relationships.keys())
-        self.assertIn('enum_columns', registry.collections.keys())
-        self.assertIn('pk_column', registry.relationships.keys())
-        self.assertIn('pk_column', registry.references.keys())
-
-    def test_string_column_not_nullable(self):
-
-        schema = colanderalchemy.get_schema(self.StringColumnNotNullable)
+    def test_template(self):
 
         self.assertRaises(colander.Invalid,
-                          schema.deserialize, {'id': 1})
+                  self.template.deserialize,
+                  {})
         self.assertRaises(colander.Invalid,
-                          schema.deserialize, {'id': 1, 'name': None})
-
-        self.assertEqual({'id': 1, 'name': 'My Name.'},
-                         schema.deserialize({'id': 1, 'name': 'My Name.'}))
-
-    def test_string_column_with_default(self):
-
-        schema = colanderalchemy.get_schema(self.StringColumnWithDefault)
-        self.assertEqual({'id': 1, 'name': 'Default Value'},
-                         schema.deserialize({'id': 1}))
-
-    def test_string_column_as_pk(self):
-
-        schema = colanderalchemy.get_schema(self.StringColumnAsPK)
+                          self.template.deserialize,
+                          {'name': 'My Name.'})
         self.assertRaises(colander.Invalid,
-                          schema.deserialize, {})
-        self.assertEqual({'name': 'My Name.', 'string_column_id': None, 'string_column': None},
-                         schema.deserialize({'name': 'My Name.'}))
-
-    def test_enum_column(self):
-
-        schema = colanderalchemy.get_schema(self.EnumColumn)
+                          self.template.deserialize,
+                          {'theme_name': 'Its Name.'})
         self.assertRaises(colander.Invalid,
-                          schema.deserialize, {'id': 1, 'choice': 'C'})
-        data = {
-          'id': 1,
-          'name': 'Default Value',
-          'choice': None,
-          'string_column_id': None,
-          'string_column': None,
+                          self.template.deserialize,
+                          {'theme_author_id': 'mailbox@domain.tld'})
+        self.assertRaises(colander.Invalid,
+                          self.template.deserialize,
+                          {'name': 'My Name.',
+                           'theme_name': 'Its Name.',
+                           'theme_author_id': 'mailbox@domain.tld',
+                           'theme': {}})
+        self.assertRaises(colander.Invalid,
+                          self.template.deserialize,
+                          {'name': 'My Name.',
+                           'theme_name': 'Its Name.',
+                           'theme_author_id': 'mailbox@domain.tld',
+                           'theme': None})
+        self.assertRaises(colander.Invalid,
+                          self.template.deserialize,
+                          {'name': 'My Name.',
+                           'theme_name': 'Theme Name.',
+                           'theme_author_id': 'mailbox@domain.tld',
+                           'theme': {
+                               'name': 'Theme Name.',
+                               'author_id': 'mailbox@domain.tld',
+                           }})
+
+    def test_deserialize(self):
+        a1 = {
+            'email': 'mailbox_1@domain.tld',
+            'name': 'My Name.',
+            'surname': 'My Surname.',
+            'gender': 'M',
         }
-        self.assertRaises(colander.Invalid,
-                          schema.deserialize, data)
-        data = {
-          'id': 1,
-          'name': 'Default Value',
-          'choice': None,
-          'string_column_id': None,
-          'string_column': None,
+        a1 = self.account.deserialize(a1)
+        self.session.add(a1)
+        a2 = {
+            'email': 'mailbox_2@domain.tld',
+            'name': 'My Name.',
+            'surname': 'My Surname.',
+            'gender': 'F',
         }
-        self.assertEqual(data, schema.deserialize({'id': 1}))
-        data = {
-          'id': 1,
-          'name': 'My Name',
-          'choice': 'A',
-          'string_column_id': None,
-          'string_column': None,
-        }
-        self.assertEqual(data, schema.deserialize(data))
-        data = {
-          'id': 1,
-          'name': 'My Name.',
-          'choice': 'B',
-          'string_column_id': None,
-          'string_column': None,
-        }
-        self.assertEqual(data, schema.deserialize(data))
+        a2 = self.account.deserialize(a2)
+        self.session.add(a2)
 
-    def test_relationship_validator(self):
-        # Test collections.
-        schema = colanderalchemy.get_schema(self.StringColumn)
-        validator = colanderalchemy.RelationshipValidator(self.session,
-                                                          self.EnumColumn)
-        schema['enum_columns'].validator = validator
-        data = {
-          'id': 1,
-          'name': None,
-          'enum_columns': [1],
-          'pk_column': None,
+        theme1 = {
+            'name': 'Theme Name.',
+            'author_id': 'mailbox_1@domain.tld',
+            'description': 'Template Description.',
         }
-        self.assertRaises(colander.Invalid, schema.deserialize, data)
-        # Test references.
-        schema = colanderalchemy.get_schema(self.EnumColumn)
-        validator = colanderalchemy.RelationshipValidator(self.session,
-                                                          self.StringColumn)
-        schema['string_column'].validator = validator
-        data = {
-          'id': 1,
-          'name': 'My Name.',
-          'choice': 'B',
-          'string_column_id': None,
-          'string_column': 1,
+        theme1 = self.theme.deserialize(theme1)
+        self.session.add(theme1)
+
+        t1 = {
+            'name': 'My Name.',
+            'theme_name': 'Theme Name.',
+            'theme_author_id': 'mailbox_1@domain.tld',
         }
-        self.assertRaises(colander.Invalid, schema.deserialize, data)
+        t1 = self.template.deserialize(t1)
+        self.session.add(t1)
+        self.assertEqual(t1.theme, theme1)
+        t2 = {
+            'name': 'My Name.',
+            'theme_name': 'Theme Name.',
+            'theme_author_id': 'mailbox_1@domain.tld',
+            'theme': {
+                'name': 'Theme Name.',
+                'author_id': 'mailbox_1@domain.tld',
+            },
+        }
+        t2 = self.template.deserialize(t2)
+        self.session.add(t2)
+        self.assertEqual(t2.theme, theme1)

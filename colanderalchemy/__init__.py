@@ -13,13 +13,6 @@ __colanderalchemy__ = '__colanderalchemy__'
 log = logging.getLogger(__name__)
 
 
-def get_registry(schema):
-    """ Return the registry stored inside the schema.
-        The registry stored information about schema structure.
-    """
-    return getattr(schema, __colanderalchemy__)
-
-
 class Registry(object):
 
     def __init__(self, mapper):
@@ -93,7 +86,7 @@ class Registry(object):
 
 class Schema(object):
 
-    def __init__(self, entity, session=None):
+    def __init__(self, entity, session=None, excludes=None):
         """ Build a Colander Schema
             based on the SQLAlchemy 'entity'.
         """
@@ -104,19 +97,26 @@ class Schema(object):
         mapper = sqlalchemy.orm.class_mapper(entity)
         self.registry = Registry(mapper)
         self.session = session
+        excludes = excludes if excludes else set()
 
         self.impl = colander.SchemaNode(colander.Mapping())
         for name, column in self.registry.fields.iteritems():
+                if name in excludes:
+                    continue
                 node = self.get_schema_from_col(column)
                 node.name = name
                 self.impl.add(node)
 
         for name, rel in self.registry.references.iteritems():
+                if name in excludes:
+                    continue
                 node = self.get_schema_from_rel(rel)
                 node.name = name
                 self.impl.add(node)
 
         for name, rel in self.registry.collections.iteritems():
+                if name in excludes:
+                    continue
                 node = self.get_schema_from_rel(rel, collection=True)
                 node.name = name
                 self.impl.add(node)

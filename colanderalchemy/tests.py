@@ -21,6 +21,19 @@ class Account(Base):
     name = sqlalchemy.Column(sqlalchemy.Unicode(128), nullable=False)
     surname = sqlalchemy.Column(sqlalchemy.Unicode(128), nullable=False)
     gender = sqlalchemy.Column(sqlalchemy.Enum(u'M', u'F'), nullable=False)
+    contact = sqlalchemy.orm.relationship('Contact', uselist=False,
+                                          back_populates='account')
+    themes = sqlalchemy.orm.relationship('Theme', back_populates='author')
+
+
+class Contact(Base):
+    __tablename__ = 'contacts'
+    type_ = sqlalchemy.Column(sqlalchemy.Unicode(256), primary_key=True)
+    value = sqlalchemy.Column(sqlalchemy.Unicode(256), nullable=False)
+    account_id = sqlalchemy.Column(sqlalchemy.Unicode(256),
+                                   sqlalchemy.ForeignKey('accounts.email'),
+                                   primary_key=True)
+    account = sqlalchemy.orm.relationship('Account', back_populates='contact')
 
 
 class Theme(Base):
@@ -30,7 +43,8 @@ class Theme(Base):
     author_id = sqlalchemy.Column(sqlalchemy.Unicode(256),
                                   sqlalchemy.ForeignKey('accounts.email'),
                                   primary_key=True)
-    author = sqlalchemy.orm.relationship('Account', backref='themes')
+    author = sqlalchemy.orm.relationship('Account', back_populates='themes')
+    templates = sqlalchemy.orm.relationship('Template', back_populates='theme')
 
 
 class Template(Base):
@@ -48,7 +62,7 @@ class Template(Base):
                                    primary_key=True)
     theme_author_id = sqlalchemy.Column(sqlalchemy.Unicode(256),
                                         primary_key=True)
-    theme = sqlalchemy.orm.relationship('Theme')
+    theme = sqlalchemy.orm.relationship('Theme', back_populates='templates')
 
 
 class TestsBase(unittest.TestCase):
@@ -60,6 +74,7 @@ class TestsBase(unittest.TestCase):
         self.Session = sqlalchemy.orm.sessionmaker(bind=self.engine)
         self.session = self.Session()
         self.account = colanderalchemy.Schema(Account, self.session)
+        self.contact = colanderalchemy.Schema(Contact, self.session)
         self.theme = colanderalchemy.Schema(Theme, self.session)
         self.template = colanderalchemy.Schema(Template, self.session)
 
@@ -92,6 +107,30 @@ class TestsBase(unittest.TestCase):
                            'surname': 'My Surname.',
                            'gender': 'A'})
 
+    def test_account_registry(self):
+        self.assertIn('email', self.account.registry.keys)
+        self.assertIn('email', self.account.registry.fields)
+        self.assertIn('name', self.account.registry.fields)
+        self.assertIn('surname', self.account.registry.fields)
+        self.assertIn('gender', self.account.registry.fields)
+        self.assertIn('themes', self.account.registry.relationships)
+        self.assertIn('themes', self.account.registry.rkeys)
+        self.assertIn('contact', self.account.registry.references)
+        self.assertEqual(self.account.registry.fkeys, {})
+        self.assertIn('themes', self.account.registry.collections)
+
+    def test_contact_registry(self):
+        self.assertIn('type_', self.contact.registry.keys)
+        self.assertIn('account_id', self.contact.registry.keys)
+        self.assertIn('type_', self.contact.registry.fields)
+        self.assertIn('value', self.contact.registry.fields)
+        self.assertIn('account_id', self.contact.registry.fields)
+        self.assertIn('account', self.contact.registry.relationships)
+        self.assertIn('account', self.contact.registry.rkeys)
+        self.assertIn('account', self.contact.registry.references)
+        self.assertIn('account', self.contact.registry.fkeys)
+        self.assertEqual(self.contact.registry.collections, set())
+
     def test_theme(self):
 
         self.assertRaises(colander.Invalid,
@@ -113,6 +152,18 @@ class TestsBase(unittest.TestCase):
                           {'name': 'My Name.',
                            'author_id': 'mailbox@domain.tld',
                            'author': {}})
+
+    def test_theme_registry(self):
+        self.assertIn('name', self.theme.registry.keys)
+        self.assertIn('author_id', self.theme.registry.keys)
+        self.assertIn('name', self.theme.registry.fields)
+        self.assertIn('description', self.theme.registry.fields)
+        self.assertIn('author_id', self.theme.registry.fields)
+        self.assertIn('author', self.theme.registry.relationships)
+        self.assertIn('author', self.theme.registry.rkeys)
+        self.assertIn('author', self.theme.registry.references)
+        self.assertIn('author', self.theme.registry.fkeys)
+        self.assertIn('templates', self.theme.registry.collections)
 
     def test_template(self):
 
@@ -150,7 +201,20 @@ class TestsBase(unittest.TestCase):
                                'author_id': 'mailbox@domain.tld',
                            }})
 
-    def test_deserialize(self):
+    def test_template_registry(self):
+        self.assertIn('name', self.template.registry.keys)
+        self.assertIn('theme_name', self.template.registry.keys)
+        self.assertIn('theme_author_id', self.template.registry.keys)
+        self.assertIn('name', self.template.registry.fields)
+        self.assertIn('theme_name', self.template.registry.fields)
+        self.assertIn('theme_author_id', self.template.registry.fields)
+        self.assertIn('theme', self.template.registry.relationships)
+        self.assertIn('theme', self.template.registry.rkeys)
+        self.assertIn('theme', self.template.registry.references)
+        self.assertIn('theme', self.template.registry.fkeys)
+        self.assertEqual(self.template.registry.collections, set())
+
+    def test_deserialize_serialize(self):
         a1 = {
             'email': 'mailbox_1@domain.tld',
             'name': 'My Name.',
@@ -175,6 +239,8 @@ class TestsBase(unittest.TestCase):
         }
         theme1 = self.theme.deserialize(theme1)
         self.session.add(theme1)
+        self.assertEqual(theme1.author, a1)
+        self.assertIn(theme1, a1.themes)
 
         t1 = {
             'name': 'My Name.',
@@ -184,6 +250,8 @@ class TestsBase(unittest.TestCase):
         t1 = self.template.deserialize(t1)
         self.session.add(t1)
         self.assertEqual(t1.theme, theme1)
+        self.assertIn(t1, theme1.templates)
+
         t2 = {
             'name': 'My Name.',
             'theme_name': 'Theme Name.',
@@ -196,3 +264,19 @@ class TestsBase(unittest.TestCase):
         t2 = self.template.deserialize(t2)
         self.session.add(t2)
         self.assertEqual(t2.theme, theme1)
+        self.assertIn(t2, theme1.templates)
+
+        a1_colander = self.account.serialize(a1, True)
+        a1_dict = self.account.serialize(a1, False)
+        self.assertEqual(a1_colander.keys(), a1_dict.keys())
+        self.assertIn('email', a1_colander)
+        self.assertIn('name', a1_colander)
+        self.assertIn('surname', a1_colander)
+        self.assertIn('gender', a1_colander)
+        self.assertIn('contact', a1_colander)
+        self.assertIn('themes', a1_colander)
+        self.assertEqual(a1_dict['contact'], None)
+        self.assertIn('type_', a1_colander['contact'])
+        self.assertIn('account_id', a1_colander['contact'])
+        self.assertNotEqual(a1_colander['themes'], [])
+        self.assertNotEqual(a1_dict['themes'], [])

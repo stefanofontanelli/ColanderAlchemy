@@ -127,7 +127,9 @@ class Schema(object):
         """
 
         validator = None
-        # Add a default value for deserialized missing parameters.
+        # Add a default value for missing parameters during serialization.
+        default = None if column.default is None else column.default.arg
+        # Add a default value for  missing parameters during deserialization.
         missing = None if column.default is None else column.default.arg
         if not column.nullable:
             missing = colander.required
@@ -171,10 +173,14 @@ class Schema(object):
         elif nullable == True:
             missing = None
 
+        if default is None:
+            default = colander.null
+
         return colander.SchemaNode(type_,
                                    name=column.name,
                                    validator=validator,
-                                   missing=missing)
+                                   missing=missing,
+                                   default=default)
 
     def get_schema_from_rel(self, cls, collection=False):
         """ Build and return a Colander SchemaNode

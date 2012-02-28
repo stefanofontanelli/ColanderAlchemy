@@ -85,15 +85,6 @@ class Schema(object):
 
     def __init__(self, entity, session=None, excludes=None, nullables=None):
         """ Build a Colander Schema based on the SQLAlchemy mapped class.
-
-            The structure serialized/deserialized by default schema is:
-            {
-                'col1_name': 'value_col_1',
-                'col2_name': 'value_col_2',
-                'fk1_name': 'value_fk1',
-                'collection1': [],
-                'collection2': [{'pk_name': 'pk_value'}],
-            }
         """
         log.debug('Create schema for: %s', entity.__name__)
         # An entity's schema has the following structure:
@@ -223,6 +214,9 @@ class Schema(object):
                     value = data.get(fk)
                     if not value is None:
                         data[name][key] = value
+
+            if name not in data:
+                continue
 
             if name in self.registry.references and data[name]:
                 data[name] = self.deserialize_relationship(name,

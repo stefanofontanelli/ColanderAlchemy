@@ -6,5 +6,6 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 from types import SQLAlchemyMapping
+from utils import MappingRegistry
 
-__all__ = ['SQLAlchemyMapping']
+__all__ = ['SQLAlchemyMapping', 'MappingRegistry']

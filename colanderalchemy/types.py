@@ -96,7 +96,7 @@ class SQLAlchemyMapping(colander.SchemaNode):
                                    missing=missing,
                                    default=default)
 
-    def get_schema_from_rel(self, cls, collection=False):
+    def get_schema_from_rel(self, cls, uselist=False, nullable=None):
         """ Build and return a Colander SchemaNode
             using information stored in the relationship property.
         """
@@ -104,16 +104,19 @@ class SQLAlchemyMapping(colander.SchemaNode):
         mapper = class_mapper(cls)
         nodes = [self.get_schema_from_col(col) for col in mapper.primary_key]
 
-        if collection:
+        if uselist:
             # xToMany relationships.
             type_ = colander.Sequence()
             missing = []
-            default = colander.null
         else:
             # xToOne relationships.
             type_ = colander.Mapping()
             missing = None
-            default = colander.null
+
+        if nullable == False:
+            missing = colander.required
+
+        default = colander.null
 
         return colander.SchemaNode(type_,
                                    *nodes,

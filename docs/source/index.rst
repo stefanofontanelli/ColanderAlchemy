@@ -8,7 +8,7 @@ ColanderAlchemy
 
 `ColanderAlchemy` helps you autogenerating 
 `Colander <http://http://docs.pylonsproject.org/projects/colander/en/latest/>`_ 
-schemas based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped objects.
+schemas based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped classes.
 
 `ColanderAlchemy` autogenerates `Colander` schemas following these rules:
     1) type of the schema is ``colander.MappingSchema``,

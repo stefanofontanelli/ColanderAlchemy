@@ -6,86 +6,42 @@
 ColanderAlchemy
 ===============
 
-ColanderAlchemy is a library for automatic creation of a 
+`ColanderAlchemy` helps you autogenerating 
 `Colander <http://http://docs.pylonsproject.org/projects/colander/en/latest/>`_ 
-schema based on a `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped object.
+schemas based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped objects.
 
-Use of ColanderAlchemy is really simple.
-Suppose you have an SQLAlchemy mapped class like the one described below::
-
-    from sqlalchemy import Column
-    from sqlalchemy import Enum
-    from sqlalchemy import Integer
-    from sqlalchemy import Unicode
-    from sqlalchemy.ext.declarative import declarative_base
-
-
-    Base = declarative_base()
-
-
-    class Account(Base):
-
-        __tablename__ = 'accounts'
-
-        email = Column(Unicode(256), primary_key=True)
-        name = Column(Unicode(128), nullable=False)
-        surname = Column(Unicode(128), nullable=False)
-        gender = Column(Enum(u'M', u'F'))
-        age = Column(Integer)
+`ColanderAlchemy` autogenerates `Colander` schemas following these rules:
+    1) type of the schema is ``colander.MappingSchema``,
+    2) the schema has a ``colander.SchemaNode`` for each ``sqlalchemy.Column`` in the mapped object:
+        * the type of ``colander.SchemaNode`` is based on the type of ``sqlalchemy.Column``,
+        * the ``colander.SchemaNode`` use ``validator=colander.OneOf`` when the type of ``sqlalchemy.Column`` is ``sqlalchemy.types.Enum``,
+        * ``colander.SchemaNode`` has ``missing=None`` when the ``sqlalchemy.Column`` has ``nullable=True``,
+        * ``colander.SchemaNode`` has ``missing=colander.required`` when the ``sqlalchemy.Column`` has ``nullable=False`` or ``primary_key=True``,
+        * ``colander.SchemaNode`` has ``missing=VALUE`` and ``default=VALUE`` when the ``sqlalchemy.Column`` has ``default=VALUE``,
+    3) the schema has a ``colander.SchemaNode`` for each `relationship` in the mapped object:
+        * the ``colander.SchemaNode`` has ``missing=None``,
+        * the type of ``colander.SchemaNode`` is:
+            * a ``colander.Mapping`` for `ManyToOne and OneToOne relationships`,
+            * a ``colander.Sequence`` of ``colander.Mapping`` for `ManyToMany and OneToMany relationships`,
+        * for both kind of relationships:
+            * the ``colander.Mapping`` is built using `rule 2` on the mapped class referenced by relationship.
 
 
-The code that you need to get a Colander schema based on
-``Account`` mapped class is::
+Read the section :ref:`customization` to see how change these rules.
 
-    from colanderalchemy import BaseSchema
+Read the section :ref:`examples` to see how use `ColanderAlchemy`.
 
-    data = {
-        "name": "colander",
-        "surname": "alchemy",
-        "email": "mailbox@domain.tld",
-        "gender": "M",
-        "age": "30"
-    }
-    schema = BaseSchema(Account)
-    deserialized = schema.deserialize(data)
-    serialized = schema.serialize(deserialized)
-
-The ``deserialized`` variable will be::
-
-    {
-        "name": "colander",
-        "surname': "alchemy",
-        "email': "mailbox@domain.tld",
-        "gender': "M",
-        "age": 30
-    }
-
-The ``serialized`` variable will be equal to ``data``::
-
-    {
-        "name": "colander",
-        "surname': "alchemy",
-        "email': "mailbox@domain.tld",
-        "gender': "M",
-        "age": "30"
-    }
-
-Note that the behaviors of ``schema.deserialize`` and ``schema.serialize``
-are the same as that of Colander ones.
-
-
-
-
-Contents:
+Contents
+--------
 
 .. toctree::
-   :maxdepth: 2
-
-    api.rst
+    examples
+    customization
+    api
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`

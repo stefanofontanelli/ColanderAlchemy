@@ -48,33 +48,36 @@ class SQLAlchemyMapping(colander.SchemaNode):
         if not column.nullable:
             missing = colander.required
 
-        if isinstance(column.type, sqlalchemy.types.Boolean):
+        # support sqlalchemy.types.TypeDecorator
+        column_type = getattr(column.type, 'impl', column.type)
+
+        if isinstance(column_type, sqlalchemy.types.Boolean):
             type_ = colander.Boolean()
 
-        elif isinstance(column.type, sqlalchemy.types.Date):
+        elif isinstance(column_type, sqlalchemy.types.Date):
             type_ = colander.Date()
 
-        elif isinstance(column.type, sqlalchemy.types.DateTime):
+        elif isinstance(column_type, sqlalchemy.types.DateTime):
             type_ = colander.DateTime()
 
-        elif isinstance(column.type, sqlalchemy.types.Enum):
+        elif isinstance(column_type, sqlalchemy.types.Enum):
             type_ = colander.String()
             validator = colander.OneOf(column.type.enums)
 
-        elif isinstance(column.type, sqlalchemy.types.Float):
+        elif isinstance(column_type, sqlalchemy.types.Float):
             type_ = colander.Float()
 
-        elif isinstance(column.type, sqlalchemy.types.Integer):
+        elif isinstance(column_type, sqlalchemy.types.Integer):
             type_ = colander.Integer()
 
-        elif isinstance(column.type, sqlalchemy.types.String):
+        elif isinstance(column_type, sqlalchemy.types.String):
             type_ = colander.String()
             validator = colander.Length(0, column.type.length)
 
-        elif isinstance(column.type, sqlalchemy.types.Numeric):
+        elif isinstance(column_type, sqlalchemy.types.Numeric):
             type_ = colander.Decimal()
 
-        elif isinstance(column.type, sqlalchemy.types.Time):
+        elif isinstance(column_type, sqlalchemy.types.Time):
             type_ = colander.Time()
 
         else:

@@ -22,5 +22,5 @@ An helper tool for autogenerating Colander schemas based on SQLAlchemy mapped cl
       zip_safe=True,
       install_requires=['Colander', 'SQLAlchemy'],
       tests_require=[],
-      test_suite='test',
+      test_suite='tests',
       )

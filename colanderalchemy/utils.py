@@ -61,7 +61,7 @@ class MappingRegistry(object):
                         self.fkeys.pop(p.key)
             else:
                 msg = 'Unsupported property type: {}'.format(type(p))
-                NotImplementedError(msg)
+                raise NotImplementedError(msg)
 
         self._log = getLogger(__name__)
         self._log.debug('Registry created.')

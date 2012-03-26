@@ -1,1 +1,2 @@
 ColanderAlchemy was created by Stefano Fontanelli.
+Contributors can be found at: https://github.com/stefanofontanelli/ColanderAlchemy/contributors

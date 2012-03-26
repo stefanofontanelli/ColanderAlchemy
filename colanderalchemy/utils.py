@@ -17,6 +17,8 @@ __all__ = ['MappingRegistry']
 class MappingRegistry(object):
 
     def __init__(self, cls, excludes=None, nullables=None):
+        """ Keep information about the SQLAlchemy mapped class `cls`.
+        """
         self.cls = cls
         self._mapper = class_mapper(cls)
         self.excludes = excludes if excludes else set()

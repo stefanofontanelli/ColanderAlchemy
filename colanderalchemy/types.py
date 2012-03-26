@@ -16,7 +16,7 @@ __all__ = ['SQLAlchemyMapping']
 class SQLAlchemyMapping(colander.SchemaNode):
 
     def __init__(self, cls, excludes=None, nullables=None, unknown='raise'):
-        """ Build a Colander Schema based on the SQLAlchemy mapped class.
+        """ Build a Colander Schema based on the SQLAlchemy mapped class `cls`.
         """
         super(SQLAlchemyMapping, self).__init__(colander.Mapping())
         self._reg = MappingRegistry(cls, excludes, nullables)

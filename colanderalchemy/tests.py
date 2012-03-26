@@ -193,6 +193,13 @@ class TestsBase(unittest.TestCase):
         self.assertEqual(data, {})
         self.assertEqual(account.serialize(data), {})
 
+    def test_includes(self):
+        includes = ('email',)
+        account = colanderalchemy.SQLAlchemyMapping(Account, includes=includes)
+        self.assertEqual(account.serialize({}).keys(), ['email'])
+
+        self.assertRaises(ValueError, colanderalchemy.SQLAlchemyMapping, Account, ('contact',), includes)
+
     def test_nullables(self):
         nullables = {
             'email': True,

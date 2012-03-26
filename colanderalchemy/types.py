@@ -15,14 +15,17 @@ __all__ = ['SQLAlchemyMapping']
 
 class SQLAlchemyMapping(colander.SchemaNode):
 
-    def __init__(self, cls, excludes=None, nullables=None, unknown='raise'):
+    def __init__(self, cls, excludes=None, includes=None, nullables=None, unknown='raise'):
         """ Build a Colander Schema based on the SQLAlchemy mapped class.
         """
         super(SQLAlchemyMapping, self).__init__(colander.Mapping())
-        self._reg = MappingRegistry(cls, excludes, nullables)
-        for name, obj in self._reg.attrs.iteritems():
+        self._reg = MappingRegistry(cls, excludes, includes, nullables)
 
+        for name, obj in self._reg.attrs.iteritems():
             if name in self._reg.excludes:
+                continue
+
+            if self._reg.includes and name not in self._reg.includes:
                 continue
 
             elif name in self._reg.fields:

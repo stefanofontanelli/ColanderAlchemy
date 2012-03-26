@@ -22,7 +22,7 @@ Using `pip` command:  pip install ColanderAlchemy
 License
 -------
 
-SQLAlchemy is distributed under the `MIT license
+ColanderAlchemy is distributed under the `MIT license
 <http://www.opensource.org/licenses/mit-license.php>`_.
 
 

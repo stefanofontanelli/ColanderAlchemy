@@ -103,6 +103,10 @@ class TestsBase(unittest.TestCase):
                            'surname': 'My Surname.',
                            'gender': 'A'})
 
+    def test_relation(self):
+        self.assertEqual(self.account['contact'].title, "Contact")
+        self.assertEqual(self.account['contact'].name, "contact")
+
     def test_account_registry(self):
         self.assertIn('email', self.account._reg.pkeys)
         self.assertIn('email', self.account._reg.fields)

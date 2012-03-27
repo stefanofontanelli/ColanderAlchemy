@@ -31,8 +31,8 @@ class SQLAlchemyMapping(colander.SchemaNode):
 
             else:
                 node = self.get_schema_from_rel(obj,
+                                                name,
                                                 name in self._reg.collections)
-            node.name = name
             self.add(node)
 
     def get_schema_from_col(self, column, nullable=None):
@@ -99,7 +99,7 @@ class SQLAlchemyMapping(colander.SchemaNode):
                                    missing=missing,
                                    default=default)
 
-    def get_schema_from_rel(self, cls, uselist=False, nullable=None):
+    def get_schema_from_rel(self, cls, name, uselist=False, nullable=None):
         """ Build and return a Colander SchemaNode
             using information stored in the relationship property.
         """
@@ -123,5 +123,6 @@ class SQLAlchemyMapping(colander.SchemaNode):
 
         return colander.SchemaNode(type_,
                                    *nodes,
+                                   name=name,
                                    missing=missing,
                                    default=default)

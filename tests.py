@@ -44,7 +44,7 @@ class Contact(Base):
 class Theme(Base):
     __tablename__ = 'themes'
     name = sqlalchemy.Column(sqlalchemy.Unicode(256), primary_key=True)
-    description = sqlalchemy.Column(sqlalchemy.UnicodeText, default='')
+    description = sqlalchemy.Column(sqlalchemy.UnicodeText, default=u'')
     author_id = sqlalchemy.Column(sqlalchemy.Unicode(256),
     sqlalchemy.ForeignKey('accounts.email'),
     primary_key=True)
@@ -196,6 +196,13 @@ class TestsBase(unittest.TestCase):
         data = account.deserialize({})
         self.assertEqual(data, {})
         self.assertEqual(account.serialize(data), {})
+
+    def test_includes(self):
+        includes = ('email',)
+        account = colanderalchemy.SQLAlchemyMapping(Account, includes=includes)
+        self.assertEqual(account.serialize({}).keys(), ['email'])
+
+        self.assertRaises(ValueError, colanderalchemy.SQLAlchemyMapping, Account, ('contact',), includes)
 
     def test_nullables(self):
         nullables = {

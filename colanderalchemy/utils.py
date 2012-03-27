@@ -16,13 +16,14 @@ __all__ = ['MappingRegistry']
 
 class MappingRegistry(object):
 
-    def __init__(self, cls, excludes=None, nullables=None):
+    def __init__(self, cls, excludes=None, includes=None, nullables=None):
         """ Keep information about the SQLAlchemy mapped class `cls`.
         """
         self.cls = cls
         self._mapper = class_mapper(cls)
-        self.excludes = excludes if excludes else set()
-        self.nullables = nullables if nullables else {}
+        self.excludes = excludes or set()
+        self.includes = includes or set()
+        self.nullables = nullables or {}
         self.pkeys = [col.name for col in self._mapper.primary_key]
         self.fkeys = {}
         self.rkeys = {}
@@ -32,8 +33,10 @@ class MappingRegistry(object):
         self.references = set()
         self.collections = set()
 
-        for p in self._mapper.iterate_properties:
+        if self.includes and self.excludes:
+            raise ValueError('includes and excludes parameters are exclusive, specify only one of them')
 
+        for p in self._mapper.iterate_properties:
             if isinstance(p, ColumnProperty):
                 self.attrs[p.key] = p.columns[0]
                 self.fields.add(p.key)

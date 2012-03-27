@@ -200,6 +200,12 @@ class TestsBase(unittest.TestCase):
 
         self.assertRaises(ValueError, colanderalchemy.SQLAlchemyMapping, Account, ('contact',), includes)
 
+    def test_clone(self):
+        account = colanderalchemy.SQLAlchemyMapping(Account)
+        account2 = account.clone()
+        self.assertEqual(account._reg, account2._reg)
+        self.assertEqual(len(account.children), len(account2.children))
+
     def test_nullables(self):
         nullables = {
             'email': True,

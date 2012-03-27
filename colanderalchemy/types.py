@@ -130,3 +130,12 @@ class SQLAlchemyMapping(colander.SchemaNode):
                                    name=name,
                                    missing=missing,
                                    default=default)
+
+    def clone(self):
+        cloned = self.__class__(self._reg.cls,
+                                self._reg.excludes,
+                                self._reg.includes,
+                                self._reg.nullables)
+        cloned.__dict__.update(self.__dict__)
+        cloned.children = [node.clone() for node in self.children]
+        return cloned

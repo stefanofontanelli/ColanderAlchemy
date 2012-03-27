@@ -233,3 +233,9 @@ class TestsBase(unittest.TestCase):
             'surname': u'None',
             'themes': []
         })
+
+    def test_clone(self):
+        account = colanderalchemy.SQLAlchemyMapping(Account)
+        account2 = account.clone()
+        self.assertEqual(account._reg, account2._reg)
+        self.assertEqual(len(account.children), len(account2.children))

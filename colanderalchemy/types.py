@@ -6,6 +6,7 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 from sqlalchemy.orm import class_mapper
+from sqlalchemy.orm import object_mapper
 from utils import MappingRegistry
 import colander
 import sqlalchemy.types
@@ -38,6 +39,10 @@ class SQLAlchemyMapping(colander.SchemaNode):
                                                 name in self._reg.collections)
             node.name = name
             self.add(node)
+
+    @property
+    def registry(self):
+        return self._reg
 
     def get_schema_from_col(self, column, nullable=None):
         """ Build and return a Colander SchemaNode
@@ -130,6 +135,37 @@ class SQLAlchemyMapping(colander.SchemaNode):
                                    name=name,
                                    missing=missing,
                                    default=default)
+
+    def dictify(self, obj):
+
+        dict_ = {}
+        # FIXME: check code! Registry was changed!
+        for name in self._reg.attrs.iterkeys():
+
+            if name in self._reg.excludes or\
+              (self._reg.includes and name not in self._reg.includes):
+                continue
+
+            if name in self._reg.fields:
+                dict_[name] = getattr(obj, name)
+
+            elif name in self.schema.registry.references:
+                value = getattr(obj, name)
+                if not value is None:
+                    value = self.dictify_relationship(value)
+                dict_[name] = value
+
+            elif name in self.schema.registry.collections:
+                dict_[name] = [self.dictify_relationship(value)
+                               for value in getattr(obj, name)]
+
+        return dict_
+
+    def dictify_relationship(self, obj):
+        dict_ = {}
+        for col in object_mapper(obj).primary_key:
+            dict_[col.name] = getattr(obj, col.name)
+        return dict_
 
     def clone(self):
         cloned = self.__class__(self._reg.cls,

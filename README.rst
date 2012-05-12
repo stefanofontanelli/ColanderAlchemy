@@ -1,8 +1,8 @@
 ColanderAlchemy
 ===============
 
-`ColanderAlchemy` helps you autogenerating 
-`Colander <http://http://docs.pylonsproject.org/projects/colander/en/latest/>`_ 
+`ColanderAlchemy` helps you autogenerating
+`Colander <http://http://docs.pylonsproject.org/projects/colander/en/latest/>`_
 schemas that are based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped classes.
 
 
@@ -31,4 +31,23 @@ Development version
 
 Fork the development version on
 `GitHub <https://github.com/stefanofontanelli/ColanderAlchemy>`_.
+
+
+Changes
+-------
+
+0.1.0a2 (unreleased)
+~~~~~~~~~~~~~~~~~~~~
+
+- Mentioned supported Python versions in trove classifiers.
+
+- Updated tests to run with current `colander` versions.
+
+- Made compatible with Python 3.2.
+
+
+0.1.0a (2012-03-24)
+~~~~~~~~~~~~~~~~~~~
+
+- Initial public release.
 

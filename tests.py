@@ -227,10 +227,10 @@ class TestsBase(unittest.TestCase):
         data.pop('contact')
         self.assertEqual(account.serialize(data), {
             'contact': {'account_id': colander.null, 'type_': colander.null},
-            'email': u'None',
-            'gender': u'None',
-            'name': u'None',
-            'surname': u'None',
+            'email': colander.null,
+            'gender': colander.null,
+            'name': colander.null,
+            'surname': colander.null,
             'themes': []
         })
 

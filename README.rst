@@ -41,6 +41,8 @@ Changes
 
 - Mentioned supported Python versions in trove classifiers.
 
+- Updated tests to run with current `colander` versions.
+
 
 0.1.0a (2012-03-24)
 ~~~~~~~~~~~~~~~~~~~

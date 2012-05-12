@@ -43,6 +43,8 @@ Changes
 
 - Updated tests to run with current `colander` versions.
 
+- Made compatible with Python 3.2.
+
 
 0.1.0a (2012-03-24)
 ~~~~~~~~~~~~~~~~~~~

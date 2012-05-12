@@ -13,6 +13,7 @@ import sqlalchemy
 import sqlalchemy.ext.declarative
 import sqlalchemy.orm
 import sqlalchemy.schema
+import sys
 import unittest
 
 
@@ -20,12 +21,20 @@ log = logging.getLogger(__name__)
 Base = sqlalchemy.ext.declarative.declarative_base()
 
 
+# True if we are running on Python 3.
+PY3 = sys.version_info[0] == 3
+
+if PY3: # pragma: no cover
+    u = lambda x: x
+else:
+    u = unicode
+
 class Account(Base):
     __tablename__ = 'accounts'
     email = sqlalchemy.Column(sqlalchemy.Unicode(256), primary_key=True)
     name = sqlalchemy.Column(sqlalchemy.Unicode(128), nullable=False)
     surname = sqlalchemy.Column(sqlalchemy.Unicode(128), nullable=False)
-    gender = sqlalchemy.Column(sqlalchemy.Enum(u'M', u'F'), nullable=False)
+    gender = sqlalchemy.Column(sqlalchemy.Enum(u('M'), u('F')), nullable=False)
     contact = sqlalchemy.orm.relationship('Contact', uselist=False,
     back_populates='account')
     themes = sqlalchemy.orm.relationship('Theme', back_populates='author')
@@ -44,7 +53,7 @@ class Contact(Base):
 class Theme(Base):
     __tablename__ = 'themes'
     name = sqlalchemy.Column(sqlalchemy.Unicode(256), primary_key=True)
-    description = sqlalchemy.Column(sqlalchemy.UnicodeText, default=u'')
+    description = sqlalchemy.Column(sqlalchemy.UnicodeText, default=u(''))
     author_id = sqlalchemy.Column(sqlalchemy.Unicode(256),
     sqlalchemy.ForeignKey('accounts.email'),
     primary_key=True)
@@ -200,7 +209,7 @@ class TestsBase(unittest.TestCase):
     def test_includes(self):
         includes = ('email',)
         account = colanderalchemy.SQLAlchemyMapping(Account, includes=includes)
-        self.assertEqual(account.serialize({}).keys(), ['email'])
+        self.assertEqual(list(account.serialize({}).keys()), ['email'])
 
         self.assertRaises(ValueError, colanderalchemy.SQLAlchemyMapping, Account, ('contact',), includes)
 

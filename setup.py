@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.1.0'
+version = '0.1.0a2dev'
 
 setup(name='ColanderAlchemy',
       version=version,
@@ -10,6 +10,7 @@ An helper tool for autogenerating Colander schemas based on SQLAlchemy mapped cl
       classifiers=['Development Status :: 3 - Alpha',
                    'Intended Audience :: Developers',
                    'Programming Language :: Python',
+                   'Programming Language :: Python :: 2.7',
                    'License :: OSI Approved :: MIT License',
                    'Operating System :: OS Independent'],
       keywords='serialize deserialize validate schema validation colander sqlalchemy',
@@ -20,7 +21,9 @@ An helper tool for autogenerating Colander schemas based on SQLAlchemy mapped cl
       packages=find_packages(),
       include_package_data=True,
       zip_safe=True,
-      install_requires=['Colander', 'SQLAlchemy'],
+      install_requires=[
+            'colander',
+            'SQLAlchemy'],
       tests_require=[],
       test_suite='tests',
       )

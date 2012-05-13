@@ -7,7 +7,7 @@
 
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm import object_mapper
-from utils import MappingRegistry
+from .utils import MappingRegistry
 import colander
 import sqlalchemy.types
 
@@ -22,7 +22,7 @@ class SQLAlchemyMapping(colander.SchemaNode):
         super(SQLAlchemyMapping, self).__init__(colander.Mapping())
         self._reg = MappingRegistry(cls, excludes, includes, nullables)
 
-        for name, obj in self._reg.attrs.iteritems():
+        for name, obj in self._reg.attrs.items():
             if name in self._reg.excludes:
                 continue
 

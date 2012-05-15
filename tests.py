@@ -24,10 +24,11 @@ Base = sqlalchemy.ext.declarative.declarative_base()
 # True if we are running on Python 3.
 PY3 = sys.version_info[0] == 3
 
-if PY3: # pragma: no cover
+if PY3:  # pragma: no cover
     u = lambda x: x
 else:
     u = unicode
+
 
 class Account(Base):
     __tablename__ = 'accounts'
@@ -233,14 +234,13 @@ class TestsBase(unittest.TestCase):
             'themes': []
         }
         self.assertEqual(data, account.deserialize({}))
-        data.pop('contact')
-        self.assertEqual(account.serialize(data), {
+        self.assertEqual(account.serialize({}), {
             'contact': {'account_id': colander.null, 'type_': colander.null},
             'email': colander.null,
             'gender': colander.null,
             'name': colander.null,
             'surname': colander.null,
-            'themes': []
+            'themes': colander.null
         })
 
     def test_clone(self):

@@ -138,9 +138,11 @@ class SQLAlchemyMapping(colander.SchemaNode):
                                    default=default)
 
     def dictify(self, obj):
-
+        """ Build and return a dictified version of `obj`
+            using schema information to choose what attributes
+            will be included in the returned dict.
+        """
         dict_ = {}
-        # FIXME: check code! Registry was changed!
         for name in self._reg.attrs.iterkeys():
 
             if name in self._reg.excludes or\

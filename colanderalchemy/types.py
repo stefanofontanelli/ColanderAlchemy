@@ -16,12 +16,13 @@ __all__ = ['SQLAlchemyMapping']
 
 class SQLAlchemyMapping(colander.SchemaNode):
 
-    def __init__(self, cls, excludes=None, includes=None, nullables=None, unknown='raise'):
+    def __init__(self, cls, excludes=None,
+                 includes=None, nullables=None, unknown='raise'):
         """ Build a Colander Schema based on the SQLAlchemy mapped class.
         """
-        super(SQLAlchemyMapping, self).__init__(colander.Mapping())
-        self._reg = MappingRegistry(cls, excludes, includes, nullables)
+        super(SQLAlchemyMapping, self).__init__(colander.Mapping(unknown))
 
+        self._reg = MappingRegistry(cls, excludes, includes, nullables)
         for name, obj in self._reg.attrs.items():
             if name in self._reg.excludes:
                 continue
@@ -149,13 +150,13 @@ class SQLAlchemyMapping(colander.SchemaNode):
             if name in self._reg.fields:
                 dict_[name] = getattr(obj, name)
 
-            elif name in self.schema.registry.references:
+            elif name in self._reg.references:
                 value = getattr(obj, name)
                 if not value is None:
                     value = self.dictify_relationship(value)
                 dict_[name] = value
 
-            elif name in self.schema.registry.collections:
+            elif name in self._reg.collections:
                 dict_[name] = [self.dictify_relationship(value)
                                for value in getattr(obj, name)]
 

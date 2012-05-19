@@ -248,3 +248,18 @@ class TestsBase(unittest.TestCase):
         account2 = account.clone()
         self.assertEqual(account._reg, account2._reg)
         self.assertEqual(len(account.children), len(account2.children))
+
+    def test_dictify(self):
+        params = {'email': 'mailbox@domain.tld',
+                  'name': 'My Name.',
+                  'surname': 'My Surname.',
+                  'gender': 'M'}
+        account = Account(**self.account.deserialize(params))
+        dictified = self.account.dictify(account)
+        params = {'email': 'mailbox@domain.tld',
+                  'name': 'My Name.',
+                  'surname': 'My Surname.',
+                  'gender': 'M',
+                  'contact': None,
+                  'themes': []}
+        self.assertEqual(dictified, params)

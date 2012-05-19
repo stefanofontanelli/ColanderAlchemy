@@ -1,0 +1,13 @@
+CHANGELOG
+
+- 0.1b (2012-05-19)
+    - Added SQLAlchemyMapping.dictify method.
+    - Updated tests with checks needed to test SQLAlchemyMapping.dictify.
+
+- 0.1.0a2 (unreleased)
+    - Mentioned supported Python versions in trove classifiers.
+    - Updated tests to run with current `colander` versions.
+    - Made compatible with Python 3.2.
+
+- 0.1.0a (2012-03-24)
+    - Initial public release.

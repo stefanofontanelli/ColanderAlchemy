@@ -22,3 +22,9 @@ Utilities
   .. autoclass:: MappingRegistry
 
      .. automethod:: __init__
+
+  .. autoclass:: Column
+
+     .. automethod:: __init__
+
+  .. autofunction:: relationship

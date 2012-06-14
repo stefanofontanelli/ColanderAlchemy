@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.1b'
+version = '0.1b2'
 
 setup(name='ColanderAlchemy',
       version=version,

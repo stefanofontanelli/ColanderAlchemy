@@ -27,15 +27,19 @@ schemas based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped classes.
             * the ``colander.Mapping`` is built using `rule 2` on the mapped class referenced by relationship.
 
 
-Read the section :ref:`customization` to see how change these rules.
+Read the section :ref:`customization` to see how change these rules and how to customize
+the Colander schema returned by ColanderAlchemy.
 
 Read the section :ref:`examples` to see how use `ColanderAlchemy`.
+
+Read the section :ref:`deform` to see how use `ColanderAlchemy` with deform.
 
 Contents
 --------
 
 .. toctree::
     examples
+    deform
     customization
     api
 
@@ -46,4 +50,5 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+* :ref:`api`
 

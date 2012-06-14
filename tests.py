@@ -77,6 +77,40 @@ class Template(Base):
     theme = sqlalchemy.orm.relationship('Theme', back_populates='templates')
 
 
+class Person(Base):
+    __tablename__ = 'person'
+    id = colanderalchemy.Column(sqlalchemy.Integer,
+                                primary_key=True,
+                                ca_type=colander.Float(),
+                                ca_name='ID',
+                                ca_title='Person ID',
+                                ca_description='The Person identifier.',
+                                ca_widget='Empty Widget',
+                                ca_include=True)
+    name = colanderalchemy.Column(sqlalchemy.Unicode(128),
+                                  nullable=False,
+                                  ca_nullable=True,
+                                  ca_include=True,
+                                  ca_default=colander.required)
+    surname = colanderalchemy.Column(sqlalchemy.Unicode(128),
+                                     nullable=False,
+                                     ca_exclude=True)
+    addresses = colanderalchemy.relationship('Address', ca_exclude=True)
+
+
+class Address(Base):
+    __tablename__ = 'addresses'
+    id = colanderalchemy.Column(sqlalchemy.Integer,
+                                primary_key=True,
+                                ca_missing=colander.null)
+    street = colanderalchemy.Column(sqlalchemy.Unicode(128), nullable=False)
+    city = colanderalchemy.Column(sqlalchemy.Unicode(128), nullable=False)
+    person_id = colanderalchemy.Column(sqlalchemy.Unicode(128),
+                                       sqlalchemy.ForeignKey('person.id'),
+                                       primary_key=True)
+    person = colanderalchemy.relationship('Person')
+
+
 class TestsBase(unittest.TestCase):
 
     def setUp(self):
@@ -89,6 +123,8 @@ class TestsBase(unittest.TestCase):
         self.contact = colanderalchemy.SQLAlchemyMapping(Contact)
         self.theme = colanderalchemy.SQLAlchemyMapping(Theme)
         self.template = colanderalchemy.SQLAlchemyMapping(Template)
+        self.person = colanderalchemy.SQLAlchemyMapping(Person)
+        self.address = colanderalchemy.SQLAlchemyMapping(Address)
 
     def tearDown(self):
         self.session.rollback()
@@ -201,18 +237,28 @@ class TestsBase(unittest.TestCase):
         self.assertEqual(self.template._reg.collections, set())
 
     def test_excludes(self):
-        excludes = ('email', 'name', 'surname', 'gender', 'contact', 'themes')
+        excludes = {
+            'email': True,
+            'name': True,
+            'surname': True,
+            'gender': True,
+            'contact': True,
+            'themes': True
+        }
         account = colanderalchemy.SQLAlchemyMapping(Account, excludes=excludes)
         data = account.deserialize({})
         self.assertEqual(data, {})
         self.assertEqual(account.serialize(data), {})
 
     def test_includes(self):
-        includes = ('email',)
+        includes = {'email': True}
         account = colanderalchemy.SQLAlchemyMapping(Account, includes=includes)
         self.assertEqual(list(account.serialize({}).keys()), ['email'])
 
-        self.assertRaises(ValueError, colanderalchemy.SQLAlchemyMapping, Account, ('contact',), includes)
+        self.assertRaises(ValueError, colanderalchemy.SQLAlchemyMapping,
+                          Account, {'email': True}, {'email': True})
+        self.assertRaises(ValueError, colanderalchemy.SQLAlchemyMapping,
+                          Account, {'email': False}, {'email': False})
 
     def test_nullables(self):
         nullables = {
@@ -263,3 +309,13 @@ class TestsBase(unittest.TestCase):
                   'contact': None,
                   'themes': []}
         self.assertEqual(dictified, params)
+
+    def test_declarative(self):
+        self.assertEqual(type(self.person['ID'].typ), colander.Float)
+        self.assertEqual(self.person['ID'].title, 'Person ID')
+        self.assertEqual(self.person['ID'].description, 'The Person identifier.')
+        self.assertEqual(self.person['ID'].widget, 'Empty Widget')
+        self.assertRaises(KeyError, self.person.__getitem__, 'addresses')
+        self.assertRaises(KeyError, self.person.__getitem__, 'surname')
+        self.assertEqual(self.person['name'].default, colander.required)
+        self.assertEqual(self.address['id'].missing, colander.null)

@@ -6,12 +6,12 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 from collections import OrderedDict
-from logging import getLogger
 from sqlalchemy.orm.properties import ColumnProperty
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.orm import class_mapper
+import sqlalchemy.schema
 
-__all__ = ['MappingRegistry']
+__all__ = ['MappingRegistry', 'Column', 'relationship']
 
 
 class MappingRegistry(object):
@@ -21,25 +21,38 @@ class MappingRegistry(object):
         """
         self.cls = cls
         self._mapper = class_mapper(cls)
-        self.excludes = excludes or set()
-        self.includes = includes or set()
+        self.excludes = excludes or {}
+        self.includes = includes or {}
         self.nullables = nullables or {}
         self.pkeys = [col.name for col in self._mapper.primary_key]
         self.fkeys = {}
         self.rkeys = {}
         self.attrs = {}
+        self.properties = {}
         self.fields = set()
         self.relationships = set()
         self.references = set()
         self.collections = set()
 
-        if self.includes and self.excludes:
-            raise ValueError('includes and excludes parameters are exclusive, specify only one of them')
-
         for p in self._mapper.iterate_properties:
+
+            self.properties[p.key] = p
+
             if isinstance(p, ColumnProperty):
-                self.attrs[p.key] = p.columns[0]
+
+                col = p.columns[0]
+                self.attrs[p.key] = col
                 self.fields.add(p.key)
+
+                reg = col.ca_registry if hasattr(col, 'ca_registry') else {}
+                if p.key not in self.includes and 'include' in reg:
+                    self.includes[p.key] = reg['include']
+
+                if p.key not in self.excludes and 'exclude' in reg:
+                    self.excludes[p.key] = reg['exclude']
+
+                if p.key not in self.nullables and 'nullable' in reg:
+                    self.nullables[p.key] = reg['nullable']
 
             elif isinstance(p, RelationshipProperty):
 
@@ -47,6 +60,16 @@ class MappingRegistry(object):
                     cls = p.argument()
                 else:
                     cls = p.argument.class_
+
+                reg = p.ca_registry if hasattr(p, 'ca_registry') else {}
+                if p.key not in self.includes and 'include' in reg:
+                    self.includes[p.key] = reg['include']
+
+                if p.key not in self.excludes and 'exclude' in reg:
+                    self.excludes[p.key] = reg['exclude']
+
+                if p.key not in self.nullables and 'nullable' in reg:
+                    self.nullables[p.key] = reg['nullable']
 
                 self.attrs[p.key] = cls
                 self.relationships.add(p.key)
@@ -68,13 +91,56 @@ class MappingRegistry(object):
                 msg = 'Unsupported property type: {}'.format(type(p))
                 raise NotImplementedError(msg)
 
-        self._log = getLogger(__name__)
-        self._log.debug('Registry created.')
-        self._log.debug('Keys: %s', self.pkeys)
-        self._log.debug('Foreign Keys: %s', self.fkeys)
-        self._log.debug('Fieds: %s', self.fields)
-        self._log.debug('Relationships: %s', self.relationships)
-        self._log.debug('Relationships Keys: %s, %s',
-                        self.rkeys.keys(), self.rkeys.values())
-        self._log.debug('References: %s', self.references)
-        self._log.debug('Collections: %s', self.collections)
+            if p.key in self.includes and \
+               p.key in self.excludes and \
+               not self.includes[p.key] is None and \
+               not self.excludes[p.key] is None and \
+               self.includes[p.key] == self.excludes[p.key]:
+                msg = "%s cannot be included and excluded at the same time."
+                raise ValueError(msg % p.key)
+
+
+class Column(sqlalchemy.schema.Column):
+
+    def __init__(self, *args, **kwargs):
+
+        self._ca_registry = {}
+        for key in ['ca_type', 'ca_children', 'ca_name', 'ca_default',
+                    'ca_missing', 'ca_preparer', 'ca_validator', 'ca_after_bind',
+                    'ca_title', 'ca_description', 'ca_widget',
+                    'ca_include', 'ca_exclude', 'ca_nullable']:
+            try:
+                value = kwargs.pop(key)
+
+            except KeyError:
+                continue
+
+            else:
+                self._ca_registry[key[3:]] = value
+
+        super(Column, self).__init__(*args, **kwargs)
+
+    @property
+    def ca_registry(self):
+        return self._ca_registry
+
+
+def relationship(argument, secondary=None, **kwargs):
+
+    registry = {}
+    for key in ['ca_type', 'ca_children', 'ca_name', 'ca_default',
+                'ca_missing', 'ca_preparer', 'ca_validator', 'ca_after_bind',
+                'ca_title', 'ca_description', 'ca_widget',
+                'ca_include', 'ca_exclude', 'ca_nullable']:
+        try:
+            value = kwargs.pop(key)
+
+        except KeyError:
+            continue
+
+        else:
+            registry[key[3:]] = value
+
+    relationship = sqlalchemy.orm.relationship(argument, secondary, **kwargs)
+    relationship.ca_registry = registry
+    return relationship

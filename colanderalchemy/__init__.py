@@ -7,5 +7,7 @@
 
 from .types import SQLAlchemyMapping
 from .utils import MappingRegistry
+from .utils import Column
+from .utils import relationship
 
-__all__ = ['SQLAlchemyMapping', 'MappingRegistry']
+__all__ = ['SQLAlchemyMapping', 'MappingRegistry', 'Column', 'relationship']

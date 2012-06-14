@@ -38,7 +38,6 @@ class SQLAlchemyMapping(colander.SchemaNode):
                 node = self.get_schema_from_rel(obj,
                                                 name,
                                                 name in self._reg.collections)
-            node.name = name
             self.add(node)
 
     @property
@@ -50,18 +49,19 @@ class SQLAlchemyMapping(colander.SchemaNode):
             using information stored in the column.
         """
 
-        validator = None
-        # Add a default value for missing parameters during serialization.
-        default = None if column.default is None else column.default.arg
-        # Add a default value for  missing parameters during deserialization.
-        missing = None if column.default is None else column.default.arg
-        if not column.nullable:
-            missing = colander.required
+        if hasattr(column, 'ca_registry'):
+            params = column.ca_registry.copy()
+
+        else:
+            params = {}
 
         # support sqlalchemy.types.TypeDecorator
         column_type = getattr(column.type, 'impl', column.type)
 
-        if isinstance(column_type, sqlalchemy.types.Boolean):
+        if 'type' in params:
+            type_ = params.pop('type')
+
+        elif isinstance(column_type, sqlalchemy.types.Boolean):
             type_ = colander.Boolean()
 
         elif isinstance(column_type, sqlalchemy.types.Date):
@@ -72,7 +72,6 @@ class SQLAlchemyMapping(colander.SchemaNode):
 
         elif isinstance(column_type, sqlalchemy.types.Enum):
             type_ = colander.String()
-            validator = colander.OneOf(column.type.enums)
 
         elif isinstance(column_type, sqlalchemy.types.Float):
             type_ = colander.Float()
@@ -82,7 +81,6 @@ class SQLAlchemyMapping(colander.SchemaNode):
 
         elif isinstance(column_type, sqlalchemy.types.String):
             type_ = colander.String()
-            validator = colander.Length(0, column.type.length)
 
         elif isinstance(column_type, sqlalchemy.types.Numeric):
             type_ = colander.Decimal()
@@ -93,49 +91,96 @@ class SQLAlchemyMapping(colander.SchemaNode):
         else:
             raise NotImplementedError('Unknown type: %s' % column.type)
 
+        if 'children' in params:
+            children = params.pop('children')
+        else:
+            children = []
+
+        # Add a default value for missing parameters during serialization.
+        if 'default' not in params and column.default is None:
+            params['default'] = colander.null
+
+        elif 'default' not in params and not column.default is None:
+            params['default'] = column.default.arg
+
+        # Add a default value for  missing parameters during deserialization.
+        if 'missing' not in params and not column.nullable:
+            params['missing'] = colander.required
+
+        elif 'missing' not in params and column.default is None:
+            params['missing'] = None
+
+        elif 'missing' not in params and not column.default is None:
+            params['missing'] = column.default.arg
+
         # Overwrite default missing value when nullable is specified.
-        if nullable == False:
-            missing = colander.required
+        if nullable is False:
+            params['missing'] = colander.required
 
-        elif nullable == True:
-            missing = None
+        elif nullable is True:
+            params['missing'] = None
 
-        if default is None:
-            default = colander.null
+        if 'validator' not in params and \
+           isinstance(column_type, sqlalchemy.types.Enum):
 
-        return colander.SchemaNode(type_,
-                                   name=column.name,
-                                   validator=validator,
-                                   missing=missing,
-                                   default=default)
+            params['validator'] = colander.OneOf(column.type.enums)
+
+        elif 'validator' not in params and \
+           isinstance(column_type, sqlalchemy.types.Enum):
+
+            params['validator'] = colander.Length(0, column.type.length)
+
+        if 'name' not in params:
+            params['name'] = column.name
+
+        return colander.SchemaNode(type_, *children, **params)
 
     def get_schema_from_rel(self, cls, name, uselist=False, nullable=None):
         """ Build and return a Colander SchemaNode
             using information stored in the relationship property.
         """
 
-        mapper = class_mapper(cls)
-        nodes = [self.get_schema_from_col(col) for col in mapper.primary_key]
+        if hasattr(self._reg.properties[name], 'ca_registry'):
+            params = self._reg.properties[name].ca_registry.copy()
 
-        if uselist:
+        else:
+            params = {}
+
+        if 'name' not in params:
+            params['name'] = name
+
+        if 'type' in params:
+            type_ = params.pop('type')
+
+        elif uselist:
             # xToMany relationships.
             type_ = colander.Sequence()
-            missing = []
+
         else:
             # xToOne relationships.
             type_ = colander.Mapping()
-            missing = None
+
+        if 'children' in params:
+            children = params.pop('children')
+
+        else:
+            mapper = class_mapper(cls)
+            children = [self.get_schema_from_col(col)
+                        for col in mapper.primary_key]
 
         if nullable == False:
-            missing = colander.required
+            params['missing'] = colander.required
 
-        default = colander.null
+        elif 'type' not in params and uselist:
+            params['missing'] = []
 
-        return colander.SchemaNode(type_,
-                                   *nodes,
-                                   name=name,
-                                   missing=missing,
-                                   default=default)
+        elif 'type' not in params:
+            params['missing'] = None
+
+        if 'default' not in params:
+            params['default'] = colander.null
+
+        return colander.SchemaNode(type_, *children, **params)
 
     def dictify(self, obj):
         """ Build and return a dictified version of `obj`

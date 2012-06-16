@@ -188,7 +188,7 @@ class SQLAlchemyMapping(colander.SchemaNode):
             will be included in the returned dict.
         """
         dict_ = {}
-        for name in self._reg.attrs.iterkeys():
+        for name in self._reg.attrs:
 
             if name in self._reg.excludes or\
               (self._reg.includes and name not in self._reg.includes):

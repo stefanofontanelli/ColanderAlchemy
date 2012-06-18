@@ -8,6 +8,7 @@
 
 import colander
 import colanderalchemy
+import datetime
 import logging
 import sqlalchemy
 import sqlalchemy.ext.declarative
@@ -117,6 +118,18 @@ class Address(Base):
     person = colanderalchemy.relationship('Person')
 
 
+class DateTime(Base):
+    __tablename__ = 'datetimes'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    created = sqlalchemy.Column(sqlalchemy.DateTime,
+                                default=datetime.datetime.utcnow,
+                                nullable=True)
+    modified = sqlalchemy.Column(sqlalchemy.DateTime,
+                                 default=lambda: datetime.datetime.utcnow() + \
+                                                 datetime.timedelta(1),
+                                 nullable=True)
+
+
 class TestsBase(unittest.TestCase):
 
     def setUp(self):
@@ -131,6 +144,7 @@ class TestsBase(unittest.TestCase):
         self.template = colanderalchemy.SQLAlchemyMapping(Template)
         self.person = colanderalchemy.SQLAlchemyMapping(Person)
         self.address = colanderalchemy.SQLAlchemyMapping(Address)
+        self.datetime = colanderalchemy.SQLAlchemyMapping(DateTime)
 
     def tearDown(self):
         self.session.rollback()
@@ -325,3 +339,10 @@ class TestsBase(unittest.TestCase):
         self.assertRaises(KeyError, self.person.__getitem__, 'surname')
         self.assertEqual(self.person['name'].default, colander.required)
         self.assertEqual(self.address['id'].missing, colander.null)
+
+    def test_datetime(self):
+        params = self.datetime.deserialize({'id': 1})
+        self.assertIn('created', params)
+        self.assertIn('modified', params)
+        self.assertEqual(isinstance(params['created'], datetime.datetime), True)
+        self.assertEqual(isinstance(params['modified'], datetime.datetime), True)

@@ -101,7 +101,11 @@ class SQLAlchemyMapping(colander.SchemaNode):
             params['default'] = colander.null
 
         elif 'default' not in params and not column.default is None:
-            params['default'] = column.default.arg
+            if column.default.is_callable:
+                default = column.default.execute()
+            else:
+                default = column.default.arg
+            params['default'] = default
 
         # Add a default value for  missing parameters during deserialization.
         if 'missing' not in params and not column.nullable:
@@ -111,7 +115,11 @@ class SQLAlchemyMapping(colander.SchemaNode):
             params['missing'] = None
 
         elif 'missing' not in params and not column.default is None:
-            params['missing'] = column.default.arg
+            if column.default.is_callable:
+                default = column.default.execute()
+            else:
+                default = column.default.arg
+            params['missing'] = default
 
         # Overwrite default missing value when nullable is specified.
         if nullable is False:

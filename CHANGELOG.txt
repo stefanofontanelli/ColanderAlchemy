@@ -1,5 +1,8 @@
 CHANGELOG
 
+- 0.1b2 (2012-06-14)
+    - Added support to use ColanderAlchemy declaratively.
+
 - 0.1b (2012-05-19)
     - Added SQLAlchemyMapping.dictify method.
     - Updated tests with checks needed to test SQLAlchemyMapping.dictify.

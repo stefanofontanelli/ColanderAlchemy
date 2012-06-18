@@ -32,3 +32,5 @@ Development version
 Fork the development version on
 `GitHub <https://github.com/stefanofontanelli/ColanderAlchemy>`_.
 
+On Python < 2.7 install unittest2 manually to run tests.
+

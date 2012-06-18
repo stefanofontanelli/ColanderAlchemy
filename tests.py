@@ -14,7 +14,13 @@ import sqlalchemy.ext.declarative
 import sqlalchemy.orm
 import sqlalchemy.schema
 import sys
-import unittest
+
+if sys.version_info[0] == 2 and sys.version_info[1] < 7:
+    # In Python < 2.7 use unittest2.
+    import unittest2 as unittest
+
+else:
+    import unittest
 
 
 log = logging.getLogger(__name__)

@@ -58,7 +58,6 @@ You can customize the Colander schema built by ColanderAlchemy directly in the S
 ``colanderalchemy.Column`` and ``colanderalchemy.relationship`` accept following keyword arguments that are mapped directly on ``Colander.SchemaNode`` ones:
     * ``ca_type``,
     * ``ca_children``,
-    * ``ca_name``,
     * ``ca_default``,
     * ``ca_missing``,
     * ``ca_preparer``,

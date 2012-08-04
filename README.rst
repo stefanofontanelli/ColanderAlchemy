@@ -34,3 +34,14 @@ Fork the development version on
 
 On Python < 2.7 install unittest2 manually to run tests.
 
+
+Support
+-------
+
+Please use `Github Issue System
+<https://github.com/stefanofontanelli/ColanderAlchemy/issues/new>`_
+for support requests (bug report, feature requests, 
+other kind of help requests).
+
+`Follow me on Twitter @stefontanelli<https://twitter.com/stefontanelli>`_
+to receive notifications about new releases.

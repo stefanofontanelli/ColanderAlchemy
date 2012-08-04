@@ -1,19 +1,21 @@
-# tests.py
+# test_declarative.py
 # Copyright (C) 2012 the ColanderAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of ColanderAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-
+from models import Account
+from models import Address
+from models import Contact
+from models import LogEntry
+from models import Person
+from models import Template
+from models import Theme
 import colander
 import colanderalchemy
 import datetime
 import logging
-import sqlalchemy
-import sqlalchemy.ext.declarative
-import sqlalchemy.orm
-import sqlalchemy.schema
 import sys
 
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
@@ -25,130 +27,21 @@ else:
 
 
 log = logging.getLogger(__name__)
-Base = sqlalchemy.ext.declarative.declarative_base()
 
 
-# True if we are running on Python 3.
-PY3 = sys.version_info[0] == 3
-
-if PY3:  # pragma: no cover
-    u = lambda x: x
-else:
-    u = unicode
-
-
-class Account(Base):
-    __tablename__ = 'accounts'
-    email = sqlalchemy.Column(sqlalchemy.Unicode(256), primary_key=True)
-    name = sqlalchemy.Column(sqlalchemy.Unicode(128), nullable=False)
-    surname = sqlalchemy.Column(sqlalchemy.Unicode(128), nullable=False)
-    gender = sqlalchemy.Column(sqlalchemy.Enum(u('M'), u('F')), nullable=False)
-    contact = sqlalchemy.orm.relationship('Contact', uselist=False,
-    back_populates='account')
-    themes = sqlalchemy.orm.relationship('Theme', back_populates='author')
-
-
-class Contact(Base):
-    __tablename__ = 'contacts'
-    type_ = sqlalchemy.Column(sqlalchemy.Unicode(256), primary_key=True)
-    value = sqlalchemy.Column(sqlalchemy.Unicode(256), nullable=False)
-    account_id = sqlalchemy.Column(sqlalchemy.Unicode(256),
-    sqlalchemy.ForeignKey('accounts.email'),
-    primary_key=True)
-    account = sqlalchemy.orm.relationship('Account', back_populates='contact')
-
-
-class Theme(Base):
-    __tablename__ = 'themes'
-    name = sqlalchemy.Column(sqlalchemy.Unicode(256), primary_key=True)
-    description = sqlalchemy.Column(sqlalchemy.UnicodeText, default=u(''))
-    author_id = sqlalchemy.Column(sqlalchemy.Unicode(256),
-    sqlalchemy.ForeignKey('accounts.email'),
-    primary_key=True)
-    author = sqlalchemy.orm.relationship('Account', back_populates='themes')
-    templates = sqlalchemy.orm.relationship('Template', back_populates='theme')
-
-
-class Template(Base):
-    __tablename__ = 'templates'
-    __table_args__ = (
-        sqlalchemy.schema.ForeignKeyConstraint(
-            ['theme_name', 'theme_author_id'],
-            ['themes.name', 'themes.author_id'],
-            onupdate='CASCADE', ondelete='CASCADE'),
-    )
-    name = sqlalchemy.Column(sqlalchemy.Unicode(128), primary_key=True)
-    theme_name = sqlalchemy.Column(sqlalchemy.Unicode(256), primary_key=True)
-    theme_author_id = sqlalchemy.Column(sqlalchemy.Unicode(256),
-                                        primary_key=True)
-    theme = sqlalchemy.orm.relationship('Theme', back_populates='templates')
-
-
-class Person(Base):
-    __tablename__ = 'person'
-    id = colanderalchemy.Column(sqlalchemy.Integer,
-                                primary_key=True,
-                                ca_type=colander.Float(),
-                                ca_name='ID',
-                                ca_title='Person ID',
-                                ca_description='The Person identifier.',
-                                ca_widget='Empty Widget',
-                                ca_include=True)
-    name = colanderalchemy.Column(sqlalchemy.Unicode(128),
-                                  nullable=False,
-                                  ca_nullable=True,
-                                  ca_include=True,
-                                  ca_default=colander.required)
-    surname = colanderalchemy.Column(sqlalchemy.Unicode(128),
-                                     nullable=False,
-                                     ca_exclude=True)
-    addresses = colanderalchemy.relationship('Address', ca_exclude=True)
-
-
-class Address(Base):
-    __tablename__ = 'addresses'
-    id = colanderalchemy.Column(sqlalchemy.Integer,
-                                primary_key=True,
-                                ca_missing=colander.null)
-    street = colanderalchemy.Column(sqlalchemy.Unicode(128), nullable=False)
-    city = colanderalchemy.Column(sqlalchemy.Unicode(128), nullable=False)
-    person_id = colanderalchemy.Column(sqlalchemy.Unicode(128),
-                                       sqlalchemy.ForeignKey('person.id'),
-                                       primary_key=True)
-    person = colanderalchemy.relationship('Person')
-
-
-class DateTime(Base):
-    __tablename__ = 'datetimes'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    created = sqlalchemy.Column(sqlalchemy.DateTime,
-                                default=datetime.datetime.utcnow,
-                                nullable=True)
-    modified = sqlalchemy.Column(sqlalchemy.DateTime,
-                                 default=lambda: datetime.datetime.utcnow() + \
-                                                 datetime.timedelta(1),
-                                 nullable=True)
-
-
-class TestsBase(unittest.TestCase):
+class TestsSQLAlchemyMapping(unittest.TestCase):
 
     def setUp(self):
-        self.engine = sqlalchemy.create_engine('sqlite://')
-        Base.metadata.bind = self.engine
-        Base.metadata.create_all(self.engine)
-        self.Session = sqlalchemy.orm.sessionmaker(bind=self.engine)
-        self.session = self.Session()
         self.account = colanderalchemy.SQLAlchemyMapping(Account)
-        self.contact = colanderalchemy.SQLAlchemyMapping(Contact)
-        self.theme = colanderalchemy.SQLAlchemyMapping(Theme)
-        self.template = colanderalchemy.SQLAlchemyMapping(Template)
-        self.person = colanderalchemy.SQLAlchemyMapping(Person)
         self.address = colanderalchemy.SQLAlchemyMapping(Address)
-        self.datetime = colanderalchemy.SQLAlchemyMapping(DateTime)
+        self.contact = colanderalchemy.SQLAlchemyMapping(Contact)
+        self.logentry = colanderalchemy.SQLAlchemyMapping(LogEntry)
+        self.person = colanderalchemy.SQLAlchemyMapping(Person)
+        self.template = colanderalchemy.SQLAlchemyMapping(Template)
+        self.theme = colanderalchemy.SQLAlchemyMapping(Theme)
 
     def tearDown(self):
-        self.session.rollback()
-        self.session.close()
+        pass
 
     def test_account(self):
         # Test for required fields (ex. primary keys).
@@ -169,7 +62,7 @@ class TestsBase(unittest.TestCase):
                            'surname': 'My Surname.',
                            'gender': 'A'})
 
-    def test_relation(self):
+    def test_relationship(self):
         self.assertEqual(self.account['contact'].title, "Contact")
         self.assertEqual(self.account['contact'].name, "contact")
 
@@ -330,19 +223,11 @@ class TestsBase(unittest.TestCase):
                   'themes': []}
         self.assertEqual(dictified, params)
 
-    def test_declarative(self):
-        self.assertEqual(type(self.person['ID'].typ), colander.Float)
-        self.assertEqual(self.person['ID'].title, 'Person ID')
-        self.assertEqual(self.person['ID'].description, 'The Person identifier.')
-        self.assertEqual(self.person['ID'].widget, 'Empty Widget')
-        self.assertRaises(KeyError, self.person.__getitem__, 'addresses')
-        self.assertRaises(KeyError, self.person.__getitem__, 'surname')
-        self.assertEqual(self.person['name'].default, colander.required)
-        self.assertEqual(self.address['id'].missing, colander.null)
-
     def test_datetime(self):
-        params = self.datetime.deserialize({'id': 1})
+        params = self.logentry.deserialize({'id': 1})
         self.assertIn('created', params)
         self.assertIn('modified', params)
-        self.assertEqual(isinstance(params['created'], datetime.datetime), True)
-        self.assertEqual(isinstance(params['modified'], datetime.datetime), True)
+        self.assertEqual(isinstance(params['created'], datetime.datetime),
+                         True)
+        self.assertEqual(isinstance(params['modified'], datetime.datetime),
+                         True)

@@ -13,9 +13,8 @@ except ImportError:
 from sqlalchemy.orm.properties import ColumnProperty
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.orm import class_mapper
-import sqlalchemy.schema
 
-__all__ = ['MappingRegistry', 'Column', 'relationship']
+__all__ = ['MappingRegistry']
 
 
 class MappingRegistry(object):
@@ -102,49 +101,3 @@ class MappingRegistry(object):
                self.includes[p.key] == self.excludes[p.key]:
                 msg = "%s cannot be included and excluded at the same time."
                 raise ValueError(msg % p.key)
-
-
-class Column(sqlalchemy.schema.Column):
-
-    def __init__(self, *args, **kwargs):
-
-        self._ca_registry = {}
-        for key in ['ca_type', 'ca_children', 'ca_name', 'ca_default',
-                    'ca_missing', 'ca_preparer', 'ca_validator', 'ca_after_bind',
-                    'ca_title', 'ca_description', 'ca_widget',
-                    'ca_include', 'ca_exclude', 'ca_nullable']:
-            try:
-                value = kwargs.pop(key)
-
-            except KeyError:
-                continue
-
-            else:
-                self._ca_registry[key[3:]] = value
-
-        super(Column, self).__init__(*args, **kwargs)
-
-    @property
-    def ca_registry(self):
-        return self._ca_registry
-
-
-def relationship(argument, secondary=None, **kwargs):
-
-    registry = {}
-    for key in ['ca_type', 'ca_children', 'ca_name', 'ca_default',
-                'ca_missing', 'ca_preparer', 'ca_validator', 'ca_after_bind',
-                'ca_title', 'ca_description', 'ca_widget',
-                'ca_include', 'ca_exclude', 'ca_nullable']:
-        try:
-            value = kwargs.pop(key)
-
-        except KeyError:
-            continue
-
-        else:
-            registry[key[3:]] = value
-
-    relationship = sqlalchemy.orm.relationship(argument, secondary, **kwargs)
-    relationship.ca_registry = registry
-    return relationship

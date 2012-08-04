@@ -102,7 +102,8 @@ class SQLAlchemyMapping(colander.SchemaNode):
 
         elif 'default' not in params and not column.default is None:
             if column.default.is_callable:
-                default = column.default.execute()
+                # Fix: SQLA wraps callables in lambda ctx: fn().
+                default = column.default.arg(None)
             else:
                 default = column.default.arg
             params['default'] = default
@@ -116,7 +117,8 @@ class SQLAlchemyMapping(colander.SchemaNode):
 
         elif 'missing' not in params and not column.default is None:
             if column.default.is_callable:
-                default = column.default.execute()
+                # Fix: SQLA wraps default callables in lambda ctx: fn().
+                default = column.default.arg(None)
             else:
                 default = column.default.arg
             params['missing'] = default
@@ -138,8 +140,8 @@ class SQLAlchemyMapping(colander.SchemaNode):
 
             params['validator'] = colander.Length(0, column.type.length)
 
-        if 'name' not in params:
-            params['name'] = column.name
+        # The name of SchemaNode must be the same of SQLA class attribute.
+        params['name'] = column.name
 
         return colander.SchemaNode(type_, *children, **params)
 
@@ -154,8 +156,8 @@ class SQLAlchemyMapping(colander.SchemaNode):
         else:
             params = {}
 
-        if 'name' not in params:
-            params['name'] = name
+        # The name of SchemaNode must be the same of SQLA class attribute.
+        params['name'] = name
 
         if 'type' in params:
             type_ = params.pop('type')

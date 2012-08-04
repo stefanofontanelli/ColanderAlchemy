@@ -5,9 +5,7 @@
 # This module is part of ColanderAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-from .types import SQLAlchemyMapping
-from .utils import MappingRegistry
-from .declarative import Column
-from .declarative import relationship
+import test_declarative
+import test_types
 
-__all__ = ['SQLAlchemyMapping', 'MappingRegistry', 'Column', 'relationship']
+__all__ = ['test_declarative', 'test_types']

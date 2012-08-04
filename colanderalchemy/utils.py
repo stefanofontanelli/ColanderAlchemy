@@ -47,7 +47,7 @@ class MappingRegistry(object):
                 self.attrs[p.key] = col
                 self.fields.add(p.key)
 
-                reg = col.ca_registry if hasattr(col, 'ca_registry') else {}
+                reg = col.ca_registry.copy() if hasattr(col, 'ca_registry') else {}
                 if p.key not in self.includes and 'include' in reg:
                     self.includes[p.key] = reg['include']
 

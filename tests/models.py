@@ -147,3 +147,24 @@ class LogEntry(Base):
                                  default=lambda: datetime.datetime.utcnow() + \
                                                  datetime.timedelta(1),
                                  nullable=True)
+
+
+class Timestamped(object):
+    """ An automatically timestamped mixin. """
+    ins_date = colanderalchemy.Column(sqlalchemy.DateTime,
+                                      nullable=False,
+                                      default=datetime.datetime.utcnow,
+                                      ca_exclude=True)
+    mod_date = colanderalchemy.Column(sqlalchemy.DateTime,
+                                      ca_exclude=True,
+                                      nullable=False,
+                                      default=datetime.datetime.utcnow)
+
+
+TimeBase = sqlalchemy.ext.declarative.declarative_base(cls=Timestamped)
+
+
+class Versioned(TimeBase):
+
+    __tablename__ = 'versions'
+    id = colanderalchemy.Column(sqlalchemy.Integer, primary_key=True)

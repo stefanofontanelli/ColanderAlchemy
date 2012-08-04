@@ -7,6 +7,7 @@
 
 from models import Address
 from models import Person
+from models import Versioned
 import colander
 import colanderalchemy
 import logging
@@ -28,6 +29,7 @@ class TestsBase(unittest.TestCase):
     def setUp(self):
         self.address = colanderalchemy.SQLAlchemyMapping(Address)
         self.person = colanderalchemy.SQLAlchemyMapping(Person)
+        self.versioned = colanderalchemy.SQLAlchemyMapping(Versioned)
 
     def tearDown(self):
         pass
@@ -46,3 +48,7 @@ class TestsBase(unittest.TestCase):
         self.assertEqual(self.address['person'].title, 'Person relationship.')
         self.assertEqual(self.address['person'].description, 'The Person desc.')
         self.assertEqual(self.address['person'].widget, 'Rel. Empty Widget')
+
+    def test_column_inheritance(self):
+        self.assertRaises(colander.Invalid, self.versioned.deserialize, {})
+        self.assertEqual(self.versioned.deserialize({'id': '1'}), {'id': 1})

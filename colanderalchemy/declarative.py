@@ -35,6 +35,11 @@ class Column(sqlalchemy.schema.Column):
     def ca_registry(self):
         return self._ca_registry
 
+    def copy(self, **kwargs):
+        col = super(Column, self).copy(**kwargs)
+        col._ca_registry = self._ca_registry.copy()
+        return col
+
 
 def relationship(argument, secondary=None, **kwargs):
 

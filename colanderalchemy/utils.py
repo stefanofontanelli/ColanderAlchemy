@@ -48,10 +48,12 @@ class MappingRegistry(object):
                 self.fields.add(p.key)
 
                 reg = col.ca_registry.copy() if hasattr(col, 'ca_registry') else {}
-                if p.key not in self.includes and 'include' in reg:
+                if p.key not in self.includes and\
+                   'include' in reg and reg['include']:
                     self.includes[p.key] = reg['include']
 
-                if p.key not in self.excludes and 'exclude' in reg:
+                if p.key not in self.excludes and\
+                   'exclude' in reg and reg['exclude']:
                     self.excludes[p.key] = reg['exclude']
 
                 if p.key not in self.nullables and 'nullable' in reg:
@@ -65,10 +67,12 @@ class MappingRegistry(object):
                     cls = p.argument.class_
 
                 reg = p.ca_registry if hasattr(p, 'ca_registry') else {}
-                if p.key not in self.includes and 'include' in reg:
+                if p.key not in self.includes and\
+                   'include' in reg and reg['include']:
                     self.includes[p.key] = reg['include']
 
-                if p.key not in self.excludes and 'exclude' in reg:
+                if p.key not in self.excludes and\
+                   'exclude' in reg and reg['exclude']:
                     self.excludes[p.key] = reg['exclude']
 
                 if p.key not in self.nullables and 'nullable' in reg:

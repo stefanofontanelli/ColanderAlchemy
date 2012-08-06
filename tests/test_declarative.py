@@ -50,5 +50,9 @@ class TestsBase(unittest.TestCase):
         self.assertEqual(self.address['person'].widget, 'Rel. Empty Widget')
 
     def test_column_inheritance(self):
-        self.assertRaises(colander.Invalid, self.versioned.deserialize, {})
-        self.assertEqual(self.versioned.deserialize({'id': '1'}), {'id': 1})
+        self.assertRaises(colander.Invalid,
+                          self.versioned.deserialize,
+                          {})
+        self.assertRaises(colander.Invalid,
+                          self.versioned.deserialize,
+                          {'id': '1'})

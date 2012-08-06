@@ -30,7 +30,7 @@ class SQLAlchemyMapping(colander.SchemaNode):
             if self._reg.includes and name not in self._reg.includes:
                 continue
 
-            elif name in self._reg.fields:
+            if name in self._reg.fields:
                 node = self.get_schema_from_col(obj,
                                                 self._reg.nullables.get(name))
 

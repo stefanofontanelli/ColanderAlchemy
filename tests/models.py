@@ -156,7 +156,7 @@ class Timestamped(object):
                                       default=datetime.datetime.utcnow,
                                       ca_exclude=True)
     mod_date = colanderalchemy.Column(sqlalchemy.DateTime,
-                                      ca_exclude=True,
+                                      ca_include=False,
                                       nullable=False,
                                       default=datetime.datetime.utcnow)
 

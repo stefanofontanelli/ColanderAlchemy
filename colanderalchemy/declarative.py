@@ -19,7 +19,8 @@ class Column(sqlalchemy.schema.Column):
         for key in ['ca_type', 'ca_children', 'ca_default',
                     'ca_missing', 'ca_preparer', 'ca_validator',
                     'ca_after_bind', 'ca_title', 'ca_description',
-                    'ca_widget', 'ca_include', 'ca_exclude', 'ca_nullable']:
+                    'ca_widget', 'ca_include', 'ca_exclude', 'ca_nullable',
+                    'ca_order']:
             try:
                 value = kwargs.pop(key)
 
@@ -47,7 +48,7 @@ def relationship(argument, secondary=None, **kwargs):
     for key in ['ca_type', 'ca_children', 'ca_default',
                 'ca_missing', 'ca_preparer', 'ca_validator', 'ca_after_bind',
                 'ca_title', 'ca_description', 'ca_widget',
-                'ca_include', 'ca_exclude', 'ca_nullable']:
+                'ca_include', 'ca_exclude', 'ca_nullable', 'ca_order']:
         try:
             value = kwargs.pop(key)
 

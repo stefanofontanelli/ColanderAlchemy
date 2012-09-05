@@ -28,15 +28,17 @@ class MappingRegistry(object):
         self.includes = includes or {}
         self.nullables = nullables or {}
         self.pkeys = [col.name for col in self._mapper.primary_key]
-        self.fkeys = {}
-        self.rkeys = {}
-        self.attrs = {}
-        self.properties = {}
+        self.fkeys = OrderedDict()
+        self.rkeys = OrderedDict()
+        self.attrs = OrderedDict()
+        self.properties = OrderedDict()
         self.fields = set()
         self.relationships = set()
         self.references = set()
         self.collections = set()
+        self.ordering = OrderedDict()
 
+        counter = 0
         for p in self._mapper.iterate_properties:
 
             self.properties[p.key] = p
@@ -59,6 +61,8 @@ class MappingRegistry(object):
                 if p.key not in self.nullables and 'nullable' in reg:
                     self.nullables[p.key] = reg['nullable']
 
+                self.ordering[reg.get('order', counter)] = p.key
+
             elif isinstance(p, RelationshipProperty):
 
                 if callable(p.argument):
@@ -80,6 +84,7 @@ class MappingRegistry(object):
 
                 self.attrs[p.key] = cls
                 self.relationships.add(p.key)
+                self.ordering[reg.get('order', counter)] = p.key
                 self.rkeys[p.key] = [col.name
                                      for col in class_mapper(cls).primary_key]
                 if p.uselist:
@@ -97,6 +102,8 @@ class MappingRegistry(object):
             else:
                 msg = 'Unsupported property type: {}'.format(type(p))
                 raise NotImplementedError(msg)
+
+            counter += 1
 
             if p.key in self.includes and \
                p.key in self.excludes and \

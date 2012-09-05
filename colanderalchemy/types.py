@@ -23,7 +23,11 @@ class SQLAlchemyMapping(colander.SchemaNode):
         super(SQLAlchemyMapping, self).__init__(colander.Mapping(unknown))
 
         self._reg = MappingRegistry(cls, excludes, includes, nullables)
-        for name, obj in self._reg.attrs.items():
+        for i in sorted(self._reg.ordering):
+
+            name = self._reg.ordering[i]
+            obj = self._reg.attrs[name]
+
             if name in self._reg.excludes:
                 continue
 
@@ -32,6 +36,7 @@ class SQLAlchemyMapping(colander.SchemaNode):
 
             if name in self._reg.fields:
                 node = self.get_schema_from_col(obj,
+                                                name,
                                                 self._reg.nullables.get(name))
 
             else:
@@ -44,7 +49,7 @@ class SQLAlchemyMapping(colander.SchemaNode):
     def registry(self):
         return self._reg
 
-    def get_schema_from_col(self, column, nullable=None):
+    def get_schema_from_col(self, column, name, nullable=None):
         """ Build and return a Colander SchemaNode
             using information stored in the column.
         """
@@ -141,7 +146,7 @@ class SQLAlchemyMapping(colander.SchemaNode):
             params['validator'] = colander.Length(0, column.type.length)
 
         # The name of SchemaNode must be the same of SQLA class attribute.
-        params['name'] = column.name
+        params['name'] = name
 
         return colander.SchemaNode(type_, *children, **params)
 
@@ -175,7 +180,7 @@ class SQLAlchemyMapping(colander.SchemaNode):
 
         else:
             mapper = class_mapper(cls)
-            children = [self.get_schema_from_col(col)
+            children = [self.get_schema_from_col(col, col.name)
                         for col in mapper.primary_key]
 
         if nullable == False:

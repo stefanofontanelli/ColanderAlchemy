@@ -27,7 +27,7 @@ class MappingRegistry(object):
         self.excludes = excludes or {}
         self.includes = includes or {}
         self.nullables = nullables or {}
-        self.pkeys = [col.name for col in self._mapper.primary_key]
+        self.pkeys = []
         self.fkeys = OrderedDict()
         self.rkeys = OrderedDict()
         self.attrs = OrderedDict()
@@ -48,6 +48,8 @@ class MappingRegistry(object):
                 col = p.columns[0]
                 self.attrs[p.key] = col
                 self.fields.add(p.key)
+                if col in self._mapper.primary_key:
+                    self.pkeys.append(p.key)
 
                 reg = col.ca_registry.copy() if hasattr(col, 'ca_registry') else {}
                 if p.key not in self.includes and\

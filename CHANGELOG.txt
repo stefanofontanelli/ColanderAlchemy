@@ -1,5 +1,12 @@
 CHANGELOG
 
+- 0.1b4
+    - Fix bug in MappingRegistry.__init__:
+      pkeys is a list of property keys instead of column name
+    - Add support to specify schema node ordering.
+    - Fix bug related to 'ca_include=False'.
+    - Change tests to cover that bug.
+
 - 0.1b3 (2012-08-02)
 	- Fix issue related to mapped class inheritance.
 	- Fix minor bugs.

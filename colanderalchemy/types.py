@@ -28,7 +28,7 @@ class SQLAlchemyMapping(colander.SchemaNode):
             name = self._reg.ordering[i]
             obj = self._reg.attrs[name]
 
-            if name in self._reg.excludes:
+            if name in self._reg.excludes and self._reg.excludes[name]:
                 continue
 
             if self._reg.includes and name not in self._reg.includes:

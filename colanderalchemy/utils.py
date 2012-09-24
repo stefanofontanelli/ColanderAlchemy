@@ -48,6 +48,9 @@ class MappingRegistry(object):
                 col = p.columns[0]
                 self.attrs[p.key] = col
                 self.fields.add(p.key)
+                if col.foreign_keys:
+                    self.fkeys[p.key] = p
+
                 if col in self._mapper.primary_key:
                     self.pkeys.append(p.key)
 
@@ -93,6 +96,7 @@ class MappingRegistry(object):
                     self.collections.add(p.key)
                 else:
                     self.references.add(p.key)
+                    # Check need of code below.
                     self.fkeys[p.key] = OrderedDict()
                     for col in p._calculated_foreign_keys:
                         if col.table in self._mapper.tables:

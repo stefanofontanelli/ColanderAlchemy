@@ -4,6 +4,11 @@
 #
 # This module is part of ColanderAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
+try:
+    from collections import OrderedDict
+
+except ImportError:
+    from backports import OrderedDict
 
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm import object_mapper
@@ -202,11 +207,12 @@ class SQLAlchemyMapping(colander.SchemaNode):
             using schema information to choose what attributes
             will be included in the returned dict.
         """
-        dict_ = {}
+
+        dict_ = OrderedDict()
         for name in self._reg.attrs:
 
-            if name in self._reg.excludes or\
-              (self._reg.includes and name not in self._reg.includes):
+            if (name in self._reg.excludes and self._reg.excludes[name]) or\
+               (self._reg.includes and name not in self._reg.includes):
                 continue
 
             if name in self._reg.fields:

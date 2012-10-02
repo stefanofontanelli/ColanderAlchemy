@@ -59,8 +59,7 @@ class MappingRegistry(object):
                    'include' in reg and reg['include']:
                     self.includes[p.key] = reg['include']
 
-                if p.key not in self.excludes and\
-                   'exclude' in reg and reg['exclude']:
+                if p.key not in self.excludes and 'exclude' in reg:  # and reg['exclude']:
                     self.excludes[p.key] = reg['exclude']
 
                 if p.key not in self.nullables and 'nullable' in reg:

@@ -1,5 +1,8 @@
 CHANGELOG
 
+- 0.1b6 (2012-10-11)
+    - Fix minor bugs.
+
 - 0.1b5 (2012-09-19)
     - Fix bug in MappingRegistry.__init__:
       pkeys is a list of property keys instead of column name

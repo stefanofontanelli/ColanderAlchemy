@@ -1,5 +1,9 @@
 CHANGELOG
 
+- 0.2 (Unreleased)
+    - Ensure relationships are mapped recursively and adhere to
+      ColanderAlchemy settings for mappings.
+
 - 0.1b6 (2012-10-11)
     - Fix minor bugs.
 

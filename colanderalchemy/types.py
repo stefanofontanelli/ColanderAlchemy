@@ -184,9 +184,9 @@ class SQLAlchemyMapping(colander.SchemaNode):
             children = params.pop('children')
 
         else:
-            mapper = class_mapper(cls)
-            children = [self.get_schema_from_col(col, col.name)
-                        for col in mapper.primary_key]
+            # Map all columns according to ColanderAlchemy configuration
+            mapping = SQLAlchemyMapping(cls)
+            children = mapping.children
 
         if nullable == False:
             params['missing'] = colander.required

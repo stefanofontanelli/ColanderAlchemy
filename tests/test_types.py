@@ -194,7 +194,10 @@ class TestsSQLAlchemyMapping(unittest.TestCase):
         }
         self.assertEqual(data, account.deserialize({}))
         self.assertEqual(account.serialize({}), {
-            'contact': {'account_id': colander.null, 'type_': colander.null},
+            'contact': {'account_id': colander.null,
+                        'type_': colander.null,
+                        'value': colander.null,
+                        'description': colander.null},
             'email': colander.null,
             'gender': colander.null,
             'name': colander.null,
@@ -231,3 +234,27 @@ class TestsSQLAlchemyMapping(unittest.TestCase):
                          True)
         self.assertEqual(isinstance(params['modified'], datetime.datetime),
                          True)
+
+    def test_relationship_mapping(self):
+        """Ensure all fields from related classes are available.
+
+        Also ensure that ColanderAlchemy configuration is adhered to
+        with regards to the relationships and ensure relationship resolution
+        occurs recursively.
+        """
+        self.assertIn('contact', self.account)
+        contact = self.account['contact']
+        self.assertIn('value', contact)
+        self.assertIn('description', contact)
+        self.assertNotIn('excluded_note', contact)
+
+        self.assertIn('themes', self.account)
+        themes = self.account['themes']
+        self.assertIn('name', themes)
+        self.assertIn('description', themes)
+        self.assertIn('templates', themes)
+
+        templates = themes['templates']
+        self.assertIn('name', templates)
+        self.assertIn('theme_name', templates)
+        self.assertIn('theme_author_id', templates)

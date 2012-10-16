@@ -25,10 +25,8 @@ setup(name='ColanderAlchemy',
       include_package_data=True,
       zip_safe=True,
       install_requires=[
-            'ordereddict',
-            'colander',
-            'SQLAlchemy >= 0.7, < 0.8'
-      ],
+            'colander >= 0.9.8',
+            'SQLAlchemy >= 0.8dev'],
       tests_require=[],
       test_suite='tests',
       )

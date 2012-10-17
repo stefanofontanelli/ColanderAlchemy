@@ -3,8 +3,19 @@
 ColanderAlchemy API
 ===================
 
+Declarative Classes
+~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: colanderalchemy.declarative
+
+  .. autoclass:: Column
+  
+     .. automethod:: __init__
+
+  .. autofunction:: relationship
+
 Types
-~~~~~~~~~~
+~~~~~
 
 .. automodule:: colanderalchemy.types
 
@@ -15,7 +26,7 @@ Types
 
 
 Utilities
-~~~~~~~~~~
+~~~~~~~~~
 
 .. automodule:: colanderalchemy.utils
 
@@ -23,8 +34,3 @@ Utilities
 
      .. automethod:: __init__
 
-  .. autoclass:: Column
-
-     .. automethod:: __init__
-
-  .. autofunction:: relationship

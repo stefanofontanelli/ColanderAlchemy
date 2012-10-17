@@ -1,27 +1,42 @@
 .. _customization:
 
-Change autogeneration rules
-===========================
+Change auto-generation rules
+============================
 
-Default Colander schema generated using SQLAlchemyMapping follows the rules below:
-    1) it has a not required field for each not required column and for each relationship,
-    2) it has a required field for each primary key or not nullable column,
-    3) it has a default field for each column which has a default value,
-    4) it validates ``Enum`` columns using Colander ``OneOf`` validator.
+The default ``Colander`` schema generated using ``SQLAlchemyMapping`` follows
+the rules below:
 
-The user can change default behaviour of SQLAlchemyMapping specifing keyword arguments 
-``includes`` or ``excludes`` and ``nullables``.
+#. It has an `optional` (not required) field for each optional column and for
+   each relationship
 
-Read `tests <https://github.com/stefanofontanelli/ColanderAlchemy/blob/master/tests.py>`_ to understand how they work.
+#. It has a `required` field for each primary key or `not nullable` column
 
-You can subclass SQLAlchemyMapping methods ``get_schema_from_col`` and ``get_schema_from_rel``
-when you need more customization.
+#. It has a `default` field for each column which has a default value
 
+#. It validates ``Enum`` columns using the Colander ``OneOf`` validator
 
-Change autogeneration rules directly in SQLAlchemy models
-=========================================================
+The user can change default behaviour of ``SQLAlchemyMapping`` by specifying
+the keyword arguments ``includes``, ``excludes``, and ``nullables``.
 
-You can customize the Colander schema built by ColanderAlchemy directly in the SQLAlchemy models as follow::
+Read `tests
+<https://github.com/stefanofontanelli/ColanderAlchemy/blob/master/tests.py>`_
+to understand how they work.
+
+You can subclass the following ``SQLAlchemyMapping`` methods when you need
+more customization:
+
+* ``get_schema_from_col``, which returns a ``colander.SchemaNode`` given a
+  ``sqlachemy.schema.Column``
+
+* ``get_schema_from_rel``, which returns a ``colander.SchemaNode`` given a
+  ``sqlalchemy.orm.relationship``.
+  
+
+Changing auto-generation rules directly in SQLAlchemy models
+============================================================
+
+You can customize the Colander schema built by ``ColanderAlchemy`` directly
+in the SQLAlchemy models as follow::
 
     from colanderalchemy import Column
     from colanderalchemy import relationship
@@ -55,7 +70,15 @@ You can customize the Colander schema built by ColanderAlchemy directly in the S
                          nullable=False,
                          ca_exclude=True)
 
-``colanderalchemy.Column`` and ``colanderalchemy.relationship`` accept following keyword arguments that are mapped directly on ``Colander.SchemaNode`` ones:
+.. _ca-keyword-arguments:
+
+Customizable Keyword Arguments
+==============================
+
+``colanderalchemy.Column`` and ``colanderalchemy.relationship`` accept
+following keyword arguments that are mapped directly to attributes on
+``colander.SchemaNode``: 
+
     * ``ca_type``,
     * ``ca_children``,
     * ``ca_default``,
@@ -67,9 +90,17 @@ You can customize the Colander schema built by ColanderAlchemy directly in the S
     * ``ca_description``,
     * ``ca_widget``.
 
+As an example, the value of the keyword ``ca_title`` will be passed as the
+keyword argument ``title`` (the string without the leading ``ca_`` prefix)
+when instatiating the ``colander.SchemaNode``. For more information about
+what these options can do, see the `Colander
+<http://rtd.pylonsproject.org/projects/colander/>`_ documentation.
+
 In addition you can specify:
+
     * ``ca_include``,
     * ``ca_exclude``,
     * ``ca_nullable``,
 
-that are usefull to include/exclude attributes or made them nullable.
+These options are useful to either include or exclude attributes from
+the resulting ``colander.Schema`` or to make certain nodes nullable.

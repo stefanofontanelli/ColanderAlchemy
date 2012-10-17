@@ -5,8 +5,7 @@ version = '0.1'
 setup(name='ColanderAlchemy',
       version=version,
       description="Autogenerate Colander schemas based on SQLAlchemy models.",
-      long_description="""\
-An helper tool for autogenerating Colander schemas based on SQLAlchemy mapped classes.""",
+      long_description=open('README.rst', 'rb').read(),
       classifiers=['Development Status :: 4 - Beta',
                    'Intended Audience :: Developers',
                    'Programming Language :: Python',

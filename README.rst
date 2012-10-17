@@ -1,22 +1,28 @@
 ColanderAlchemy
 ===============
 
-`ColanderAlchemy` helps you autogenerating
-`Colander <http://http://docs.pylonsproject.org/projects/colander/en/latest/>`_
-schemas that are based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped classes.
+`ColanderAlchemy` helps you to auto-generate `Colander
+<http://http://docs.pylonsproject.org/projects/colander/en/latest/>`_ schemas
+that are based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped classes.
+
+Such `Colander` schemas can be used with libraries like `Deform
+<http://docs.pylonsproject.org/projects/deform/>`_ and helps remove the 
+need for duplication of schema definitions.
 
 
 Documentation
 -------------
 
-Latest documentation is at:
-`Read The Docs <http://readthedocs.org/docs/colanderalchemy/en/latest/index.html>`_.
+Latest documentation is at: `Read The Docs
+<http://readthedocs.org/docs/colanderalchemy/en/latest/index.html>`_.
 
 
 Installation
 ------------
 
-Using `pip` command:  pip install ColanderAlchemy
+Using `pip` command::
+
+    pip install ColanderAlchemy
 
 
 License
@@ -32,7 +38,7 @@ Development version
 Fork the development version on
 `GitHub <https://github.com/stefanofontanelli/ColanderAlchemy>`_.
 
-On Python < 2.7 install unittest2 manually to run tests.
+On Python < 2.7 install ``unittest2`` manually to run tests.
 
 
 Support
@@ -40,8 +46,8 @@ Support
 
 Please use `Github Issue System
 <https://github.com/stefanofontanelli/ColanderAlchemy/issues/new>`_
-for support requests (bug report, feature requests, 
-other kind of help requests).
+for support requests (bug report, feature requests, other kind of help
+requests).
 
 `Follow me on Twitter @stefontanelli
 <https://twitter.com/stefontanelli>`_

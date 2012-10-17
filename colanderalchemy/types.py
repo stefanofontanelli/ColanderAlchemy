@@ -27,6 +27,9 @@ class SQLAlchemyMapping(colander.SchemaNode):
         """
         super(SQLAlchemyMapping, self).__init__(colander.Mapping(unknown))
 
+        self.name = cls.__name__.lower()
+        self.title = cls.__name__
+
         self._reg = MappingRegistry(cls, excludes, includes, nullables)
         for i in sorted(self._reg.ordering):
 
@@ -184,9 +187,9 @@ class SQLAlchemyMapping(colander.SchemaNode):
             children = params.pop('children')
 
         else:
-            mapper = class_mapper(cls)
-            children = [self.get_schema_from_col(col, col.name)
-                        for col in mapper.primary_key]
+            # Map columns according to ColanderAlchemy configuration
+            mapping = SQLAlchemyMapping(cls)
+            children = uselist and (mapping,) or mapping.children
 
         if nullable == False:
             params['missing'] = colander.required

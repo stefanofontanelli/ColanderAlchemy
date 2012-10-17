@@ -42,6 +42,11 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                                         SQLAlchemySchemaNode),
                              True)
 
+    def test_add_nodes_exceptions(self):
+        includes = ('email',)
+        excludes = ('email',)
+        self.assertRaises(ValueError, SQLAlchemySchemaNode, Account, includes, excludes)
+
     def test_default_strategy_for_columns_and_relationships_include_all(self):
         account_schema = SQLAlchemySchemaNode(Account)
         m = inspect(Account)
@@ -81,7 +86,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         m = inspect(Account)
         overrides = {
             'email': {
-                'typ': colander.Integer()
+                'typ': colander.Integer
             }
         }
         account_schema = SQLAlchemySchemaNode(Account, overrides=overrides)

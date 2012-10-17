@@ -20,6 +20,7 @@ from sqlalchemy import (Boolean,
                         Unicode)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+import datetime
 
 
 Base = declarative_base()
@@ -31,7 +32,7 @@ class Account(Base):
     __tablename__ = 'accounts'
     email = Column(Unicode(64), primary_key=True)
     enabled = Column(Boolean, default=True)
-    created = Column(DateTime, nullable=False)
+    created = Column(DateTime, nullable=True, default=datetime.datetime.now)
     timeout = Column(Time, nullable=False)
     person_id = Column(Integer, ForeignKey('people.id'))
     person = relationship('Person')
@@ -41,7 +42,7 @@ class Person(Base):
 
     __tablename__ = 'people'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, info={key: {'typ': colander.Float}})
     name = Column(Unicode(32), nullable=False)
     surname = Column(Unicode(32), nullable=False)
     gender = Column(Enum('M', 'F'), nullable=False)

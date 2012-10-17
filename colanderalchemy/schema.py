@@ -98,23 +98,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             log.debug('Column %s skipped due to declarative overrides', name)
             return None
 
-        msg = None
-        key = 'name'
-        if key in declarative_overrides:
-            msg = 'Column %s: name cannot be overridden via info kwarg.'
-
-        elif key in overrides:
-            msg = 'Column %s: name cannot be overridden imperatively.'
-
-        key = 'children'
-        if key in declarative_overrides or key in overrides:
-            msg = 'Column %s: children cannot be overridden via info kwarg.'
-
-        elif key in overrides:
-            msg = 'Column %s: children cannot be overridden imperatively.'
-
-        if msg:
-            raise ValueError(msg % name)
+        for key in ['name', 'children']:
+            self.check_overrides(name, key, declarative_overrides, overrides)
 
         # The SchemaNode built using the ColumnProperty has no children.
         children = []
@@ -132,12 +117,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         declarative_type = declarative_overrides.pop('typ', None)
 
         if not imperative_type is None:
-            type_ = imperative_type
+            type_ = imperative_type()
             msg = 'Column %s: type overridden imperatively: %s.'
             log.debug(msg, name, type_)
 
         elif not declarative_type is None:
-            type_ = declarative_type
+            type_ = declarative_type()
             msg = 'Column %s: type overridden via declarative: %s.'
             log.debug(msg, name, type_)
 
@@ -179,7 +164,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         elif column.default.is_callable:
             # Fix: SQLA wraps callables in lambda ctx: fn().
-            default = lambda: column.default.arg(None)
+            default = column.default.arg(None)
 
         else:
             default = column.default.arg
@@ -206,6 +191,17 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         return colander.SchemaNode(type_, *children, **kwargs)
 
+    def check_overrides(self, name, arg, declarative_overrides, overrides):
+        msg = None
+        if arg in declarative_overrides:
+            msg = '%s: argument %s cannot be overridden via info kwarg.'
+
+        elif arg in overrides:
+            msg = '%s: argument %s cannot be overridden imperatively.'
+
+        if msg:
+            raise ValueError(msg % (name, arg))
+
     def get_schema_from_relationship(self, prop, overrides):
         """ Build and return a Colander SchemaNode
             using information stored in the relationship property.
@@ -227,23 +223,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                       name)
             return None
 
-        msg = None
-        key = 'name'
-        if key in declarative_overrides:
-            msg = 'Relationship %s: name cannot be overridden via declarative.'
-
-        elif key in overrides:
-            msg = 'Relationship %s: name cannot be overridden imperatively.'
-
-        key = 'typ'
-        if key in declarative_overrides or key in overrides:
-            msg = 'Relationship %s: typ cannot be overridden via declarative.'
-
-        elif key in overrides:
-            msg = 'Relationship %s: typ cannot be overridden imperatively.'
-
-        if msg:
-            raise ValueError(msg % name)
+        for key in ['name', 'typ']:
+            self.check_overrides(name, key, declarative_overrides, overrides)
 
         key = 'children'
         imperative_children = overrides.pop(key, None)
@@ -336,40 +317,6 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         node.name = name
 
         return node
-
-    def dictify(self, obj):
-        """ Build and return a dictified version of `obj`
-            using schema information to choose what attributes
-            will be included in the returned dict.
-        """
-
-        dict_ = OrderedDict()
-        for name in self._reg.attrs:
-
-            if (name in self._reg.excludes and self._reg.excludes[name]) or\
-               (self._reg.includes and name not in self._reg.includes):
-                continue
-
-            if name in self._reg.fields:
-                dict_[name] = getattr(obj, name)
-
-            elif name in self._reg.references:
-                value = getattr(obj, name)
-                if not value is None:
-                    value = self.dictify_relationship(value)
-                dict_[name] = value
-
-            elif name in self._reg.collections:
-                dict_[name] = [self.dictify_relationship(value)
-                               for value in getattr(obj, name)]
-
-        return dict_
-
-    def dictify_relationship(self, obj):
-        dict_ = {}
-        for col in object_mapper(obj).primary_key:
-            dict_[col.name] = getattr(obj, col.name)
-        return dict_
 
     def clone(self):
         cloned = self.__class__(self.class_,

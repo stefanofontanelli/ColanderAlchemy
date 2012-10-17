@@ -4,3 +4,5 @@ docs/build
 dist/
 .DS_Store
 colander-0.9.8-py2.7.egg/
+.coverage
+.tox/

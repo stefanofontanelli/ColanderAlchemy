@@ -4,7 +4,7 @@ CHANGELOG
     - Ensure relationships are mapped recursively and adhere to
       ColanderAlchemy settings for mappings.
 
-- 0.1b6 (2012-10-11)
+- 0.1b6 (2012-10-17)
     - Fix minor bugs.
 
 - 0.1b5 (2012-09-19)

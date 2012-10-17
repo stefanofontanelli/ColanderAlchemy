@@ -8,7 +8,7 @@ try:
     from collections import OrderedDict
 
 except ImportError:
-    from backports import OrderedDict
+    from ordereddict import OrderedDict
 
 from sqlalchemy.orm.properties import ColumnProperty
 from sqlalchemy.orm.properties import RelationshipProperty

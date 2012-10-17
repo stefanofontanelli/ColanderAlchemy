@@ -1,6 +1,6 @@
 CHANGELOG
 
-- 0.2 (Unreleased)
+- 0.1b7 (Unreleased)
     - Ensure relationships are mapped recursively and adhere to
       ColanderAlchemy settings for mappings.
 

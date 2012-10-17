@@ -250,11 +250,13 @@ class TestsSQLAlchemyMapping(unittest.TestCase):
 
         self.assertIn('themes', self.account)
         themes = self.account['themes']
-        self.assertIn('name', themes)
-        self.assertIn('description', themes)
-        self.assertIn('templates', themes)
+        theme = themes['theme']
+        self.assertIn('name', theme)
+        self.assertIn('description', theme)
+        self.assertIn('templates', theme)
 
-        templates = themes['templates']
-        self.assertIn('name', templates)
-        self.assertIn('theme_name', templates)
-        self.assertIn('theme_author_id', templates)
+        templates = theme['templates']
+        template = templates['template']
+        self.assertIn('name', template)
+        self.assertIn('theme_name', template)
+        self.assertIn('theme_author_id', template)

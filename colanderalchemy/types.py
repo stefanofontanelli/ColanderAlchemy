@@ -205,40 +205,6 @@ class SQLAlchemyMapping(colander.SchemaNode):
 
         return colander.SchemaNode(type_, *children, **params)
 
-    def dictify(self, obj):
-        """ Build and return a dictified version of `obj`
-            using schema information to choose what attributes
-            will be included in the returned dict.
-        """
-
-        dict_ = OrderedDict()
-        for name in self._reg.attrs:
-
-            if (name in self._reg.excludes and self._reg.excludes[name]) or\
-               (self._reg.includes and name not in self._reg.includes):
-                continue
-
-            if name in self._reg.fields:
-                dict_[name] = getattr(obj, name)
-
-            elif name in self._reg.references:
-                value = getattr(obj, name)
-                if not value is None:
-                    value = self.dictify_relationship(value)
-                dict_[name] = value
-
-            elif name in self._reg.collections:
-                dict_[name] = [self.dictify_relationship(value)
-                               for value in getattr(obj, name)]
-
-        return dict_
-
-    def dictify_relationship(self, obj):
-        dict_ = {}
-        for col in object_mapper(obj).primary_key:
-            dict_[col.name] = getattr(obj, col.name)
-        return dict_
-
     def clone(self):
         cloned = self.__class__(self._reg.cls,
                                 self._reg.excludes,

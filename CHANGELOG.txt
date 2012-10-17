@@ -3,6 +3,7 @@ CHANGELOG
 - 0.1b7 (Unreleased)
     - Ensure relationships are mapped recursively and adhere to
       ColanderAlchemy settings for mappings.
+    - Remove dictify method in SQLAlchemyMapping.
 
 - 0.1b6 (2012-10-17)
     - Fix minor bugs.

@@ -1,12 +1,14 @@
 .. _deform:
 
-Examples: using ColanderAlchemy with Deform.
-========
+Examples: using ColanderAlchemy with Deform
+===========================================
 
-Colander options can be specified declaratively in SQLAlchemy models as shown in code below::
+``Colander`` options can be specified declaratively in ``SQLAlchemy`` models
+as shown in the code below::
 
     from colanderalchemy import Column
     from colanderalchemy import relationship
+    from colanderalchemy import SQLAlchemyMapping
 
     from sqlalchemy import Enum
     from sqlalchemy import ForeignKey
@@ -18,6 +20,14 @@ Colander options can be specified declaratively in SQLAlchemy models as shown in
     Base = declarative_base()
 
 
+    class Phone(Base):
+        __tablename__ = 'phones'
+
+        person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
+        number = Column(Unicode(128), primary_key=True)
+        location = Column(Enum(u'home', u'work'))
+
+
     class Person(Base):
         __tablename__ = 'persons'
 
@@ -27,15 +37,10 @@ Colander options can be specified declaratively in SQLAlchemy models as shown in
         phones = relationship('Phone')
 
 
-    class Phone(Base):
-        __tablename__ = 'phones'
+    person = SQLAlchemyMapping(Person)
 
-        person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
-        number = Column(Unicode(128), primary_key=True)
-        location = Column(Enum(u'home', u'work'))
-
-
-The code above is the same of::
+The resulting schema from the code above is the same as what would
+be produced by constructing the following ``Colander`` schema by hand::
 
     import colander
 
@@ -61,8 +66,8 @@ The code above is the same of::
                                       colander.Length(0, 128))
         phones = Phones(missing=[], default=[])
 
-
-Getting a Deform form using ColanderAlchemy is simple as using Colander::
+This means that geting a ``Deform`` form to use ``ColanderAlchemy`` is 
+as simple as using any other ``Colander`` schema::
 
     from colanderalchemy import SQLAlchemyMapping
     from deform import Form
@@ -75,3 +80,8 @@ Getting a Deform form using ColanderAlchemy is simple as using Colander::
     
     form = Form(person, buttons=('submit',))
 
+Keep in mind that if you want additional control over the resulting
+``Colander`` schema and nodes produced (such as controlling a node's `title`,
+`description`, `widget` or more), you are able to provide appropriate keyword
+arguments declaratively within the ``SQLAlchemy`` model. For more
+information, see :ref:`customization`.

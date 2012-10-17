@@ -12,6 +12,12 @@ __all__ = ['Column', 'relationship']
 
 
 class Column(sqlalchemy.schema.Column):
+    """Drop-in for ``sqlachemy.schema.Column`` for use with ColanderAlchemy.
+
+    This class extends the basic ``Column`` by allowing :ref:`keyword
+    arguments <ca-keyword-arguments>` to be specified during creation to
+    customize the resulting ``Colander`` schema after mapping.
+    """
 
     def __init__(self, *args, **kwargs):
 
@@ -43,6 +49,12 @@ class Column(sqlalchemy.schema.Column):
 
 
 def relationship(argument, secondary=None, **kwargs):
+    """Drop-in for ``sqlachemy.orm.relationship`` to use with ColanderAlchemy
+
+    This function wraps the basic ``relationship`` by allowing :ref:`keyword
+    arguments <ca-keyword-arguments>` to be specified during creation to
+    customize the resulting ``Colander`` schema after mapping.
+    """
 
     registry = {}
     for key in ['ca_type', 'ca_children', 'ca_default',

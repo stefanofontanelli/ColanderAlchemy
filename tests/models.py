@@ -45,11 +45,17 @@ class Contact(Base):
                               primary_key=True)
     value = sqlalchemy.Column(sqlalchemy.Unicode(256),
                               nullable=False)
+    description = sqlalchemy.Column(sqlalchemy.Unicode(256),
+                                    nullable=False)
+    excluded_note = colanderalchemy.Column(sqlalchemy.Unicode(256),
+                                           nullable=False,
+                                           ca_exclude=True)
     account_id = sqlalchemy.Column(sqlalchemy.Unicode(256),
                                    sqlalchemy.ForeignKey('accounts.email'),
                                    primary_key=True)
-    account = sqlalchemy.orm.relationship('Account',
-                                          back_populates='contact')
+    account = colanderalchemy.relationship('Account',
+                                           back_populates='contact',
+                                           ca_exclude=True)
 
 
 class Theme(Base):
@@ -63,8 +69,9 @@ class Theme(Base):
     author_id = sqlalchemy.Column(sqlalchemy.Unicode(256),
                                   sqlalchemy.ForeignKey('accounts.email'),
                                   primary_key=True)
-    author = sqlalchemy.orm.relationship('Account',
-                                         back_populates='themes')
+    author = colanderalchemy.relationship('Account',
+                                          back_populates='themes',
+                                          ca_exclude=True)
     templates = sqlalchemy.orm.relationship('Template',
                                             back_populates='theme')
 
@@ -88,8 +95,9 @@ class Template(Base):
                                    primary_key=True)
     theme_author_id = sqlalchemy.Column(sqlalchemy.Unicode(256),
                                         primary_key=True)
-    theme = sqlalchemy.orm.relationship('Theme',
-                                        back_populates='templates')
+    theme = colanderalchemy.relationship('Theme',
+                                         back_populates='templates',
+                                         ca_exclude=True)
 
 
 class Person(Base):

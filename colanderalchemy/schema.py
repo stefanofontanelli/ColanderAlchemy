@@ -110,7 +110,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         # The type of the SchemaNode will be evaluated using the Column type.
         # User can overridden the default type via Column.info or 
         # imperatively using overrides arg in SQLAlchemySchemaNode.__init__
-        # support sqlalchemy.types.TypeDecorator
+        
+        # Support sqlalchemy.types.TypeDecorator
         column_type = getattr(column.type, 'impl', column.type)
 
         imperative_type = overrides.pop('typ', None)
@@ -229,7 +230,6 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         key = 'children'
         imperative_children = overrides.pop(key, None)
         declarative_children = declarative_overrides.pop(key, None)
-
         if not imperative_children is None:
             children = imperative_children
             msg = 'Relationship %s: %s overridden imperatively.'
@@ -241,12 +241,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             log.debug(msg, name, key)
 
         else:
-            children = []
+            children = None
 
         key = 'includes'
         imperative_includes = overrides.pop(key, None)
         declarative_includes = declarative_overrides.pop(key, None)
-
         if not imperative_includes is None:
             includes = imperative_includes
             msg = 'Relationship %s: %s overridden imperatively.'
@@ -258,7 +257,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             log.debug(msg, name, key)
 
         else:
-            includes = [p.key for p in inspect(class_).column_attrs]
+            includes = None
 
         key = 'excludes'
         imperative_excludes = overrides.pop(key, None)
@@ -276,6 +275,9 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         else:
             excludes = None
+
+        if includes is None and excludes is None:
+            includes = [p.key for p in inspect(class_).column_attrs]
 
         key = 'overrides'
         imperative_rel_overrides = overrides.pop(key, None)
@@ -298,11 +300,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         kwargs.update(declarative_overrides)
         kwargs.update(overrides)
 
-        if children and prop.uselist:
+        if not children is None and prop.uselist:
             # xToMany relationships.
             return SchemaNode(Sequence(), *children, **kwargs)
 
-        if children and not prop.uselist:
+        if not children is None and not prop.uselist:
             # xToOne relationships.
             return SchemaNode(Mapping(), *children, **kwargs)
 

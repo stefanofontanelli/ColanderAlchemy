@@ -7,9 +7,14 @@
 
 from colanderalchemy import (setup_schema,
                              SQLAlchemySchemaNode)
-from sqlalchemy import (event,
-                        inspect)
-from sqlalchemy.orm import mapper
+from sqlalchemy import (Column,
+                        event,
+                        ForeignKey,
+                        inspect,
+                        Unicode)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import (mapper,
+                            relationship)
 from .models import (Account,
                      Person,
                      Address)
@@ -72,6 +77,14 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         for attr in m.relationships:
             self.assertNotIn(attr.key, account_schema)
 
+        includes = [attr.key for attr in m.relationships]
+        account_schema = SQLAlchemySchemaNode(Account, includes=includes)
+        for attr in m.column_attrs:
+            self.assertNotIn(attr.key, account_schema)
+
+        for attr in m.relationships:
+            self.assertIn(attr.key, account_schema)
+
     def test_imperative_excludes(self):
         m = inspect(Account)
         excludes = [attr.key for attr in m.column_attrs]
@@ -81,6 +94,15 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
         for attr in m.relationships:
             self.assertIn(attr.key, account_schema)
+
+    def test_declarative_excludes(self):
+        m = inspect(Address)
+        address_schema = SQLAlchemySchemaNode(Address)
+        self.assertNotIn('city', address_schema)
+        self.assertNotIn('person', address_schema)
+        for attr in m.attrs:
+            if attr.key not in ('city', 'person'):
+                self.assertIn(attr.key, address_schema)
 
     def test_imperative_colums_overrides(self):
         m = inspect(Account)
@@ -96,12 +118,133 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual(isinstance(account_schema['email'].typ,
                                     colander.Integer),
                          True)
+        overrides = {
+            'email': {
+                'children': []
+            }
+        }
+        self.assertRaises(ValueError, SQLAlchemySchemaNode, Account, None, None, overrides)
 
-    def test_declarative_exclude(self):
-        m = inspect(Address)
-        address_schema = SQLAlchemySchemaNode(Address)
-        self.assertNotIn('city', address_schema)
-        self.assertNotIn('person', address_schema)
-        for attr in m.attrs:
-            if attr.key not in ('city', 'person'):
-                self.assertIn(attr.key, address_schema)
+    def test_declarative_colums_overrides(self):
+
+        key = SQLAlchemySchemaNode.sqla_info_key
+
+        Base = declarative_base()
+
+        class WrongColumnOverrides(Base):
+
+            __tablename__ = 'WrongColumnOverrides'
+
+            string = Column(Unicode(32), primary_key=True, info={key: {'name': 'Name'}})
+
+        self.assertRaises(ValueError, SQLAlchemySchemaNode, WrongColumnOverrides)
+
+    def test_imperative_relationships_overrides(self):
+        m = inspect(Account)
+        overrides = {
+            'person': {
+                'name': 'Name'
+            }
+        }
+        self.assertRaises(ValueError, SQLAlchemySchemaNode, Account, None, None, overrides)
+        overrides = {
+            'person': {
+                'typ': colander.Integer
+            }
+        }
+        self.assertRaises(ValueError, SQLAlchemySchemaNode, Account, None, None, overrides)
+        overrides = {
+            'person': {
+                'children': [],
+                'includes': ['id']
+            },
+        }
+        schema = SQLAlchemySchemaNode(Account, overrides=overrides)
+        self.assertEqual(schema['person'].children, [])
+        overrides = {
+            'person': {
+                'includes': ['id']
+            },
+        }
+        schema = SQLAlchemySchemaNode(Account, overrides=overrides)
+        self.assertIn('id', schema['person'])
+        self.assertEqual(len(schema['person'].children), 1)
+        overrides = {
+            'person': {
+                'excludes': ['id']
+            },
+        }
+        schema = SQLAlchemySchemaNode(Account, overrides=overrides)
+        self.assertNotIn('id', schema['person'])
+
+    def test_declarative_relationships_overrides(self):
+
+        key = SQLAlchemySchemaNode.sqla_info_key
+        base = declarative_base()
+
+        class Model(base):
+            __tablename__ = 'models'
+            name = Column(Unicode(32), primary_key=True)
+            description = Column(Unicode(128))
+
+        class WrongOverrides(base):
+            __tablename__ = 'WrongOverrides'
+            name = Column(Unicode(32), primary_key=True)
+            model_id = Column(Unicode(32), ForeignKey('models.name'))
+            model = relationship(Model,
+                                 info={
+                                    key: {
+                                        'children': [],
+                                    }
+                                })
+
+        schema = SQLAlchemySchemaNode(WrongOverrides)
+        self.assertEqual(schema['model'].children, [])
+
+        class IncludesOverrides(base):
+            __tablename__ = 'IncludesOverrides'
+            name = Column(Unicode(32), primary_key=True)
+            model_id = Column(Unicode(32), ForeignKey('models.name'))
+            model = relationship(Model,
+                                 info={
+                                    key: {
+                                        'includes': ['name']
+                                    }
+                                })
+        schema = SQLAlchemySchemaNode(IncludesOverrides)
+        self.assertEqual(set([node.name for node in schema['model']]), set(['name']))
+
+        class ExcludesOverrides(base):
+            __tablename__ = 'ExcludesOverrides'
+            name = Column(Unicode(32), primary_key=True)
+            model_id = Column(Unicode(32), ForeignKey('models.name'))
+            model = relationship(Model,
+                                 info={
+                                    key: {
+                                        'excludes': ['name']
+                                    }
+                                })
+        schema = SQLAlchemySchemaNode(ExcludesOverrides)
+        self.assertNotIn('name', schema['model'])
+
+        class UseListOverrides(base):
+            __tablename__ = 'UseListOverrides'
+            name = Column(Unicode(32), primary_key=True)
+            model_id = Column(Unicode(32), ForeignKey('models.name'))
+            model = relationship(Model,
+                                 info={
+                                    key: {
+                                        'children': [],
+                                    }
+                                }, uselist=True)
+        schema = SQLAlchemySchemaNode(UseListOverrides)
+        self.assertTrue(isinstance(schema['model'].typ, colander.Sequence))
+
+    def test_clone(self):
+        schema = SQLAlchemySchemaNode(Account)
+        cloned = schema.clone()
+        for attr in ['class_', 'includes', 'excludes', 'overrides', 'unknown']:
+            self.assertEqual(getattr(schema, attr), getattr(cloned, attr))
+
+        self.assertEqual([node.name for node in schema.children],
+                         [node.name for node in cloned.children])

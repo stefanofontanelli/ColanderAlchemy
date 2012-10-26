@@ -48,7 +48,16 @@ class Person(Base):
     gender = Column(Enum('M', 'F'), nullable=False)
     birthday = Column(Date, nullable=True)
     age = Column(Integer, nullable=True)
-    addresses = relationship('Address')
+    addresses = relationship('Address',
+                             info={
+                                key: {
+                                    'overrides': {
+                                        'id': {
+                                            'typ': colander.Float
+                                        }
+                                    }
+                                }
+                             })
 
 
 class Address(Base):

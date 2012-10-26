@@ -177,6 +177,27 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema = SQLAlchemySchemaNode(Account, overrides=overrides)
         self.assertNotIn('id', schema['person'])
 
+        overrides = {
+            'addresses': {
+                'overrides': {
+                    'id': {
+                        'typ': colander.Float
+                    }
+                }
+            }
+        }
+        overrides = {
+            'addresses': {
+                'overrides': {
+                    'id': {
+                        'typ': colander.String
+                    }
+                }
+            }
+        }
+        schema = SQLAlchemySchemaNode(Person, overrides=overrides)
+        self.assertTrue(isinstance(schema['addresses'].children[0]['id'].typ, colander.String))
+
     def test_declarative_relationships_overrides(self):
 
         key = SQLAlchemySchemaNode.sqla_info_key
@@ -239,6 +260,9 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                                 }, uselist=True)
         schema = SQLAlchemySchemaNode(UseListOverrides)
         self.assertTrue(isinstance(schema['model'].typ, colander.Sequence))
+        # Retrieve and check overrides kwarg.
+        schema = SQLAlchemySchemaNode(Person)
+        self.assertTrue(isinstance(schema['addresses'].children[0]['id'].typ, colander.Float))
 
     def test_clone(self):
         schema = SQLAlchemySchemaNode(Account)

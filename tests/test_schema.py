@@ -264,6 +264,45 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema = SQLAlchemySchemaNode(Person)
         self.assertTrue(isinstance(schema['addresses'].children[0]['id'].typ, colander.Float))
 
+    def test_dictify(self):
+        import datetime
+        overrides = {
+            'person': {
+                'includes': ['name', 'surname', 'gender', 'addresses'],
+                'overrides': {
+                    'addresses': {
+                        'includes': ['street', 'city'],
+                        'overrides': {
+                            'city': {
+                                'exclude': False
+                            }
+                        }
+                    }
+                }
+            },
+        }
+        includes = ['email', 'enabled', 'created', 'timeout', 'person']
+        schema = SQLAlchemySchemaNode(Account, includes=includes, overrides=overrides)
+        args = dict(street='My Street', city='My City')
+        address = Address(**args)
+        kws = dict(name='My Name', surname='My Surname', gender='M', addresses=[address])
+        person = Person(**kws)
+        params = dict(email='mailbox@domain.tld',
+                      enabled=True,
+                      created=datetime.datetime.now(),
+                      timeout=datetime.time(hour=00, minute=00),
+                      person=person)
+        account = Account(**params)
+        dictified = schema.dictify(account)
+        kws['addresses'] = [args]
+        params['person'] = kws
+        self.assertEqual(dictified, params)
+        for key in params:
+            self.assertIn(key, dictified)
+            if key == 'person':
+                for k in kws:
+                    self.assertIn(k, dictified[key])
+
     def test_clone(self):
         schema = SQLAlchemySchemaNode(Account)
         cloned = schema.clone()

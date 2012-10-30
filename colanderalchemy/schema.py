@@ -94,8 +94,14 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         declarative_overrides = column.info.get(self.sqla_info_key, {}).copy()
         self.declarative_overrides[name] = declarative_overrides.copy()
 
-        if declarative_overrides.pop('exclude', False):
+        key = 'exclude'
+
+        if key not in overrides and declarative_overrides.pop(key, False):
             log.debug('Column %s skipped due to declarative overrides', name)
+            return None
+
+        if overrides.pop(key, False):
+            log.debug('Column %s skipped due to imperative overrides', name)
             return None
 
         for key in ['name', 'children']:
@@ -314,11 +320,38 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                                     overrides=rel_overrides)
 
         if prop.uselist:
-            return SchemaNode(Sequence(), node, **kwargs)
+            node = SchemaNode(Sequence(), node, **kwargs)
 
         node.name = name
 
         return node
+
+    def dictify(self, obj):
+        """ Build and return a dictified version of `obj`
+            using schema information to choose what attributes
+            will be included in the returned dict.
+        """
+
+        dict_ = {}
+        for node in self:
+
+            name = node.name
+            try:
+                getattr(self.inspector.column_attrs, name)
+                value = getattr(obj, name)
+
+            except AttributeError:
+                prop = getattr(self.inspector.relationships, name)
+                if prop.uselist:
+                    value = [self[name].children[0].dictify(o)
+                             for o in getattr(obj, name)]
+                else:
+                    o = getattr(obj, name)
+                    value = self[name].dictify(o)
+
+            dict_[name] = value
+
+        return dict_
 
     def clone(self):
         cloned = self.__class__(self.class_,

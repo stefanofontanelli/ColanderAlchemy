@@ -190,6 +190,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             missing = null
 
         kwargs = dict(name=name,
+                      title=name,
                       default=default,
                       missing=missing,
                       validator=validator)
@@ -347,7 +348,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                              for o in getattr(obj, name)]
                 else:
                     o = getattr(obj, name)
-                    value = self[name].dictify(o)
+                    value = None if o is None else self[name].dictify(o)
 
             dict_[name] = value
 

@@ -166,7 +166,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             raise NotImplementedError('Unknown type: %s' % column_type)
 
         # Add default values for missing parameters during serialization/deserialization.
-        if column.default is None:
+        if column.default is None or not hasattr(column.default, 'arg'):
             default = null
 
         elif column.default.is_callable:

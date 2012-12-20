@@ -165,8 +165,10 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         else:
             raise NotImplementedError('Unknown type: %s' % column_type)
 
-        # Add default values for missing parameters during serialization/deserialization.
-        if column.default is None or not hasattr(column.default, 'arg'):
+        # Add default values for missing parameters.
+        if column.default is None or not hasattr(column.default, 'arg') or \
+          (isinstance(column_type, Integer) and 
+           column.primary_key and column.autoincrement):
             default = null
 
         elif column.default.is_callable:
@@ -176,14 +178,20 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         else:
             default = column.default.arg
 
-        if not column.nullable:
+        if not column.nullable and \
+           not (isinstance(column_type, Integer) and 
+                column.primary_key and column.autoincrement):
             missing = required
 
-        elif not column.default is None and column.default.is_callable:
+        elif not column.default is None and column.default.is_callable and \
+             not (isinstance(column_type, Integer) and 
+                  column.primary_key and column.autoincrement):
             # Fix: SQLA wraps default callables in lambda ctx: fn().
             missing = column.default.arg(None)
 
-        elif not column.default is None and not column.default.is_callable:
+        elif not column.default is None and not column.default.is_callable and \
+             not (isinstance(column_type, Integer) and 
+                  column.primary_key and column.autoincrement):
             missing = column.default.arg
 
         else:

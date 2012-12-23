@@ -2,7 +2,7 @@ ColanderAlchemy
 ===============
 
 `ColanderAlchemy` helps you to auto-generate `Colander
-<http://http://docs.pylonsproject.org/projects/colander/en/latest/>`_ schemas
+<http://docs.pylonsproject.org/projects/colander/en/latest/>`_ schemas
 that are based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped classes.
 
 Such `Colander` schemas can be used with libraries like `Deform

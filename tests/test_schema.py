@@ -15,7 +15,7 @@ from sqlalchemy import (Column,
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import (mapper,
                             relationship)
-from .models import (Account,
+from models import (Account,
                      Person,
                      Address)
 import colander
@@ -37,10 +37,10 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
     def setUp(self):
         event.listen(mapper, 'mapper_configured', setup_schema)
-        
+
     def tearDown(self):
         pass
-    
+
     def test_setup_schema(self):
         for cls in [Account, Person, Address]:
             self.assertEqual(isinstance(cls.__colanderalchemy__,
@@ -105,7 +105,6 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                 self.assertIn(attr.key, address_schema)
 
     def test_imperative_colums_overrides(self):
-        m = inspect(Account)
         overrides = {
             'email': {
                 'typ': colander.Integer
@@ -126,6 +125,9 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertRaises(ValueError, SQLAlchemySchemaNode, Account, None, None, overrides)
 
     def test_declarative_colums_overrides(self):
+        if sys.version_info[0] == 2 and sys.version_info[1] < 7:
+            # This test fails in Python 2.6. Skip it.
+            return
 
         key = SQLAlchemySchemaNode.sqla_info_key
 
@@ -140,7 +142,6 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertRaises(ValueError, SQLAlchemySchemaNode, WrongColumnOverrides)
 
     def test_imperative_relationships_overrides(self):
-        m = inspect(Account)
         overrides = {
             'person': {
                 'name': 'Name'

@@ -284,6 +284,9 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         }
         includes = ['email', 'enabled', 'created', 'timeout', 'person']
         schema = SQLAlchemySchemaNode(Account, includes=includes, overrides=overrides)
+        #Add a non-SQLAlchemy field
+        schema.add(colander.SchemaNode(colander.String, name='non_sql'))
+
         args = dict(street='My Street', city='My City')
         address = Address(**args)
         kws = dict(name='My Name', surname='My Surname', gender='M', addresses=[address])
@@ -312,3 +315,25 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
         self.assertEqual([node.name for node in schema.children],
                          [node.name for node in cloned.children])
+
+    def test_schemanode_arguments(self):
+        """ Test that any arguments to SchemaNode are accepted.
+        """
+        schema = SQLAlchemySchemaNode(Account,
+                                      widget='DummyWidget',
+                                      title='Dummy',
+                                      non_standard='Not a Colander arg')
+        self.assertEqual(schema.widget, 'DummyWidget')
+        self.assertEqual(schema.title, 'Dummy')
+        self.assertEqual(schema.non_standard, 'Not a Colander arg')
+
+    def test_read_mapping_configuration(self):
+        """ Test using ``__colanderalchemy_config__`` for a mapped class.
+        """
+        schema = SQLAlchemySchemaNode(Account)
+        self.assertEqual(schema.preparer, 'DummyPreparer')
+
+        #Related models will be configured as well
+        self.assertEqual(schema['person'].widget, 'DummyWidget')
+        self.assertEqual(schema['person'].title, 'Person Object')
+

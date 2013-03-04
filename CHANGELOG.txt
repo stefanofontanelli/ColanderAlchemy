@@ -1,5 +1,10 @@
 CHANGELOG
 
+- 0.2 (Unreleased)
+    - Read Colander node init settings for a mapped class using the
+      ``__colanderalchemy__`` attribute.  This allows for full customisation
+      of the resulting ``colander.Mapping`` SchemaNode. 
+
 - 0.1b7 (Unreleased)
     - Ensure relationships are mapped recursively and adhere to
       ColanderAlchemy settings for mappings.

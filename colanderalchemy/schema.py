@@ -38,21 +38,27 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
     """
 
     sqla_info_key = 'colanderalchemy'
+    ca_class_key = '__colanderalchemy__'
 
     def __init__(self, class_, includes=None,
                  excludes=None, overrides=None, unknown='raise', **kw):
 
         log.debug('SQLAlchemySchemaNode.__init__: %s', class_)
 
+        self.inspector = inspect(class_)
+        kwargs = kw.copy()
+
+        # Obtain configuration specific from the mapped class
+        kwargs.update(getattr(self.inspector.class_, self.ca_class_key, {}))
+
         # The default type of this SchemaNode is Mapping.
-        colander.SchemaNode.__init__(self, Mapping(unknown), **kw)
+        colander.SchemaNode.__init__(self, Mapping(unknown), **kwargs)
         self.class_ = class_
         self.includes = includes or {}
         self.excludes = excludes or {}
         self.overrides = overrides or {}
         self.unknown = unknown
         self.declarative_overrides = {}
-        self.inspector = inspect(class_)
         self.add_nodes(self.includes, self.excludes, self.overrides)
 
     def add_nodes(self, includes, excludes, overrides):

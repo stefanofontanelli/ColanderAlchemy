@@ -4,6 +4,8 @@ CHANGELOG
     - Read Colander node init settings for a mapped class using the
       ``__colanderalchemy__`` attribute.  This allows for full customisation
       of the resulting ``colander.Mapping`` SchemaNode. 
+    - Allow non-SQLAlchemy schema nodes within ``SQLAlchemySchemaNode``.
+      Previously, the ``dictify`` method would throw an ``AttributeError``.
 
 - 0.1b7 (Unreleased)
     - Ensure relationships are mapped recursively and adhere to

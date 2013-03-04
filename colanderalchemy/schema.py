@@ -356,13 +356,19 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                 value = getattr(obj, name)
 
             except AttributeError:
-                prop = getattr(self.inspector.relationships, name)
-                if prop.uselist:
-                    value = [self[name].children[0].dictify(o)
-                             for o in getattr(obj, name)]
-                else:
-                    o = getattr(obj, name)
-                    value = None if o is None else self[name].dictify(o)
+                try:
+                    prop = getattr(self.inspector.relationships, name)
+                    if prop.uselist:
+                        value = [self[name].children[0].dictify(o)
+                                 for o in getattr(obj, name)]
+                    else:
+                        o = getattr(obj, name)
+                        value = None if o is None else self[name].dictify(o)
+                except AttributeError:
+                    # The given node isn't part of the SQLAlchemy model
+                    msg = 'SQLAlchemySchemaNode.dictify: %s not found on %s'
+                    log.debug(msg, name, self)
+                    continue
 
             dict_[name] = value
 

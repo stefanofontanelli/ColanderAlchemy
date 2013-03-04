@@ -38,21 +38,27 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
     """
 
     sqla_info_key = 'colanderalchemy'
+    ca_class_key = '__colanderalchemy__'
 
     def __init__(self, class_, includes=None,
-                 excludes=None, overrides=None, unknown='raise'):
+                 excludes=None, overrides=None, unknown='raise', **kw):
 
         log.debug('SQLAlchemySchemaNode.__init__: %s', class_)
 
+        self.inspector = inspect(class_)
+        kwargs = kw.copy()
+
+        # Obtain configuration specific from the mapped class
+        kwargs.update(getattr(self.inspector.class_, self.ca_class_key, {}))
+
         # The default type of this SchemaNode is Mapping.
-        colander.SchemaNode.__init__(self, Mapping(unknown))
+        colander.SchemaNode.__init__(self, Mapping(unknown), **kwargs)
         self.class_ = class_
         self.includes = includes or {}
         self.excludes = excludes or {}
         self.overrides = overrides or {}
         self.unknown = unknown
         self.declarative_overrides = {}
-        self.inspector = inspect(class_)
         self.add_nodes(self.includes, self.excludes, self.overrides)
 
     def add_nodes(self, includes, excludes, overrides):
@@ -350,13 +356,19 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                 value = getattr(obj, name)
 
             except AttributeError:
-                prop = getattr(self.inspector.relationships, name)
-                if prop.uselist:
-                    value = [self[name].children[0].dictify(o)
-                             for o in getattr(obj, name)]
-                else:
-                    o = getattr(obj, name)
-                    value = None if o is None else self[name].dictify(o)
+                try:
+                    prop = getattr(self.inspector.relationships, name)
+                    if prop.uselist:
+                        value = [self[name].children[0].dictify(o)
+                                 for o in getattr(obj, name)]
+                    else:
+                        o = getattr(obj, name)
+                        value = None if o is None else self[name].dictify(o)
+                except AttributeError:
+                    # The given node isn't part of the SQLAlchemy model
+                    msg = 'SQLAlchemySchemaNode.dictify: %s not found on %s'
+                    log.debug(msg, name, self)
+                    continue
 
             dict_[name] = value
 

@@ -40,12 +40,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
     sqla_info_key = 'colanderalchemy'
 
     def __init__(self, class_, includes=None,
-                 excludes=None, overrides=None, unknown='raise'):
+                 excludes=None, overrides=None, unknown='raise', **kw):
 
         log.debug('SQLAlchemySchemaNode.__init__: %s', class_)
 
         # The default type of this SchemaNode is Mapping.
-        colander.SchemaNode.__init__(self, Mapping(unknown))
+        colander.SchemaNode.__init__(self, Mapping(unknown), **kw)
         self.class_ = class_
         self.includes = includes or {}
         self.excludes = excludes or {}

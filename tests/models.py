@@ -30,6 +30,7 @@ key = SQLAlchemySchemaNode.sqla_info_key
 class Account(Base):
 
     __tablename__ = 'accounts'
+    __colanderalchemy_config__ = {'preparer': 'DummyPreparer'}
     email = Column(Unicode(64), primary_key=True)
     enabled = Column(Boolean, default=True)
     created = Column(DateTime, nullable=True, default=datetime.datetime.now)
@@ -41,6 +42,8 @@ class Account(Base):
 class Person(Base):
 
     __tablename__ = 'people'
+    __colanderalchemy_config__ = {'widget': 'DummyWidget',
+                                  'title': 'Person Object'}
 
     id = Column(Integer, primary_key=True, info={key: {'typ': colander.Float}})
     name = Column(Unicode(32), nullable=False)

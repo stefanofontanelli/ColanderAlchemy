@@ -3,13 +3,16 @@
 Examples
 ========
 
+Less boilerplate
+----------------
+
+The best way to illustrate the benefit of using ``ColanderAlchemy`` is to
+show a comparison between the code required to represent ``SQLAlchemy``
+model as a ``Colander`` schema.
+
 Suppose you have these SQLAlchemy mapped classes::
 
-    from sqlalchemy import Column
-    from sqlalchemy import Enum
-    from sqlalchemy import ForeignKey
-    from sqlalchemy import Integer
-    from sqlalchemy import Unicode
+    from sqlalchemy import Column, Enum, ForeignKey, Integer, Unicode
     from sqlalchemy.ext.declarative import declarative_base
     from sqlalchemy.orm import relationship
 
@@ -45,7 +48,7 @@ Suppose you have these SQLAlchemy mapped classes::
         rank = Column(Integer, default=0)
 
 
-The code you need to create the Colander schema for ``Person`` is::
+The code you need to create the Colander schema for ``Person`` would be::
 
     import colander
 
@@ -89,10 +92,17 @@ The code you need to create the Colander schema for ``Person`` is::
 
         person = Person()
 
+By contrast, all you need to obtain the same Colander schema for the ``Person`` mapped class using ``ColanderAlchemy`` is simply::
 
-The code you need to get the same Colander schema for ``Person`` using ColanderAlchemy is::
+    from colanderalchemy import setup_schema
 
-    from colanderalchemy import SQLAlchemyMapping
+    setup_schema(Person)
+    schema = Person.__colanderalchemy__
 
+Or alternatively, you may do this::
 
-    person = SQLAlchemyMapping(Person)
+    from colanderalchemy import SQLAlchemySchemaNode
+
+    schema = SQLAlchemySchemaNode(Person)
+
+As you can see, it's a lot simpler.

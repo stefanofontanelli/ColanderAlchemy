@@ -33,7 +33,6 @@ log = logging.getLogger(__name__)
 
 
 class SQLAlchemySchemaNode(colander.SchemaNode):
-
     """ Build a Colander Schema based on the SQLAlchemy mapped class.
     """
 
@@ -42,6 +41,56 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
     def __init__(self, class_, includes=None,
                  excludes=None, overrides=None, unknown='raise', **kw):
+        """ Initialise the given mapped schema according to options provided.
+
+        Arguments/Keywords
+
+        class\_
+           An ``SQLAlchemy`` mapped class that you want a ``Colander`` schema
+           to be generated for.
+
+           To declaratively customise ``Colander`` ``SchemaNode`` options,
+           add a ``__colanderalchemy_config__`` attribute to your initial
+           class declaration like so::
+
+               class MyModel(Base):
+                   __colanderalchemy_config__ = {'title': 'Custom title',
+                                                 'description': 'Sample'}
+                   ...
+        includes
+           Iterable of attributes to include from the resulting schema. Using
+           this option will ensure *only* the explicitly mentioned attributes
+           are included and *all others* are excluded.
+
+           Incompatible with :attr:`excludes`. Default: None.
+        excludes
+           Iterable of attributes to exclude from the resulting schema. Using
+           this option will ensure *only* the explicitly mentioned attributes
+           are excluded and *all others* are included.
+
+           Incompatible with :attr:`includes`. Default: None.
+        overrides
+           XXX Add something.
+        unknown
+           Represents the `unknown` argument passed to
+           :class:`colander.Mapping`.
+
+           From Colander:
+
+           ``unknown`` controls the behavior of this type when an unknown
+           key is encountered in the cstruct passed to the deserialize
+           method of this instance.
+
+           Default: 'raise'
+        \*\*kw
+           Represents *all* other options able to be passed to a
+           :class:`colander.SchemaNode`. Keywords passed will influence the
+           resulting mapped schema accordingly (for instance, passing
+           ``title='My Model'`` means the returned schema will have its
+           ``title`` attribute set accordingly.
+
+           See http://docs.pylonsproject.org/projects/colander/en/latest/basics.html for more information.
+        """
 
         log.debug('SQLAlchemySchemaNode.__init__: %s', class_)
 
@@ -90,8 +139,21 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             self.add(node)
 
     def get_schema_from_column(self, prop, overrides):
-        """ Build and return a Colander SchemaNode
-            using information stored in the column.
+        """ Build and return a :class:`colander.SchemaNode` for a given Column.
+
+        This method uses information stored in the column within the ``info``
+        that was passed to the Column on creation.  This means that
+        ``Colander`` options can be specified declaratively in
+        ``SQLAlchemy`` models using the ``info`` argument that you can
+        pass to :class:`sqlalchemy.Column`.
+
+        Arguments/Keywords
+
+        prop
+            A given :class:`sqlalchemy.orm.properties.ColumnProperty`
+            instance that represents the column being mapped.
+        overrides
+            XXX Add something.
         """
 
         # The name of the SchemaNode is the ColumnProperty key.
@@ -225,8 +287,22 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             raise ValueError(msg % (name, arg))
 
     def get_schema_from_relationship(self, prop, overrides):
-        """ Build and return a Colander SchemaNode
-            using information stored in the relationship property.
+        """ Build and return a :class:`colander.SchemaNode` for a relationship.
+
+        This method uses information stored in the relationship within
+        the ``info`` that was passed to the relationship on creation.
+        This means that ``Colander`` options can be specified
+        declaratively in ``SQLAlchemy`` models using the ``info``
+        argument that you can pass to
+        :meth:`sqlalchemy.orm.relationship`.
+
+        Arguments/Keywords
+
+        prop
+            A given :class:`sqlalchemy.orm.properties.RelationshipProperty`
+            instance that represents the relationship being mapped.
+        overrides
+            XXX Add something.
         """
 
         # The name of the SchemaNode is the ColumnProperty key.
@@ -342,11 +418,24 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         return node
 
     def dictify(self, obj):
-        """ Build and return a dictified version of `obj`
-            using schema information to choose what attributes
-            will be included in the returned dict.
-        """
+        """ Return a dictified version of `obj` using schema information.
+        
+        The schema will be used to choose what attributes will be
+        included in the returned dict.
 
+        Thus, the return value of this function is suitable for consumption
+        as a ``Deform`` ``appstruct`` and can be used to pre-populate
+        forms in this specific use case.
+
+        Arguments/Keywords
+
+        obj
+            An object instance to be converted to a ``dict`` structure.
+            This object should conform to the given schema.  For
+            example, ``obj`` should be an instance of this schema's
+            mapped class, an instance of a sub-class, or something that
+            has the same attributes.
+        """
         dict_ = {}
         for node in self:
 

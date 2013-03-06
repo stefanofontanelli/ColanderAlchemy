@@ -1,6 +1,8 @@
 CHANGELOG
 
 - 0.2 (Unreleased)
+    - Drop ``mapper`` argument from the ``setup_schema`` function. It wasn't
+      being used.
     - Read Colander node init settings for a mapped class using the
       ``__colanderalchemy__`` attribute.  This allows for full customisation
       of the resulting ``colander.Mapping`` SchemaNode. 

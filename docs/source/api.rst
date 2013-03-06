@@ -3,34 +3,14 @@
 ColanderAlchemy API
 ===================
 
-Declarative Classes
-~~~~~~~~~~~~~~~~~~~
+.. automodule:: colanderalchemy
 
-.. automodule:: colanderalchemy.declarative
-
-  .. autoclass:: Column
+  .. autoclass:: SQLAlchemySchemaNode
   
      .. automethod:: __init__
+     .. automethod:: dictify
+     .. automethod:: get_schema_from_column
+     .. automethod:: get_schema_from_relationship
 
-  .. autofunction:: relationship
-
-Types
-~~~~~
-
-.. automodule:: colanderalchemy.types
-
-  .. autoclass:: SQLAlchemyMapping
-     :members:
-
-     .. automethod:: __init__
-
-
-Utilities
-~~~~~~~~~
-
-.. automodule:: colanderalchemy.utils
-
-  .. autoclass:: MappingRegistry
-
-     .. automethod:: __init__
+  .. autofunction:: setup_schema
 

@@ -19,8 +19,36 @@ schema to a mapped class for you, or else you can use
 :class:`colanderalchemy.SQLAlchemySchemaNode` to have more control over the
 auto-generated schema.
 
-To use :meth:`colanderalchemy.setup_schema`, simply pass it a SQLAlchemy mapped
-class:
+The easiest way to get going is to set up an SQLAlchemy event listener.
+The :meth:`colanderalchemy.setup_schema` method is designed to be attached to
+the ``mapper_configured`` event:
+
+.. code-block:: python
+
+    from sqlalchemy import event
+    from colanderalchemy import setup_schema
+    event.listen(mapper, 'mapper_configured', setup_schema)
+
+Now, once you configure any mapped class, you'll automatically get a mapped
+Colander schema on the class as the attribute ``__colanderalchemy__``.
+Keep in mind that you should configure the event listener as soon as possible
+in your application, especially if you're using `declarative
+<http://docs.sqlalchemy.org/en/rel_0_8/orm/extensions/declarative.html>`_
+definitions.
+
+By associating ``ColanderAlchemy`` configuration with your mapped class,
+its columns, and its relationships, you can tell ``ColanderAlchemy``
+how to generate each and every part of your mapped schema - including things
+like titles, descriptions, preparers, validators, widgets, and more. 
+
+Check out :ref:`info_argument` for more information on how.
+
+Usage
+-----
+
+Beyond the event listener methodology above, you can use
+:meth:`colanderalchemy.setup_schema` manually.  Simply pass it a SQLAlchemy
+mapped class like so:
 
 .. code-block:: python
 
@@ -36,17 +64,13 @@ class:
        name =  Column(String(50))
        biography =  Column(Text())
 
-   setup_schema(SomeClass)
+   setup_schema(None, SomeClass)
    SomeClass.__colanderalchemy__ #A Colander schema for you to use
 
 If you already have a mapped class available, you can just pass it as is - you
-don't need to redefine another schema. Using the given techniques, you can
-associate configuration with your mapped class to tell ``ColanderAlchemy``
-how to generate each and every part of your mapped schema - including things
-like titles, descriptions, preparers, validators, widgets, and more. Check out
-:ref:`info_argument` for more information on how.
+don't need to redefine another schema. 
 
-Alternatively, if you'd like more control over your generated schema, then
+Also, if you'd like even more control over your generated schema, then
 use :class:`colanderalchemy.SQLAlchemySchemaNode` directly like so:
 
 .. code-block:: python
@@ -54,8 +78,10 @@ use :class:`colanderalchemy.SQLAlchemySchemaNode` directly like so:
     from colanderalchemy import SQLAlchemySchemaNode
     from my.project import SomeClass
 
-    schema = SQLAlchemySchemaNode(SomeClass, includes=['name', 'biography'],
-                                  excludes=['id'], title='Some class') 
+    schema = SQLAlchemySchemaNode(SomeClass,
+                                  includes=['name', 'biography'],
+                                  excludes=['id'],
+                                  title='Some class') 
 
 Note the various arguments you can pass when creating your mapped schema -
 you have full control over how the schema is generated and what fields

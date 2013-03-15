@@ -16,8 +16,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import (mapper,
                             relationship)
 from models import (Account,
-                     Person,
-                     Address)
+                    Person,
+                    Address,
+                    Group)
 import colander
 import logging
 import sys
@@ -209,6 +210,9 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             name = Column(Unicode(32), primary_key=True)
             description = Column(Unicode(128))
 
+        #Fake model to avoid a race condition
+        dummy = Model()
+
         class WrongOverrides(base):
             __tablename__ = 'WrongOverrides'
             name = Column(Unicode(32), primary_key=True)
@@ -219,6 +223,9 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                                         'children': [],
                                     }
                                 })
+
+        #Fake model to avoid a race condition
+        dummy2 = WrongOverrides()
 
         schema = SQLAlchemySchemaNode(WrongOverrides)
         self.assertEqual(schema['model'].children, [])
@@ -233,6 +240,10 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                                         'includes': ['name']
                                     }
                                 })
+
+        #Fake model to avoid a race condition
+        dummy3 = IncludesOverrides()
+
         schema = SQLAlchemySchemaNode(IncludesOverrides)
         self.assertEqual(set([node.name for node in schema['model']]), set(['name']))
 
@@ -337,3 +348,32 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual(schema['person'].widget, 'DummyWidget')
         self.assertEqual(schema['person'].title, 'Person Object')
 
+    def test_missing_mapping_configuration(self):
+        """ Test to check ``missing`` is set to an SQLAlchemy-suitable value.
+        """
+        schema = SQLAlchemySchemaNode(Account)
+        self.assertIsNone(schema['person_id'].missing)
+        self.assertIsNone(schema['person'].missing)
+        deserialized = schema.deserialize({'email': 'test@example.com',
+                                           'timeout': '09:44:33'})
+        self.assertIsNone(deserialized['person_id'])
+        self.assertIsNone(deserialized['person'])
+
+    def test_relationship_mapping_configuration(self):
+        """Test to ensure ``missing`` is set to required accordingly.
+        """
+        schema = SQLAlchemySchemaNode(Group)
+        self.assertTrue(schema.required)
+        self.assertEqual(schema.missing, colander.required)
+
+        #Group must have a leader
+        self.assertTrue(schema['leader'].required)
+        self.assertEqual(schema['leader'].missing, colander.required)
+
+        #Group must have an executive
+        self.assertTrue(schema['executive'].required)
+        self.assertEqual(schema['executive'].missing, colander.required)
+
+        #Group may have members
+        self.assertFalse(schema['members'].required)
+        self.assertEqual(schema['members'].missing, [])

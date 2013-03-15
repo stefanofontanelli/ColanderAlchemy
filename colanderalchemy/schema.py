@@ -184,7 +184,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         # The type of the SchemaNode will be evaluated using the Column type.
         # User can overridden the default type via Column.info or 
         # imperatively using overrides arg in SQLAlchemySchemaNode.__init__
-        
+
         # Support sqlalchemy.types.TypeDecorator
         column_type = getattr(column.type, 'impl', column.type)
 
@@ -235,9 +235,9 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         # Add default values for missing parameters.
         if column.default is None or not hasattr(column.default, 'arg') or \
-          (isinstance(column_type, Integer) and 
-           column.primary_key and column.autoincrement):
-            default = null
+           (isinstance(column_type, Integer) and 
+            column.primary_key and column.autoincrement):
+            default = None
 
         elif column.default.is_callable:
             # Fix: SQLA wraps callables in lambda ctx: fn().
@@ -252,18 +252,19 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             missing = required
 
         elif not column.default is None and column.default.is_callable and \
-             not (isinstance(column_type, Integer) and 
-                  column.primary_key and column.autoincrement):
+                not (isinstance(column_type, Integer) and 
+                     column.primary_key and column.autoincrement):
             # Fix: SQLA wraps default callables in lambda ctx: fn().
             missing = column.default.arg(None)
 
         elif not column.default is None and not column.default.is_callable and \
-             not (isinstance(column_type, Integer) and 
-                  column.primary_key and column.autoincrement):
+                not (isinstance(column_type, Integer) and 
+                     column.primary_key and column.autoincrement):
             missing = column.default.arg
 
         else:
-            missing = null
+            missing = None
+
 
         kwargs = dict(name=name,
                       title=name,
@@ -393,7 +394,20 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         else:
             rel_overrides = None
 
-        kwargs = dict(name=name)
+        # Add default values for missing parameters.
+        if prop.innerjoin:
+            #Inner joined relationships imply it is mandatory
+            missing = required
+        else:
+            #Any other join is thus optional
+            if prop.uselist:
+                missing = []
+            else:
+                missing = None
+
+
+        kwargs = dict(name=name,
+                      missing=missing)
         kwargs.update(declarative_overrides)
         kwargs.update(overrides)
 
@@ -408,7 +422,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         node = SQLAlchemySchemaNode(class_,
                                     includes=includes,
                                     excludes=excludes,
-                                    overrides=rel_overrides)
+                                    overrides=rel_overrides,
+                                    missing=missing)
 
         if prop.uselist:
             node = SchemaNode(Sequence(), node, **kwargs)

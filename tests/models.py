@@ -38,7 +38,6 @@ class Account(Base):
     person_id = Column(Integer, ForeignKey('people.id'))
     person = relationship('Person')
 
-
 class Person(Base):
 
     __tablename__ = 'people'
@@ -62,6 +61,29 @@ class Person(Base):
                                 }
                              })
 
+class Group(Base):
+
+    __tablename__ = 'groups'
+
+    identifier = Column(Unicode, primary_key=True)
+    leader = relationship('Person',
+                          uselist=False,
+                          innerjoin=True,
+                          secondary='group_associations')
+    executive = relationship('Person',
+                             uselist=True,
+                             innerjoin=True,
+                             secondary='group_associations')
+    members = relationship('Person',
+                           uselist=True,
+                           secondary='group_associations')
+
+class GroupAssociations(Base):
+
+    __tablename__ = 'group_associations'
+
+    group_id = Column(Unicode, ForeignKey(Group.identifier), primary_key=True)
+    person_id = Column(Integer, ForeignKey(Person.id), primary_key=True)
 
 class Address(Base):
 

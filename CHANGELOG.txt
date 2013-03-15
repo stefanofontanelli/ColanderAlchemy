@@ -1,6 +1,12 @@
 CHANGELOG
 
 - 0.2 (Unreleased)
+    - Ensure missing schema node information correctly maps to SQLAlchemy
+      structures.
+    - Map missing information for "required" relationships based upon the
+      join condition. This can be further customised by given relationships
+      setting ``missing=colander.required`` within their respective
+      configurations.
     - Read Colander node init settings for a mapped class using the
       ``__colanderalchemy__`` attribute.  This allows for full customisation
       of the resulting ``colander.Mapping`` SchemaNode. 

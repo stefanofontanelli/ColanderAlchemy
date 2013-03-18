@@ -40,7 +40,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
     ca_class_key = '__colanderalchemy_config__'
 
     def __init__(self, class_, includes=None,
-                 excludes=None, overrides=None, unknown='raise', **kw):
+                 excludes=None, overrides=None, unknown='ignore', **kw):
         """ Initialise the given mapped schema according to options provided.
 
         Arguments/Keywords
@@ -81,7 +81,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
            key is encountered in the cstruct passed to the deserialize
            method of this instance.
 
-           Default: 'raise'
+           Default: 'ignore'
         \*\*kw
            Represents *all* other options able to be passed to a
            :class:`colander.SchemaNode`. Keywords passed will influence the
@@ -108,6 +108,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         self.overrides = overrides or {}
         self.unknown = unknown
         self.declarative_overrides = {}
+        self.kwargs = kwargs or {}
         self.add_nodes(self.includes, self.excludes, self.overrides)
 
     def add_nodes(self, includes, excludes, overrides):
@@ -483,7 +484,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                                 self.includes,
                                 self.excludes,
                                 self.overrides,
-                                self.unknown)
+                                self.unknown,
+                                **self.kwargs)
         cloned.__dict__.update(self.__dict__)
         cloned.children = [node.clone() for node in self.children]
         return cloned

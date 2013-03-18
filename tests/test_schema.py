@@ -319,10 +319,11 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                     self.assertIn(k, dictified[key])
 
     def test_clone(self):
-        schema = SQLAlchemySchemaNode(Account)
+        schema = SQLAlchemySchemaNode(Account, dummy='dummy', dummy2='dummy2')
         cloned = schema.clone()
-        for attr in ['class_', 'includes', 'excludes', 'overrides', 'unknown']:
+        for attr in ['class_', 'includes', 'excludes', 'overrides']:
             self.assertEqual(getattr(schema, attr), getattr(cloned, attr))
+        self.assertEqual(cloned.kwargs, schema.kwargs)
 
         self.assertEqual([node.name for node in schema.children],
                          [node.name for node in cloned.children])

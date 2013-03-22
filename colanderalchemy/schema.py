@@ -421,6 +421,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             return SchemaNode(Mapping(), *children, **kwargs)
 
         node = SQLAlchemySchemaNode(class_,
+                                    name=name,
                                     includes=includes,
                                     excludes=excludes,
                                     overrides=rel_overrides,

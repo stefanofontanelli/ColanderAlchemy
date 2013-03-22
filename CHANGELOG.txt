@@ -1,6 +1,8 @@
 CHANGELOG
 
 - 0.2 (Unreleased)
+    - Ensure relationship mapped schemas have a ``name``. This ensures
+      correct usage with ``Deform``.
     - Ensure missing schema node information correctly maps to SQLAlchemy
       structures.
     - Map missing information for "required" relationships based upon the

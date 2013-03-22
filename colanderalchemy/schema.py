@@ -40,7 +40,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
     ca_class_key = '__colanderalchemy_config__'
 
     def __init__(self, class_, includes=None,
-                 excludes=None, overrides=None, unknown='raise', **kw):
+                 excludes=None, overrides=None, unknown='ignore', **kw):
         """ Initialise the given mapped schema according to options provided.
 
         Arguments/Keywords
@@ -81,7 +81,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
            key is encountered in the cstruct passed to the deserialize
            method of this instance.
 
-           Default: 'raise'
+           Default: 'ignore'
         \*\*kw
            Represents *all* other options able to be passed to a
            :class:`colander.SchemaNode`. Keywords passed will influence the
@@ -108,6 +108,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         self.overrides = overrides or {}
         self.unknown = unknown
         self.declarative_overrides = {}
+        self.kwargs = kwargs or {}
         self.add_nodes(self.includes, self.excludes, self.overrides)
 
     def add_nodes(self, includes, excludes, overrides):
@@ -184,7 +185,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         # The type of the SchemaNode will be evaluated using the Column type.
         # User can overridden the default type via Column.info or 
         # imperatively using overrides arg in SQLAlchemySchemaNode.__init__
-        
+
         # Support sqlalchemy.types.TypeDecorator
         column_type = getattr(column.type, 'impl', column.type)
 
@@ -235,9 +236,9 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         # Add default values for missing parameters.
         if column.default is None or not hasattr(column.default, 'arg') or \
-          (isinstance(column_type, Integer) and 
-           column.primary_key and column.autoincrement):
-            default = null
+           (isinstance(column_type, Integer) and 
+            column.primary_key and column.autoincrement):
+            default = None
 
         elif column.default.is_callable:
             # Fix: SQLA wraps callables in lambda ctx: fn().
@@ -252,18 +253,19 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             missing = required
 
         elif not column.default is None and column.default.is_callable and \
-             not (isinstance(column_type, Integer) and 
-                  column.primary_key and column.autoincrement):
+                not (isinstance(column_type, Integer) and 
+                     column.primary_key and column.autoincrement):
             # Fix: SQLA wraps default callables in lambda ctx: fn().
             missing = column.default.arg(None)
 
         elif not column.default is None and not column.default.is_callable and \
-             not (isinstance(column_type, Integer) and 
-                  column.primary_key and column.autoincrement):
+                not (isinstance(column_type, Integer) and 
+                     column.primary_key and column.autoincrement):
             missing = column.default.arg
 
         else:
-            missing = null
+            missing = None
+
 
         kwargs = dict(name=name,
                       title=name,
@@ -393,7 +395,20 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         else:
             rel_overrides = None
 
-        kwargs = dict(name=name)
+        # Add default values for missing parameters.
+        if prop.innerjoin:
+            #Inner joined relationships imply it is mandatory
+            missing = required
+        else:
+            #Any other join is thus optional
+            if prop.uselist:
+                missing = []
+            else:
+                missing = None
+
+
+        kwargs = dict(name=name,
+                      missing=missing)
         kwargs.update(declarative_overrides)
         kwargs.update(overrides)
 
@@ -406,9 +421,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             return SchemaNode(Mapping(), *children, **kwargs)
 
         node = SQLAlchemySchemaNode(class_,
+                                    name=name,
                                     includes=includes,
                                     excludes=excludes,
-                                    overrides=rel_overrides)
+                                    overrides=rel_overrides,
+                                    missing=missing)
 
         if prop.uselist:
             node = SchemaNode(Sequence(), node, **kwargs)
@@ -468,7 +485,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                                 self.includes,
                                 self.excludes,
                                 self.overrides,
-                                self.unknown)
+                                self.unknown,
+                                **self.kwargs)
         cloned.__dict__.update(self.__dict__)
         cloned.children = [node.clone() for node in self.children]
         return cloned

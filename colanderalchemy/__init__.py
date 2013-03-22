@@ -13,17 +13,24 @@ __all__ = ['SQLAlchemySchemaNode']
 __colanderalchemy__ = '__colanderalchemy__'
 
 
-def setup_schema(class_):
+def setup_schema(mapper, class_):
     """ Build a Colander schema for ``class_`` and attach it to that class.
 
-    Configuration for the resulting Colander schema can be customised by
-    using either ``info`` against columns or relationships, or
-    ``__colanderalchemy_config__`` against individual mapped classes.
-    
+    This method is designed to be attached to the ``mapper_configured``
+    event from SQLAlchemy.
+
+    See http://docs.sqlalchemy.org/ru/latest/orm/events.html#sqlalchemy.orm.events.MapperEvents.mapper_configured for more information about event handling.
+
     Arguments/Keywords
 
+    mapper
+        The mapper associated with the given ``class_``.  This is typically
+        passed automatically via the SQLAlchemy event handler.
+
+        May be specified as ``None`` if this method is being called manually.
+
     class\_
-        A pre-existing SQLAlchemy mapped class. This class may have
+        The SQLAlchemy mapped class. This class may have
         attributes, related mapped classes (via SQLAlchemy relationships)
         and the like.
     """

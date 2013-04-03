@@ -5,7 +5,7 @@ version = '0.2'
 setup(name='ColanderAlchemy',
       version=version,
       description="Autogenerate Colander schemas based on SQLAlchemy models.",
-      long_description=open('README.rst', 'rb').read(),
+      long_description=open('README.rst').read(),
       classifiers=['Development Status :: 4 - Alpha',
                    'Intended Audience :: Developers',
                    'Programming Language :: Python',

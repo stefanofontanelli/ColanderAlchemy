@@ -1,6 +1,6 @@
 CHANGELOG
 
-- 0.2 (Unreleased)
+- 0.2a1 (2012-04-09)
     - Ensure relationship mapped schemas have a ``name``. This ensures
       correct usage with ``Deform``.
     - Ensure missing schema node information correctly maps to SQLAlchemy
@@ -14,6 +14,7 @@ CHANGELOG
       of the resulting ``colander.Mapping`` SchemaNode. 
     - Allow non-SQLAlchemy schema nodes within ``SQLAlchemySchemaNode``.
       Previously, the ``dictify`` method would throw an ``AttributeError``.
+    - Fix setup.py for python 3k
 
 - 0.1b7 (Unreleased)
     - Ensure relationships are mapped recursively and adhere to

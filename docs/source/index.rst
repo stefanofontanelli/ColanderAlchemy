@@ -7,7 +7,7 @@ ColanderAlchemy
 ===============
 
 `ColanderAlchemy` helps you to automatically generate
-`Colander <http://http://docs.pylonsproject.org/projects/colander/en/latest/>`_ 
+`Colander <https://github.com/Pylons/colander>`_ 
 schemas based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped classes.
 
 Quick start

@@ -127,3 +127,30 @@ class Address(Base):
     longitude = Column(Numeric, nullable=True)
     person_id = Column(Integer, ForeignKey('people.id'))
     person = relationship(Person, info={key: {'exclude': True}})
+
+
+class Cycle(Base):
+
+    __tablename__ = 'cycle'
+
+    id = Column(Integer, primary_key=True)
+    cycle = relationship('CycleChildren')
+    cycle_id = Column(Integer, ForeignKey('cycle_children.id'))
+
+
+class CycleChildren(Base):
+
+    __tablename__ = 'cycle_children'
+
+    id = Column(Integer, primary_key=True)
+    cycle = relationship('CycleChildren2')
+    cycle_id = Column(Integer, ForeignKey('cycle_children2.id'))
+
+
+class CycleChildren2(Base):
+
+    __tablename__ = 'cycle_children2'
+
+    id = Column(Integer, primary_key=True)
+    cycle = relationship('Cycle')
+    cycle_id = Column(Integer, ForeignKey('cycle.id'))

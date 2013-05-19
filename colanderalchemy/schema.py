@@ -40,7 +40,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
     ca_class_key = '__colanderalchemy_config__'
 
     def __init__(self, class_, includes=None,
-                 excludes=None, overrides=None, unknown='ignore', **kw):
+                 excludes=None, overrides=None, unknown='ignore',
+                 parents_=None, **kw):
         """ Initialise the given mapped schema according to options provided.
 
         Arguments/Keywords
@@ -82,6 +83,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
            method of this instance.
 
            Default: 'ignore'
+        parents\_
+           An ``SQLAlchemySchemaNode`` parent list to avoid relationship circular
+           dependencies and thus prevent infinite recursion. Used internally.
+
+           Default: []
         \*\*kw
            Represents *all* other options able to be passed to a
            :class:`colander.SchemaNode`. Keywords passed will influence the
@@ -103,6 +109,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         # The default type of this SchemaNode is Mapping.
         colander.SchemaNode.__init__(self, Mapping(unknown), **kwargs)
         self.class_ = class_
+        self.parents_ = parents_ or []
         self.includes = includes or {}
         self.excludes = excludes or {}
         self.overrides = overrides or {}
@@ -131,6 +138,13 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
             except AttributeError:
                 getattr(self.inspector.relationships, name)
+
+                class_ = (prop.argument() if isfunction(prop.argument)
+                          else prop.argument)
+                if (getattr(class_, "class_", class_) in self.parents_
+                    and name not in includes):
+                    continue
+
                 factory = 'get_schema_from_relationship'
 
             node = getattr(self, factory)(prop, overrides.get(name,{}).copy())
@@ -422,7 +436,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                                     includes=includes,
                                     excludes=excludes,
                                     overrides=rel_overrides,
-                                    missing=missing)
+                                    missing=missing,
+                                    parents_=self.parents_ + [self.class_])
 
         if prop.uselist:
             node = SchemaNode(Sequence(), node, **kwargs)

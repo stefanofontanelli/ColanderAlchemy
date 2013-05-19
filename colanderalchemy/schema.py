@@ -513,10 +513,6 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         else:
             excludes = None
 
-        # see issue #25 in ColanderAlchemy for possible patch
-        if includes is None and excludes is None:
-            includes = [p.key for p in inspect(class_).column_attrs]
-
         key = 'overrides'
         imperative_rel_overrides = overrides.pop(key, None)
         declarative_rel_overrides = declarative_overrides.pop(key, None)

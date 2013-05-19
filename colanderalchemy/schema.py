@@ -183,7 +183,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         validator = None
 
         # The type of the SchemaNode will be evaluated using the Column type.
-        # User can overridden the default type via Column.info or 
+        # User can overridden the default type via Column.info or
         # imperatively using overrides arg in SQLAlchemySchemaNode.__init__
 
         # Support sqlalchemy.types.TypeDecorator
@@ -236,7 +236,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         # Add default values for missing parameters.
         if column.default is None or not hasattr(column.default, 'arg') or \
-           (isinstance(column_type, Integer) and 
+           (isinstance(column_type, Integer) and
             column.primary_key and column.autoincrement):
             default = None
 
@@ -248,18 +248,18 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             default = column.default.arg
 
         if not column.nullable and \
-           not (isinstance(column_type, Integer) and 
+           not (isinstance(column_type, Integer) and
                 column.primary_key and column.autoincrement):
             missing = required
 
         elif not column.default is None and column.default.is_callable and \
-                not (isinstance(column_type, Integer) and 
+                not (isinstance(column_type, Integer) and
                      column.primary_key and column.autoincrement):
             # Fix: SQLA wraps default callables in lambda ctx: fn().
             missing = column.default.arg(None)
 
         elif not column.default is None and not column.default.is_callable and \
-                not (isinstance(column_type, Integer) and 
+                not (isinstance(column_type, Integer) and
                      column.primary_key and column.autoincrement):
             missing = column.default.arg
 
@@ -375,9 +375,6 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         else:
             excludes = None
 
-        if includes is None and excludes is None:
-            includes = [p.key for p in inspect(class_).column_attrs]
-
         key = 'overrides'
         imperative_rel_overrides = overrides.pop(key, None)
         declarative_rel_overrides = declarative_overrides.pop(key, None)
@@ -436,7 +433,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
     def dictify(self, obj):
         """ Return a dictified version of `obj` using schema information.
-        
+
         The schema will be used to choose what attributes will be
         included in the returned dict.
 

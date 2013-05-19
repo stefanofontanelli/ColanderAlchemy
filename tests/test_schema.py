@@ -66,7 +66,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             self.assertIn(attr.key, account_schema['person'])
 
         for attr in m.relationships:
-            self.assertNotIn(attr.key, account_schema['person'])
+            self.assertIn(attr.key, account_schema['person'])
 
     def test_imperative_includes(self):
         m = inspect(Account)

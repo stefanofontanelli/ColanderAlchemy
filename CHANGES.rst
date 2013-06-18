@@ -4,7 +4,10 @@ Change Log
 0.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add ``objectify`` function on ``SQLAlchemySchemaNode`` -- use this to
+  recreate SQLAlchemy object instances from the configured mappers.
+  This new method is the opposite of ``dictify``.
+  [davidjb]
 
 
 0.2 (2013-05-16)

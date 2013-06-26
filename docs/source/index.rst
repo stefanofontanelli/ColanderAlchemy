@@ -115,7 +115,7 @@ How it works
           ``primary_key=True``
         * ``colander.SchemaNode`` has ``missing=VALUE`` and ``default=VALUE`` 
           when the ``sqlalchemy.Column`` has ``default=VALUE`` (*Note: a 
-          callable default will only be called **once** when generating the 
+          callable default will only be called _once_ when generating the 
           schema*)
 
     3) The schema has a ``colander.SchemaNode`` for each `relationship`

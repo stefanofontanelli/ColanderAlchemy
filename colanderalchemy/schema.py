@@ -480,6 +480,72 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         return dict_
 
+    def objectify(self, dict_, context=None):
+        """ Return an object represting ``dict_`` using schema information.
+
+        The schema will be used to choose how the data in the structure
+        will be restored into SQLAlchemy model objects.
+        The incoming ``dict_`` structure corresponds with one that may be
+        created from the :meth:`dictify` method on the same schema.
+        Relationships and backrefs will be restored in accordance with their
+        specific configurations.
+
+        The return value of this function will be suitable for
+        adding into an SQLAlchemy session to be committed to a database.
+
+        Arguments/Keywords
+
+        dict\_
+            An dictionary or similar data structure to be converted to a
+            an SQLAlchemy object.  This data structure should conform to
+            the given schema.  For example, ``dict_`` should be an
+            appstruct (such as that returned from a Deform form
+            submission), result of a call to this schema's
+            :meth:`dictify` method, or a matching structure with
+            relevant keys and nesting, if applicable.
+        context
+            Optional keyword argument that, if supplied, becomes the base
+            object, with attributes and objects being applied to it.
+
+            Specify a ``context`` in the situtation where you already have
+            an object that exists already, such as when you have a pre-existing
+            instance of an SQLAlchemy model. If your model is already bound to
+            a session, then this facilitates directly updating the database --
+            just pass in your dict or appstruct, and your existing SQLAlchemy
+            instance as ``context`` and this method will update all of its
+            attributes.
+
+            This is a perfect fit for something like a CRUD environment.
+            
+            Default: ``None``.  Defaults to instantiating a new instance of the
+            mapped class associated with this schema.
+        """
+        mapper = self.inspector
+        context = mapper.class_() if context is None else context
+        for attr in dict_:
+            if mapper.has_property(attr):
+                prop = mapper.get_property(attr)
+                value = dict_[attr]
+                # Convert value into objects if property has a mapper
+                if hasattr(prop, 'mapper'):
+                    cls = prop.mapper.class_
+                    if prop.uselist:
+                        # Sequence of objects
+                        value = [self[attr].children[0].objectify(obj)
+                                 for obj in value]
+                    else:
+                        # Single object
+                        value = self[attr].objectify(value)
+                setattr(context, attr, value)
+            else:
+                # Ignore attributes if they are not mapped
+                msg = 'SQLAlchemySchemaNode.objectify: %s not found on %s. ' \
+                      'This property has been ignored.'
+                log.debug(msg, attr, self)
+                continue
+
+        return context
+
     def clone(self):
         cloned = self.__class__(self.class_,
                                 self.includes,

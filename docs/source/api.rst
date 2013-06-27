@@ -9,6 +9,7 @@ ColanderAlchemy API
   
      .. automethod:: __init__
      .. automethod:: dictify
+     .. automethod:: objectify
      .. automethod:: get_schema_from_column
      .. automethod:: get_schema_from_relationship
 

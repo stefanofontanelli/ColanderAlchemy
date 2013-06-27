@@ -20,6 +20,7 @@ from models import (Account,
                     Address,
                     Group)
 import colander
+import datetime
 import logging
 import sys
 
@@ -276,8 +277,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema = SQLAlchemySchemaNode(Person)
         self.assertTrue(isinstance(schema['addresses'].children[0]['id'].typ, colander.Float))
 
-    def test_dictify(self):
-        import datetime
+    def _prep_schema(self):
         overrides = {
             'person': {
                 'includes': ['name', 'surname', 'gender', 'addresses'],
@@ -297,6 +297,10 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema = SQLAlchemySchemaNode(Account, includes=includes, overrides=overrides)
         #Add a non-SQLAlchemy field
         schema.add(colander.SchemaNode(colander.String, name='non_sql'))
+        return schema
+
+    def test_dictify(self):
+        schema = self._prep_schema()
 
         args = dict(street='My Street', city='My City')
         address = Address(**args)
@@ -317,6 +321,50 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             if key == 'person':
                 for k in kws:
                     self.assertIn(k, dictified[key])
+
+    def test_objectify(self):
+        """ Test converting a dictionary or data structure into objects.
+        """
+        dict_ = {'person': {'gender': 'M',
+                            'surname': 'My Surname',
+                            'addresses': [{'city': 'My City',
+                                           'street': 'My Street'}],
+                            'name': 'My Name'},
+                 'enabled': True,
+                 'email': 'mailbox@domain.tld',
+                 'timeout': datetime.time(hour=0, minute=0),
+                 'created': datetime.datetime.now(),
+                 'foobar': 'a fake value' #Not present in schema
+                }
+        schema = self._prep_schema()
+
+        objectified = schema.objectify(dict_)
+        self.assertIsInstance(objectified, Account)
+        self.assertEqual(objectified.email, 'mailbox@domain.tld')
+        self.assertIsInstance(objectified.person, Person)
+        self.assertEqual(objectified.person.name, 'My Name')
+        self.assertFalse(hasattr(objectified, 'foobar'))
+
+    def test_objectify_context(self):
+        """ Test converting a data structure into objects, using a context.
+        """
+        dict_ = {'enabled': True,
+                 'email': 'mailbox@domain.tld'}
+        schema = self._prep_schema()
+
+        class DummyContext(object):
+            dummy_property = 'dummy'
+
+        context = DummyContext()
+
+        objectified = schema.objectify(dict_, context=context)
+
+        #Must be the same object
+        self.assertTrue(context is objectified)
+        self.assertEqual(objectified.enabled, True)
+        self.assertEqual(objectified.email, 'mailbox@domain.tld')
+        self.assertEqual(objectified.dummy_property, 'dummy')
+
 
     def test_clone(self):
         schema = SQLAlchemySchemaNode(Account, dummy='dummy', dummy2='dummy2')

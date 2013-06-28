@@ -209,7 +209,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             type_ = colander.Date()
 
         elif isinstance(column_type, DateTime):
-            type_ = colander.DateTime()
+            type_ = colander.DateTime(default_tzinfo=None)
 
         elif isinstance(column_type, Enum):
             type_ = colander.String()

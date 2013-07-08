@@ -8,7 +8,9 @@ Change Log
   recreate SQLAlchemy object instances from the configured mappers.
   This new method is the opposite of ``dictify``.
   [davidjb]
-
+- Colander's ``DateTime`` now defaults to using a naive ``datetime``
+  when no timezone is provided, similar to SQLAlchemy.
+  [tisdall]
 
 0.2 (2013-05-16)
 ----------------

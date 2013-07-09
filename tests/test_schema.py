@@ -18,7 +18,8 @@ from sqlalchemy.orm import (mapper,
 from models import (Account,
                     Person,
                     Address,
-                    Group)
+                    Group,
+                    Cycle)
 import colander
 import datetime
 import logging
@@ -67,7 +68,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             self.assertIn(attr.key, account_schema['person'])
 
         for attr in m.relationships:
-            self.assertNotIn(attr.key, account_schema['person'])
+            self.assertIn(attr.key, account_schema['person'])
 
     def test_imperative_includes(self):
         m = inspect(Account)
@@ -426,3 +427,24 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         #Group may have members
         self.assertFalse(schema['members'].required)
         self.assertEqual(schema['members'].missing, [])
+
+    def test_relationship_circular_dependencies(self):
+        """Test to ensure relationship circualar dependencies are handled correctly
+        """
+        # Circuar dependencies excluded by default
+        schema = SQLAlchemySchemaNode(Cycle)
+        self.assertFalse("cycle" in schema["cycle"]["cycle"])
+
+        # Imperatively include circualar dependencies
+        overrides = {
+            'cycle': {
+                'overrides': {
+                    'cycle': {
+                        'includes': ['cycle']
+                    }
+                }
+            }
+        }
+        schema = SQLAlchemySchemaNode(Cycle, overrides=overrides)
+        self.assertTrue("cycle" in schema["cycle"]["cycle"])
+        self.assertTrue("id" in schema["cycle"]["cycle"]["cycle"])

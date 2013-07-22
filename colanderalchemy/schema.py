@@ -7,6 +7,7 @@
 
 from colander import (Mapping,
                       null,
+                      drop,
                       required,
                       SchemaNode,
                       Sequence)
@@ -21,6 +22,7 @@ from sqlalchemy import (Boolean,
                         String,
                         Numeric,
                         Time)
+from sqlalchemy.sql.expression import TextClause
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm import object_mapper
 import colander
@@ -244,12 +246,16 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             # Fix: SQLA wraps callables in lambda ctx: fn().
             default = column.default.arg(None)
 
+        elif isinstance(column.default.arg, TextClause):
+            default = None # has to be interpretted by SQLA backend
+        
         else:
             default = column.default.arg
 
         if not column.nullable and \
            not (isinstance(column_type, Integer) and 
-                column.primary_key and column.autoincrement):
+                column.primary_key and column.autoincrement) and \
+                     not (not column.default is None and isinstance(column.default.arg, TextClause)):
             missing = required
 
         elif not column.default is None and column.default.is_callable and \
@@ -262,6 +268,9 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                 not (isinstance(column_type, Integer) and 
                      column.primary_key and column.autoincrement):
             missing = column.default.arg
+
+        elif not column.default is None and isinstance(column.default.arg, TextClause):
+            missing = drop  # assume SQLA backend will fill this
 
         else:
             missing = None

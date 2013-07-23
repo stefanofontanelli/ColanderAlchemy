@@ -15,10 +15,10 @@ from sqlalchemy import (Column,
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import (mapper,
                             relationship)
-from models import (Account,
-                    Person,
-                    Address,
-                    Group)
+from tests.models import (Account,
+                          Person,
+                          Address,
+                          Group)
 import colander
 import datetime
 import logging
@@ -27,7 +27,6 @@ import sys
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
     # In Python < 2.7 use unittest2.
     import unittest2 as unittest
-
 else:
     import unittest
 
@@ -127,21 +126,25 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertRaises(ValueError, SQLAlchemySchemaNode, Account, None, None, overrides)
 
     def test_declarative_colums_overrides(self):
-        if sys.version_info[0] == 2 and sys.version_info[1] < 7:
-            # This test fails in Python 2.6. Skip it.
-            return
-
         key = SQLAlchemySchemaNode.sqla_info_key
-
         Base = declarative_base()
 
         class WrongColumnOverrides(Base):
-
             __tablename__ = 'WrongColumnOverrides'
-
             string = Column(Unicode(32), primary_key=True, info={key: {'name': 'Name'}})
 
         self.assertRaises(ValueError, SQLAlchemySchemaNode, WrongColumnOverrides)
+        
+        """ SQLAlchemy gives sqlalchemy.exc.InvalidRequestError errors for
+            subsequent tests because this mapper is not always garbage
+            collected quick enough.  By removing the _configured_failed
+            flag on the mapper this allows later tests to function
+            properly.
+        """
+        try:
+            del WrongColumnOverrides.__mapper__._configure_failed
+        except AttributeError:
+            pass
 
     def test_imperative_relationships_overrides(self):
         overrides = {
@@ -204,9 +207,9 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
     def test_declarative_relationships_overrides(self):
 
         key = SQLAlchemySchemaNode.sqla_info_key
-        base = declarative_base()
+        Base = declarative_base()
 
-        class Model(base):
+        class Model(Base):
             __tablename__ = 'models'
             name = Column(Unicode(32), primary_key=True)
             description = Column(Unicode(128))
@@ -214,7 +217,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         #Fake model to avoid a race condition
         dummy = Model()
 
-        class WrongOverrides(base):
+        class WrongOverrides(Base):
             __tablename__ = 'WrongOverrides'
             name = Column(Unicode(32), primary_key=True)
             model_id = Column(Unicode(32), ForeignKey('models.name'))
@@ -231,7 +234,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema = SQLAlchemySchemaNode(WrongOverrides)
         self.assertEqual(schema['model'].children, [])
 
-        class IncludesOverrides(base):
+        class IncludesOverrides(Base):
             __tablename__ = 'IncludesOverrides'
             name = Column(Unicode(32), primary_key=True)
             model_id = Column(Unicode(32), ForeignKey('models.name'))
@@ -248,7 +251,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema = SQLAlchemySchemaNode(IncludesOverrides)
         self.assertEqual(set([node.name for node in schema['model']]), set(['name']))
 
-        class ExcludesOverrides(base):
+        class ExcludesOverrides(Base):
             __tablename__ = 'ExcludesOverrides'
             name = Column(Unicode(32), primary_key=True)
             model_id = Column(Unicode(32), ForeignKey('models.name'))
@@ -261,7 +264,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema = SQLAlchemySchemaNode(ExcludesOverrides)
         self.assertNotIn('name', schema['model'])
 
-        class UseListOverrides(base):
+        class UseListOverrides(Base):
             __tablename__ = 'UseListOverrides'
             name = Column(Unicode(32), primary_key=True)
             model_id = Column(Unicode(32), ForeignKey('models.name'))

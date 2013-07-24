@@ -23,8 +23,7 @@ from sqlalchemy import (Boolean,
                         Numeric,
                         Time)
 from sqlalchemy.sql.expression import TextClause
-from sqlalchemy.orm import class_mapper
-from sqlalchemy.orm import object_mapper
+from sqlalchemy.schema import (FetchedValue, ColumnDefault)
 import colander
 import logging
 
@@ -194,12 +193,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         imperative_type = overrides.pop('typ', None)
         declarative_type = declarative_overrides.pop('typ', None)
 
-        if not imperative_type is None:
+        if imperative_type is not None:
             type_ = imperative_type()
             msg = 'Column %s: type overridden imperatively: %s.'
             log.debug(msg, name, type_)
 
-        elif not declarative_type is None:
+        elif declarative_type is not None:
             type_ = declarative_type()
             msg = 'Column %s: type overridden via declarative: %s.'
             log.debug(msg, name, type_)
@@ -236,44 +235,73 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         else:
             raise NotImplementedError('Unknown type: %s' % column_type)
 
-        # Add default values for missing parameters.
-        if column.default is None or not hasattr(column.default, 'arg') or \
-           (isinstance(column_type, Integer) and 
-            column.primary_key and column.autoincrement):
-            default = None
-
-        elif column.default.is_callable:
-            # Fix: SQLA wraps callables in lambda ctx: fn().
-            default = column.default.arg(None)
-
-        elif isinstance(column.default.arg, TextClause):
-            default = None # has to be interpretted by SQLA backend
+        """
+        Add default values
         
-        else:
-            default = column.default.arg
+        possible values for default in SQLA:
+         1. plain non-callable Python value
+              - give to Colander as a default
+         2. SQL expression (derived from ColumnElement)
+              - leave default blank and allow SQLA to fill
+         3. Python callable with 0 or 1 args
+            1 arg version takes ExecutionContext
+              - call function to get value for default [ <- should this be changed to null default ]
+              
+        all values for server_default should be ignored for 
+        Colander default
+        """
+        default = null # no default value for Colander
+        if isinstance(column.default, ColumnDefault):
+            if column.default.is_callable:
+                # SQLA wraps both 0 or 1 arg functions into
+                # a 1 arg function accepting an ExecutionContext
+                default = column.default.arg(None)
+            elif column.default.is_scalar:
+                default = column.default.arg
 
-        if not column.nullable and \
-           not (isinstance(column_type, Integer) and 
-                column.primary_key and column.autoincrement) and \
-                     not (not column.default is None and isinstance(column.default.arg, TextClause)):
-            missing = required
-
-        elif not column.default is None and column.default.is_callable and \
-                not (isinstance(column_type, Integer) and 
-                     column.primary_key and column.autoincrement):
-            # Fix: SQLA wraps default callables in lambda ctx: fn().
-            missing = column.default.arg(None)
-
-        elif not column.default is None and not column.default.is_callable and \
-                not (isinstance(column_type, Integer) and 
-                     column.primary_key and column.autoincrement):
-            missing = column.default.arg
-
-        elif not column.default is None and isinstance(column.default.arg, TextClause):
-            missing = drop  # assume SQLA backend will fill this
-
-        else:
+        """
+        Add missing values
+        
+        possible values for default in SQLA:
+         1. plain non-callable Python value
+              - give to Colander as a missing unless nullable
+         2. SQL expression (derived from ColumnElement)
+              - set missing to 'drop' to allow SQLA to fill this in
+                and make it an unrequired field
+         3. Python callable with 0 or 1 args
+            1 arg version takes ExecutionContext
+              - call function to get value for missing [ <- should this be changed to missing = drop ]
+        
+        if nullable, then allowing missing = None
+        
+        all values for server_default should result in 'drop' 
+        for Colander missing
+        
+        autoincrement results in drop
+        """
+        missing = required # default missing value in Colander
+        if isinstance(column.default, ColumnDefault):
+            if column.default.is_callable:
+                # SQLA wraps both 0 or 1 arg functions into
+                # a 1 arg function accepting an ExecutionContext
+                missing = column.default.arg(None)
+            elif column.default.is_clause_element: # SQL expression
+                missing = drop
+            elif column.default.is_scalar:
+                missing = column.default.arg
+        elif column.nullable:
             missing = None
+        elif isinstance(column.server_default, FetchedValue):
+            missing = drop # value generated by SQLA backend
+        elif column.autoincrement and isinstance(column_type, Integer) and column.primary_key:
+            # autoincrement only has an effect if:
+            #  - Integer derived
+            #  - part of primary key
+            #  - not referenced by any foreign keys, unless the 
+            #    value is specified as 'ignore_fk' (SQLA >= 0.7.4)
+            #    [TODO - need to cover this case]
+            #  - has no server side or client side defaults
+            missing = drop
 
 
         kwargs = dict(name=name,

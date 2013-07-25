@@ -38,8 +38,6 @@ Development version
 Fork the development version on
 `GitHub <https://github.com/stefanofontanelli/ColanderAlchemy>`_.
 
-On Python < 2.7 install ``unittest2`` manually to run tests.
-
 The branch '0.1' contains the old version of ColanderAlchemy: 0.1x
 The branch 'master' contains the new version of ColanderAlchemy: 0.2x
 

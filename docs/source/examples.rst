@@ -96,7 +96,7 @@ By contrast, all you need to obtain the same Colander schema for the ``Person`` 
 
     from colanderalchemy import setup_schema
 
-    setup_schema(Person)
+    setup_schema(None, Person)
     schema = Person.__colanderalchemy__
 
 Or alternatively, you may do this::

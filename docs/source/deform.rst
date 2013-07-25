@@ -43,7 +43,7 @@ be produced by constructing the following ``Colander`` schema by hand::
     class Phone(colander.MappingSchema):
         person_id = colander.SchemaNode(colander.Int())
         number = colander.SchemaNode(colander.String(),
-                                     colander.Length(0, 128))
+                                     validator=colander.Length(0, 128))
         location = colander.SchemaNode(colander.String(),
                                        validator=colander.OneOf(['home', 'work']),
                                        missing=None)
@@ -56,9 +56,9 @@ be produced by constructing the following ``Colander`` schema by hand::
     class Person(colander.MappingSchema):
         id = colander.SchemaNode(colander.Int())
         name = colander.SchemaNode(colander.String(),
-                                   colander.Length(0, 128))
+                                   validator=colander.Length(0, 128))
         surname = colander.SchemaNode(colander.String(),
-                                      colander.Length(0, 128))
+                                      validator=colander.Length(0, 128))
         phones = Phones(missing=[], default=[])
 
 

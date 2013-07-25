@@ -29,7 +29,7 @@ Suppose you have these SQLAlchemy mapped classes::
         gender = Column(Enum(u'M', u'F'))
         age = Column(Integer)
         phones = relationship('Phone')
-        friends = relationship('Friend')
+        friends = relationship('Friend', foreign_keys="[Friend.person_id]")
 
 
     class Phone(Base):
@@ -62,7 +62,7 @@ The code you need to create the Colander schema for ``Person`` would be::
     class Phone(colander.MappingSchema):
         person_id = colander.SchemaNode(colander.Int())
         number = colander.SchemaNode(colander.String(),
-                                     colander.Length(0, 128))
+                                     validator=colander.Length(0, 128))
         location = colander.SchemaNode(colander.String(),
                                        validator=colander.OneOf(['home', 'work']),
                                        missing=None)
@@ -79,9 +79,9 @@ The code you need to create the Colander schema for ``Person`` would be::
     class Person(colander.MappingSchema):
         id = colander.SchemaNode(colander.Int())
         name = colander.SchemaNode(colander.String(),
-                                   colander.Length(0, 128))
+                                   validator=colander.Length(0, 128))
         surname = colander.SchemaNode(colander.String(),
-                                      colander.Length(0, 128))
+                                      validator=colander.Length(0, 128))
         age = colander.SchemaNode(colander.Int(), missing=None)
         gender = colander.SchemaNode(colander.String(),
                                      validator=colander.OneOf(['M', 'F']),
@@ -90,7 +90,7 @@ The code you need to create the Colander schema for ``Person`` would be::
         phones = Phones(missing=[], default=[])
 
 
-        person = Person()
+    person = Person()
 
 By contrast, all you need to obtain the same Colander schema for the ``Person`` mapped class using ``ColanderAlchemy`` is simply::
 

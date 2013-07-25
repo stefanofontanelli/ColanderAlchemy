@@ -15,8 +15,15 @@ The default ``Colander`` schema generated using
 #. It has a `required` field for each primary key or `not nullable` column
 
 #. It has a `default` field for each column which has a default value
+   provided that default is a scalar.  If the default is a python function
+   then it is called once when generating the schema and that value is
+   used as the default.  Defaults requiring evaluation by the database
+   are not used and the field is made not-required (as the database will
+   automatically fill in the value if it's missing when saving).
 
-#. It validates ``Enum`` columns using the Colander ``OneOf`` validator
+#. Validation is done for ``Enum`` columns by using the Colander ``OneOf`` 
+   validator and ``String`` columns by using the Colander ``Length``
+   validator.
 
 You can change the default behaviour of
 :class:`colanderalchemy.SQLAlchemySchemaNode` by specifying the keyword

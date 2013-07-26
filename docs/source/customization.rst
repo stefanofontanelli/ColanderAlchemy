@@ -8,7 +8,7 @@ Changing auto-generation rules
 
 The default ``Colander`` schema generated using
 :class:`colanderalchemy.SQLAlchemySchemaNode` follows certain rules seen in
-:ref:how_it_works.  You can change the default behaviour of
+:ref:`how_it_works`.  You can change the default behaviour of
 :class:`colanderalchemy.SQLAlchemySchemaNode` by specifying the keyword
 arguments ``includes``, ``excludes``, and ``overrides``.  
 

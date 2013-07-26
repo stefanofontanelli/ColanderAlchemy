@@ -22,7 +22,6 @@ from sqlalchemy import (Boolean,
                         String,
                         Numeric,
                         Time)
-from sqlalchemy.sql.expression import TextClause
 from sqlalchemy.schema import (FetchedValue, ColumnDefault)
 import colander
 import logging
@@ -366,12 +365,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         key = 'children'
         imperative_children = overrides.pop(key, None)
         declarative_children = declarative_overrides.pop(key, None)
-        if not imperative_children is None:
+        if imperative_children is not None:
             children = imperative_children
             msg = 'Relationship %s: %s overridden imperatively.'
             log.debug(msg, name, key)
 
-        elif not declarative_children is None:
+        elif declarative_children is not None:
             children = declarative_children
             msg = 'Relationship %s: %s overridden via declarative.'
             log.debug(msg, name, key)
@@ -382,12 +381,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         key = 'includes'
         imperative_includes = overrides.pop(key, None)
         declarative_includes = declarative_overrides.pop(key, None)
-        if not imperative_includes is None:
+        if imperative_includes is not None:
             includes = imperative_includes
             msg = 'Relationship %s: %s overridden imperatively.'
             log.debug(msg, name, key)
 
-        elif not declarative_includes is None:
+        elif declarative_includes is not None:
             includes = declarative_includes
             msg = 'Relationship %s: %s overridden via declarative.'
             log.debug(msg, name, key)
@@ -399,12 +398,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         imperative_excludes = overrides.pop(key, None)
         declarative_excludes = declarative_overrides.pop(key, None)
 
-        if not imperative_excludes is None:
+        if imperative_excludes is not None:
             excludes = imperative_excludes
             msg = 'Relationship %s: %s overridden imperatively.'
             log.debug(msg, name, key)
 
-        elif not declarative_excludes is None:
+        elif declarative_excludes is not None:
             excludes = declarative_excludes
             msg = 'Relationship %s: %s overridden via declarative.'
             log.debug(msg, name, key)
@@ -419,12 +418,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         imperative_rel_overrides = overrides.pop(key, None)
         declarative_rel_overrides = declarative_overrides.pop(key, None)
 
-        if not imperative_rel_overrides is None:
+        if imperative_rel_overrides is not None:
             rel_overrides = imperative_rel_overrides
             msg = 'Relationship %s: %s overridden imperatively.'
             log.debug(msg, name, key)
 
-        elif not declarative_rel_overrides is None:
+        elif declarative_rel_overrides is not None:
             rel_overrides = declarative_rel_overrides
             msg = 'Relationship %s: %s overridden via declarative.'
             log.debug(msg, name, key)
@@ -449,11 +448,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         kwargs.update(declarative_overrides)
         kwargs.update(overrides)
 
-        if not children is None and prop.uselist:
+        if children is not None and prop.uselist:
             # xToMany relationships.
             return SchemaNode(Sequence(), *children, **kwargs)
 
-        if not children is None and not prop.uselist:
+        if children is not None and not prop.uselist:
             # xToOne relationships.
             return SchemaNode(Mapping(), *children, **kwargs)
 

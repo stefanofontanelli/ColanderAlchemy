@@ -63,7 +63,7 @@ be produced by constructing the following ``Colander`` schema by hand::
 
 
 Note the various configuration aspects like field length and the like
-will automatically be mapped. This means that geting a ``Deform`` form
+will automatically be mapped. This means that getting a ``Deform`` form
 to use ``ColanderAlchemy`` is as simple as using any other ``Colander``
 schema::
 

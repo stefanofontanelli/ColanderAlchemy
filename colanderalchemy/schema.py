@@ -193,14 +193,20 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         declarative_type = declarative_overrides.pop('typ', None)
 
         if imperative_type is not None:
-            type_ = imperative_type()
-            msg = 'Column %s: type overridden imperatively: %s.'
-            log.debug(msg, name, type_)
+            if hasattr(imperative_type, '__call__'):
+                type_ = imperative_type()
+            else:
+                type_ = imperative_type
+            log.debug('Column %s: type overridden imperatively: %s.', 
+                        name, type_)
 
         elif declarative_type is not None:
-            type_ = declarative_type()
-            msg = 'Column %s: type overridden via declarative: %s.'
-            log.debug(msg, name, type_)
+            if hasattr(declarative_type, '__call__'):
+                type_ = declarative_type()
+            else:
+                type_ = declarative_type
+            log.debug('Column %s: type overridden via declarative: %s.', 
+                        name, type_)
 
         elif isinstance(column_type, Boolean):
             type_ = colander.Boolean()

@@ -125,7 +125,7 @@ refer to the complete documentation over at
 http://docs.pylonsproject.org/projects/colander/en/latest/basics.html.
 
 So, as an example, the value of ``title`` will be passed as the keyword argument
-``title`` when instatiating the ``colander.SchemaNode``. For more information
+``title`` when instantiating the ``colander.SchemaNode``. For more information
 about what each of the options can do, see the `Colander
 <http://rtd.pylonsproject.org/projects/colander/>`_ documentation.
 

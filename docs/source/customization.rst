@@ -7,18 +7,8 @@ Changing auto-generation rules
 ------------------------------
 
 The default ``Colander`` schema generated using
-:class:`colanderalchemy.SQLAlchemySchemaNode` follows the rules below:
-
-#. It has an `optional` (not required) field for each optional column and for
-   each relationship
-
-#. It has a `required` field for each primary key or `not nullable` column
-
-#. It has a `default` field for each column which has a default value
-
-#. It validates ``Enum`` columns using the Colander ``OneOf`` validator
-
-You can change the default behaviour of
+:class:`colanderalchemy.SQLAlchemySchemaNode` follows certain rules seen in
+:ref:`how_it_works`.  You can change the default behaviour of
 :class:`colanderalchemy.SQLAlchemySchemaNode` by specifying the keyword
 arguments ``includes``, ``excludes``, and ``overrides``.  
 
@@ -135,7 +125,7 @@ refer to the complete documentation over at
 http://docs.pylonsproject.org/projects/colander/en/latest/basics.html.
 
 So, as an example, the value of ``title`` will be passed as the keyword argument
-``title`` when instatiating the ``colander.SchemaNode``. For more information
+``title`` when instantiating the ``colander.SchemaNode``. For more information
 about what each of the options can do, see the `Colander
 <http://rtd.pylonsproject.org/projects/colander/>`_ documentation.
 

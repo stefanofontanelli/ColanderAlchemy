@@ -43,7 +43,7 @@ be produced by constructing the following ``Colander`` schema by hand::
     class Phone(colander.MappingSchema):
         person_id = colander.SchemaNode(colander.Int())
         number = colander.SchemaNode(colander.String(),
-                                     colander.Length(0, 128))
+                                     validator=colander.Length(0, 128))
         location = colander.SchemaNode(colander.String(),
                                        validator=colander.OneOf(['home', 'work']),
                                        missing=None)
@@ -56,14 +56,14 @@ be produced by constructing the following ``Colander`` schema by hand::
     class Person(colander.MappingSchema):
         id = colander.SchemaNode(colander.Int())
         name = colander.SchemaNode(colander.String(),
-                                   colander.Length(0, 128))
+                                   validator=colander.Length(0, 128))
         surname = colander.SchemaNode(colander.String(),
-                                      colander.Length(0, 128))
+                                      validator=colander.Length(0, 128))
         phones = Phones(missing=[], default=[])
 
 
 Note the various configuration aspects like field length and the like
-will automatically be mapped. This means that geting a ``Deform`` form
+will automatically be mapped. This means that getting a ``Deform`` form
 to use ``ColanderAlchemy`` is as simple as using any other ``Colander``
 schema::
 

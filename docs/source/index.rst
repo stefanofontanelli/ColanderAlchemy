@@ -94,6 +94,9 @@ In either situation, you can now pass the resulting ``Colander`` schema to
 anything that needs it.  For instance, this works well with ``Deform`` and you
 can read more about this later in this documentation: :ref:`deform`.
 
+
+.. _how_it_works:
+
 How it works
 ------------
 
@@ -106,17 +109,19 @@ How it works
 
         * The type of ``colander.SchemaNode`` 
           is based on the type of ``sqlalchemy.Column``
-        * The ``colander.SchemaNode`` use ``validator=colander.OneOf``
-          when the type of ``sqlalchemy.Column`` is ``sqlalchemy.types.Enum``
-        * ``colander.SchemaNode`` has ``missing=None`` 
-          when the ``sqlalchemy.Column`` has ``nullable=True``
-        * ``colander.SchemaNode`` has ``missing=colander.required`` 
-          when the ``sqlalchemy.Column`` has ``nullable=False`` or 
-          ``primary_key=True``
-        * ``colander.SchemaNode`` has ``missing=VALUE`` and ``default=VALUE`` 
-          when the ``sqlalchemy.Column`` has ``default=VALUE`` (*Note: a 
-          callable default will only be called _once_ when generating the 
-          schema*)
+        * The ``colander.SchemaNode`` has a validator if the ``sqlalchemy.Column``
+          is an instance of either ``sqlalchemy.types.Enum`` or 
+          ``sqlalchemy.types.String``.  ``Enum`` is checked with ``colander.OneOf``
+          and ``String`` is checked with ``colander.Length``
+        * ``colander.SchemaNode`` has ``missing=colander.required`` except for
+          the when ``default`` is set, ``nullable=True``, there's a ``server_default``,
+          or the field is an auto incrementing integer used as part of a primary key.
+          Essentially it's required unless SQLAlchemy can derive a value for you 
+          automatically if it's missing.
+        * ``colander.SchemaNode`` has ``default=colander.null`` unless there is
+          a client side default.  Client side defaults include scalar values
+          and callable functions.  (*Note: a callable default will only be called 
+          _once_ when generating the schema*)
 
     3) The schema has a ``colander.SchemaNode`` for each `relationship`
        (``sqlalchemy.orm.relationship`` or those from
@@ -124,10 +129,10 @@ How it works
 
         * The ``colander.SchemaNode`` has ``missing=None``
         * The type of ``colander.SchemaNode`` is:
-            * A ``colander.Mapping`` for `ManyToOne and OneToOne
-              relationships`
-            * A ``colander.Sequence`` of ``colander.Mapping`` for `ManyToMany
-              and OneToMany relationships`
+            * A ``colander.Mapping`` for `ManyToOne` and `OneToOne`
+              relationships
+            * A ``colander.Sequence`` of ``colander.Mapping`` for `ManyToMany`
+              and `OneToMany` relationships
 
         For both kind of relationships, the ``colander.Mapping`` is built using
         `rule 2` on the mapped class referenced by relationship.

@@ -517,7 +517,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         return dict_
 
     def objectify(self, dict_, context=None):
-        """ Return an object represting ``dict_`` using schema information.
+        """ Return an object representing ``dict_`` using schema information.
 
         The schema will be used to choose how the data in the structure
         will be restored into SQLAlchemy model objects.
@@ -543,7 +543,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             Optional keyword argument that, if supplied, becomes the base
             object, with attributes and objects being applied to it.
 
-            Specify a ``context`` in the situtation where you already have
+            Specify a ``context`` in the situation where you already have
             an object that exists already, such as when you have a pre-existing
             instance of an SQLAlchemy model. If your model is already bound to
             a session, then this facilitates directly updating the database --

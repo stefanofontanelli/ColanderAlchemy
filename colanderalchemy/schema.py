@@ -7,6 +7,7 @@
 
 from colander import (Mapping,
                       null,
+                      drop,
                       required,
                       SchemaNode,
                       Sequence)
@@ -21,8 +22,7 @@ from sqlalchemy import (Boolean,
                         String,
                         Numeric,
                         Time)
-from sqlalchemy.orm import class_mapper
-from sqlalchemy.orm import object_mapper
+from sqlalchemy.schema import (FetchedValue, ColumnDefault)
 import colander
 import logging
 
@@ -192,15 +192,21 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         imperative_type = overrides.pop('typ', None)
         declarative_type = declarative_overrides.pop('typ', None)
 
-        if not imperative_type is None:
-            type_ = imperative_type()
-            msg = 'Column %s: type overridden imperatively: %s.'
-            log.debug(msg, name, type_)
+        if imperative_type is not None:
+            if hasattr(imperative_type, '__call__'):
+                type_ = imperative_type()
+            else:
+                type_ = imperative_type
+            log.debug('Column %s: type overridden imperatively: %s.', 
+                        name, type_)
 
-        elif not declarative_type is None:
-            type_ = declarative_type()
-            msg = 'Column %s: type overridden via declarative: %s.'
-            log.debug(msg, name, type_)
+        elif declarative_type is not None:
+            if hasattr(declarative_type, '__call__'):
+                type_ = declarative_type()
+            else:
+                type_ = declarative_type
+            log.debug('Column %s: type overridden via declarative: %s.', 
+                        name, type_)
 
         elif isinstance(column_type, Boolean):
             type_ = colander.Boolean()
@@ -234,37 +240,73 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         else:
             raise NotImplementedError('Unknown type: %s' % column_type)
 
-        # Add default values for missing parameters.
-        if column.default is None or not hasattr(column.default, 'arg') or \
-           (isinstance(column_type, Integer) and 
-            column.primary_key and column.autoincrement):
-            default = None
+        """
+        Add default values
+        
+        possible values for default in SQLA:
+         1. plain non-callable Python value
+              - give to Colander as a default
+         2. SQL expression (derived from ColumnElement)
+              - leave default blank and allow SQLA to fill
+         3. Python callable with 0 or 1 args
+            1 arg version takes ExecutionContext
+              - call function to get value for default [ <- should this be changed to null default ]
+              
+        all values for server_default should be ignored for 
+        Colander default
+        """
+        default = null # no default value for Colander
+        if isinstance(column.default, ColumnDefault):
+            if column.default.is_callable:
+                # SQLA wraps both 0 or 1 arg functions into
+                # a 1 arg function accepting an ExecutionContext
+                default = column.default.arg(None)
+            elif column.default.is_scalar:
+                default = column.default.arg
 
-        elif column.default.is_callable:
-            # Fix: SQLA wraps callables in lambda ctx: fn().
-            default = column.default.arg(None)
-
-        else:
-            default = column.default.arg
-
-        if not column.nullable and \
-           not (isinstance(column_type, Integer) and 
-                column.primary_key and column.autoincrement):
-            missing = required
-
-        elif not column.default is None and column.default.is_callable and \
-                not (isinstance(column_type, Integer) and 
-                     column.primary_key and column.autoincrement):
-            # Fix: SQLA wraps default callables in lambda ctx: fn().
-            missing = column.default.arg(None)
-
-        elif not column.default is None and not column.default.is_callable and \
-                not (isinstance(column_type, Integer) and 
-                     column.primary_key and column.autoincrement):
-            missing = column.default.arg
-
-        else:
+        """
+        Add missing values
+        
+        possible values for default in SQLA:
+         1. plain non-callable Python value
+              - give to Colander as a missing unless nullable
+         2. SQL expression (derived from ColumnElement)
+              - set missing to 'drop' to allow SQLA to fill this in
+                and make it an unrequired field
+         3. Python callable with 0 or 1 args
+            1 arg version takes ExecutionContext
+              - call function to get value for missing [ <- should this be changed to missing = drop ]
+        
+        if nullable, then allowing missing = None
+        
+        all values for server_default should result in 'drop' 
+        for Colander missing
+        
+        autoincrement results in drop
+        """
+        missing = required # default missing value in Colander
+        if isinstance(column.default, ColumnDefault):
+            if column.default.is_callable:
+                # SQLA wraps both 0 or 1 arg functions into
+                # a 1 arg function accepting an ExecutionContext
+                missing = column.default.arg(None)
+            elif column.default.is_clause_element: # SQL expression
+                missing = drop
+            elif column.default.is_scalar:
+                missing = column.default.arg
+        elif column.nullable:
             missing = None
+        elif isinstance(column.server_default, FetchedValue):
+            missing = drop # value generated by SQLA backend
+        elif column.autoincrement and isinstance(column_type, Integer) and column.primary_key:
+            # autoincrement only has an effect if:
+            #  - Integer derived
+            #  - part of primary key
+            #  - not referenced by any foreign keys, unless the 
+            #    value is specified as 'ignore_fk' (SQLA >= 0.7.4)
+            #    [TODO - need to cover this case]
+            #  - has no server side or client side defaults
+            missing = drop
 
 
         kwargs = dict(name=name,
@@ -329,12 +371,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         key = 'children'
         imperative_children = overrides.pop(key, None)
         declarative_children = declarative_overrides.pop(key, None)
-        if not imperative_children is None:
+        if imperative_children is not None:
             children = imperative_children
             msg = 'Relationship %s: %s overridden imperatively.'
             log.debug(msg, name, key)
 
-        elif not declarative_children is None:
+        elif declarative_children is not None:
             children = declarative_children
             msg = 'Relationship %s: %s overridden via declarative.'
             log.debug(msg, name, key)
@@ -345,12 +387,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         key = 'includes'
         imperative_includes = overrides.pop(key, None)
         declarative_includes = declarative_overrides.pop(key, None)
-        if not imperative_includes is None:
+        if imperative_includes is not None:
             includes = imperative_includes
             msg = 'Relationship %s: %s overridden imperatively.'
             log.debug(msg, name, key)
 
-        elif not declarative_includes is None:
+        elif declarative_includes is not None:
             includes = declarative_includes
             msg = 'Relationship %s: %s overridden via declarative.'
             log.debug(msg, name, key)
@@ -362,12 +404,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         imperative_excludes = overrides.pop(key, None)
         declarative_excludes = declarative_overrides.pop(key, None)
 
-        if not imperative_excludes is None:
+        if imperative_excludes is not None:
             excludes = imperative_excludes
             msg = 'Relationship %s: %s overridden imperatively.'
             log.debug(msg, name, key)
 
-        elif not declarative_excludes is None:
+        elif declarative_excludes is not None:
             excludes = declarative_excludes
             msg = 'Relationship %s: %s overridden via declarative.'
             log.debug(msg, name, key)
@@ -382,12 +424,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         imperative_rel_overrides = overrides.pop(key, None)
         declarative_rel_overrides = declarative_overrides.pop(key, None)
 
-        if not imperative_rel_overrides is None:
+        if imperative_rel_overrides is not None:
             rel_overrides = imperative_rel_overrides
             msg = 'Relationship %s: %s overridden imperatively.'
             log.debug(msg, name, key)
 
-        elif not declarative_rel_overrides is None:
+        elif declarative_rel_overrides is not None:
             rel_overrides = declarative_rel_overrides
             msg = 'Relationship %s: %s overridden via declarative.'
             log.debug(msg, name, key)
@@ -412,11 +454,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         kwargs.update(declarative_overrides)
         kwargs.update(overrides)
 
-        if not children is None and prop.uselist:
+        if children is not None and prop.uselist:
             # xToMany relationships.
             return SchemaNode(Sequence(), *children, **kwargs)
 
-        if not children is None and not prop.uselist:
+        if children is not None and not prop.uselist:
             # xToOne relationships.
             return SchemaNode(Mapping(), *children, **kwargs)
 
@@ -481,7 +523,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         return dict_
 
     def objectify(self, dict_, context=None):
-        """ Return an object represting ``dict_`` using schema information.
+        """ Return an object representing ``dict_`` using schema information.
 
         The schema will be used to choose how the data in the structure
         will be restored into SQLAlchemy model objects.
@@ -507,7 +549,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             Optional keyword argument that, if supplied, becomes the base
             object, with attributes and objects being applied to it.
 
-            Specify a ``context`` in the situtation where you already have
+            Specify a ``context`` in the situation where you already have
             an object that exists already, such as when you have a pre-existing
             instance of an SQLAlchemy model. If your model is already bound to
             a session, then this facilitates directly updating the database --

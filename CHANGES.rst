@@ -11,6 +11,8 @@ Change Log
 - Colander's ``DateTime`` now defaults to using a naive ``datetime``
   when no timezone is provided, similar to SQLAlchemy.
   [tisdall]
+- fixed defaults for SchemaNode.default and SchemaNode.missing
+  [tisdall]
 
 0.2 (2013-05-16)
 ----------------

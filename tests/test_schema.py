@@ -10,15 +10,24 @@ from colanderalchemy import (setup_schema,
 from sqlalchemy import (Column,
                         event,
                         ForeignKey,
-                        inspect,
-                        Unicode)
+                        Unicode,
+                        Integer,
+                        BigInteger,
+                        TIMESTAMP,
+                        String)
+import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import (mapper,
                             relationship)
-from models import (Account,
-                    Person,
-                    Address,
-                    Group)
+from sqlalchemy.sql.expression import (text, 
+                                       func,
+                                       true,
+                                       false)
+from sqlalchemy.schema import DefaultClause
+from tests.models import (Account,
+                          Person,
+                          Address,
+                          Group)
 import colander
 import datetime
 import logging
@@ -27,7 +36,6 @@ import sys
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
     # In Python < 2.7 use unittest2.
     import unittest2 as unittest
-
 else:
     import unittest
 
@@ -56,13 +64,13 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
     def test_default_strategy_for_columns_and_relationships_include_all(self):
         account_schema = SQLAlchemySchemaNode(Account)
-        m = inspect(Account)
+        m = sqlalchemy.inspect(Account)
         for attr in m.attrs:
             self.assertIn(attr.key, account_schema)
 
     def test_default_strategy_for_included_relationships_schema(self):
         account_schema = SQLAlchemySchemaNode(Account)
-        m = inspect(Person)
+        m = sqlalchemy.inspect(Person)
         for attr in m.column_attrs:
             self.assertIn(attr.key, account_schema['person'])
 
@@ -70,7 +78,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             self.assertNotIn(attr.key, account_schema['person'])
 
     def test_imperative_includes(self):
-        m = inspect(Account)
+        m = sqlalchemy.inspect(Account)
         includes = [attr.key for attr in m.column_attrs]
         account_schema = SQLAlchemySchemaNode(Account, includes=includes)
         for attr in m.column_attrs:
@@ -88,7 +96,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             self.assertIn(attr.key, account_schema)
 
     def test_imperative_excludes(self):
-        m = inspect(Account)
+        m = sqlalchemy.inspect(Account)
         excludes = [attr.key for attr in m.column_attrs]
         account_schema = SQLAlchemySchemaNode(Account, excludes=excludes)
         for attr in m.column_attrs:
@@ -98,7 +106,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             self.assertIn(attr.key, account_schema)
 
     def test_declarative_excludes(self):
-        m = inspect(Address)
+        m = sqlalchemy.inspect(Address)
         address_schema = SQLAlchemySchemaNode(Address)
         self.assertNotIn('city', address_schema)
         self.assertNotIn('person', address_schema)
@@ -127,21 +135,25 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertRaises(ValueError, SQLAlchemySchemaNode, Account, None, None, overrides)
 
     def test_declarative_colums_overrides(self):
-        if sys.version_info[0] == 2 and sys.version_info[1] < 7:
-            # This test fails in Python 2.6. Skip it.
-            return
-
         key = SQLAlchemySchemaNode.sqla_info_key
-
         Base = declarative_base()
 
         class WrongColumnOverrides(Base):
-
             __tablename__ = 'WrongColumnOverrides'
-
             string = Column(Unicode(32), primary_key=True, info={key: {'name': 'Name'}})
 
         self.assertRaises(ValueError, SQLAlchemySchemaNode, WrongColumnOverrides)
+
+        """ SQLAlchemy gives sqlalchemy.exc.InvalidRequestError errors for
+            subsequent tests because this mapper is not always garbage
+            collected quick enough.  By removing the _configured_failed
+            flag on the mapper this allows later tests to function
+            properly.
+        """
+        try:
+            del WrongColumnOverrides.__mapper__._configure_failed
+        except AttributeError:
+            pass
 
     def test_imperative_relationships_overrides(self):
         overrides = {
@@ -204,9 +216,9 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
     def test_declarative_relationships_overrides(self):
 
         key = SQLAlchemySchemaNode.sqla_info_key
-        base = declarative_base()
+        Base = declarative_base()
 
-        class Model(base):
+        class Model(Base):
             __tablename__ = 'models'
             name = Column(Unicode(32), primary_key=True)
             description = Column(Unicode(128))
@@ -214,7 +226,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         #Fake model to avoid a race condition
         dummy = Model()
 
-        class WrongOverrides(base):
+        class WrongOverrides(Base):
             __tablename__ = 'WrongOverrides'
             name = Column(Unicode(32), primary_key=True)
             model_id = Column(Unicode(32), ForeignKey('models.name'))
@@ -231,7 +243,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema = SQLAlchemySchemaNode(WrongOverrides)
         self.assertEqual(schema['model'].children, [])
 
-        class IncludesOverrides(base):
+        class IncludesOverrides(Base):
             __tablename__ = 'IncludesOverrides'
             name = Column(Unicode(32), primary_key=True)
             model_id = Column(Unicode(32), ForeignKey('models.name'))
@@ -248,7 +260,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema = SQLAlchemySchemaNode(IncludesOverrides)
         self.assertEqual(set([node.name for node in schema['model']]), set(['name']))
 
-        class ExcludesOverrides(base):
+        class ExcludesOverrides(Base):
             __tablename__ = 'ExcludesOverrides'
             name = Column(Unicode(32), primary_key=True)
             model_id = Column(Unicode(32), ForeignKey('models.name'))
@@ -261,7 +273,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema = SQLAlchemySchemaNode(ExcludesOverrides)
         self.assertNotIn('name', schema['model'])
 
-        class UseListOverrides(base):
+        class UseListOverrides(Base):
             __tablename__ = 'UseListOverrides'
             name = Column(Unicode(32), primary_key=True)
             model_id = Column(Unicode(32), ForeignKey('models.name'))
@@ -426,3 +438,98 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         #Group may have members
         self.assertFalse(schema['members'].required)
         self.assertEqual(schema['members'].missing, [])
+
+    def test_defaultmissing_primarykey(self):
+        """Ensure proper handling of empty values on primary keys
+        """
+        Base = declarative_base()
+        class User(Base):
+            __tablename__ = 'user'
+            id = Column(Integer, primary_key=True) # is automatically made autoincrement=True
+
+        schema = SQLAlchemySchemaNode(User)
+
+        # from <FORM> result into SQLA; tests missing
+        self.assertEqual(schema['id'].missing, colander.drop)
+        deserialized = schema.deserialize({})
+        self.assertNotIn('id', deserialized)
+
+        # from SQLA result into <FORM>; tests default
+        self.assertEqual(schema['id'].default, colander.null)
+        serialized = schema.serialize({})
+        self.assertIn('id', serialized)
+        self.assertEqual(serialized['id'], colander.null)
+
+        class Widget(Base):
+            __tablename__ = 'widget'
+            id = Column(String, primary_key=True)
+        
+        schema = SQLAlchemySchemaNode(Widget)
+        
+        # from <FORM> result into SQLA; tests missing
+        self.assertEqual(schema['id'].missing, colander.required)
+        self.assertRaises(colander.Invalid, schema.deserialize, {})
+        
+        # from SQLA result into <FORM>; tests default
+        self.assertEqual(schema['id'].default, colander.null)
+        serialized = schema.serialize({})
+        self.assertIn('id', serialized)
+        self.assertEqual(serialized['id'], colander.null)
+
+    def test_default_clause(self):
+        """Test proper handling of default and server_default values
+        """
+        Base = declarative_base()
+
+        def give_me_three():
+            return 3
+
+        class Patient(Base):
+            __tablename__ = 'patient'
+            # default= is equivalent to ColumnDefault()
+            # server_default= is equivalent to DefaultClause()
+            id = Column(BigInteger(unsigned=True), default=text("uuid_short()"), primary_key=True, autoincrement=False)
+            received_timestamp = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+            some_number = Column(Integer, DefaultClause('3'), nullable=False)
+            scalar_number = Column(Integer, default=3, nullable=False)
+            pyfunc_test = Column(Integer, default=give_me_three, nullable=False)
+
+        schema = SQLAlchemySchemaNode(Patient)
+
+        '''
+        Conceivably you should be able to test DefaultClause for a 
+        scalar type value and use it as a default/missing in Colander.
+        However, the value is interpreted by the backend engine and
+        could be a interpreted by it in an unexpected way.  For this
+        reason we drop the value and let the backend handle it.
+        '''
+
+        # from <FORM> result into SQLA; tests missing
+        self.assertEqual(schema['id'].missing, colander.drop)
+        self.assertEqual(schema['received_timestamp'].missing, colander.drop)
+        self.assertEqual(schema['some_number'].missing, colander.drop)
+        self.assertEqual(schema['scalar_number'].missing, 3)
+        self.assertEqual(schema['pyfunc_test'].missing, 3)
+        deserialized = schema.deserialize({})
+        self.assertIn('scalar_number', deserialized)
+        self.assertEqual(deserialized['scalar_number'], 3)
+        self.assertIn('pyfunc_test', deserialized)
+        self.assertEqual(deserialized['pyfunc_test'], 3)
+
+        # from SQLA result into <FORM>; tests default
+        self.assertEqual(schema['id'].default, colander.null)
+        self.assertEqual(schema['received_timestamp'].default, colander.null)
+        self.assertEqual(schema['some_number'].default, colander.null)
+        self.assertEqual(schema['scalar_number'].default, 3)
+        self.assertEqual(schema['pyfunc_test'].default, 3)
+        serialized = schema.serialize({})
+        self.assertIn('id', serialized)
+        self.assertEqual(serialized['id'], colander.null)
+        self.assertIn('received_timestamp', serialized)
+        self.assertEqual(serialized['received_timestamp'], colander.null)
+        self.assertIn('some_number', serialized)
+        self.assertEqual(serialized['some_number'], colander.null)
+        self.assertIn('scalar_number', serialized)
+        self.assertEqual(serialized['scalar_number'], str(3))
+        self.assertIn('pyfunc_test', serialized)
+        self.assertEqual(serialized['pyfunc_test'], str(3))

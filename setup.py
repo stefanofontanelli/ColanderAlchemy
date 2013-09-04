@@ -1,4 +1,5 @@
 import os
+import sys
 from setuptools import setup, find_packages
 
 version = '0.3.dev0'
@@ -6,6 +7,12 @@ version = '0.3.dev0'
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
+
+if sys.version_info[0] == 2 and sys.version_info[1] < 7:
+    # In Python < 2.7 use unittest2.
+    tests_require=['unittest2']
+else:
+    tests_require=[]
 
 setup(name='ColanderAlchemy',
       version=version,
@@ -17,6 +24,7 @@ setup(name='ColanderAlchemy',
                    'Programming Language :: Python :: 2.6',
                    'Programming Language :: Python :: 2.7',
                    'Programming Language :: Python :: 3.2',
+                   'Programming Language :: Python :: 3.3',
                    'License :: OSI Approved :: MIT License',
                    'Operating System :: OS Independent',
                    'Topic :: Database'],
@@ -31,6 +39,6 @@ setup(name='ColanderAlchemy',
       install_requires=[
             'colander >= 0.9.8',
             'SQLAlchemy >= 0.8dev'],
-      tests_require=[],
+      tests_require=tests_require,
       test_suite='tests',
       )

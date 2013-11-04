@@ -2,7 +2,7 @@ import os
 import sys
 from setuptools import setup, find_packages
 
-version = '0.3.dev0'
+version = '0.3.0'
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
@@ -18,7 +18,7 @@ setup(name='ColanderAlchemy',
       version=version,
       description="Autogenerate Colander schemas based on SQLAlchemy models.",
       long_description=README + '\n\n' + CHANGES,
-      classifiers=['Development Status :: 3 - Alpha',
+      classifiers=['Development Status :: 4 - Beta',
                    'Intended Audience :: Developers',
                    'Programming Language :: Python',
                    'Programming Language :: Python :: 2.6',

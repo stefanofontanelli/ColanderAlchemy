@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-0.3 (unreleased)
+0.3 (2013-11-04)
 ----------------
 
 - Add ``objectify`` function on ``SQLAlchemySchemaNode`` -- use this to

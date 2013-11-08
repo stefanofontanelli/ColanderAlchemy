@@ -488,7 +488,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             __tablename__ = 'patient'
             # default= is equivalent to ColumnDefault()
             # server_default= is equivalent to DefaultClause()
-            id = Column(BigInteger(unsigned=True), default=text("uuid_short()"), primary_key=True, autoincrement=False)
+            id = Column(BigInteger(), default=text("round(3.14159)"), primary_key=True, autoincrement=False)
             received_timestamp = Column(TIMESTAMP, server_default=func.now(), nullable=False)
             some_number = Column(Integer, DefaultClause('3'), nullable=False)
             scalar_number = Column(Integer, default=3, nullable=False)
@@ -500,7 +500,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         Conceivably you should be able to test DefaultClause for a 
         scalar type value and use it as a default/missing in Colander.
         However, the value is interpreted by the backend engine and
-        could be a interpreted by it in an unexpected way.  For this
+        it could be interpreted by it in an unexpected way.  For this
         reason we drop the value and let the backend handle it.
         '''
 

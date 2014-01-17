@@ -105,23 +105,24 @@ Customizable Keyword Arguments
 ``sqlalchemy.Column`` and ``sqlalchemy.orm.relationship`` can be configured
 with an ``info`` argument that ``ColanderAlchemy`` will use to customise
 resulting :class:`colander.SchemaNode` objects for each attribute.  The
-special (magic) key for attributes is ``colanderalchemy``, so a Column definition should look like how it was mentioned above in :ref:`info_argument`.
+special (magic) key for attributes is ``colanderalchemy``, so a Column 
+definition should look like how it was mentioned above in :ref:`info_argument`.
 
-This means you can customise options like::
+This means you can customise options like:
 
-    * ``type``,
-    * ``children``,
-    * ``default``,
-    * ``missing``,
-    * ``preparer``,
-    * ``validator``,
-    * ``after_bind``,
-    * ``title``, 
-    * ``description``,
-    * ``widget``.
+    * ``type``
+    * ``children``
+    * ``default``
+    * ``missing``
+    * ``preparer``
+    * ``validator``
+    * ``after_bind``
+    * ``title``
+    * ``description``
+    * ``widget``
 
-with ease.  Keep in mind this list above isn't exhaustive and you should
-refer to the complete documentation over at 
+Keep in mind the above list isn't exhaustive and you should
+refer to the complete documentation at 
 http://docs.pylonsproject.org/projects/colander/en/latest/basics.html.
 
 So, as an example, the value of ``title`` will be passed as the keyword argument

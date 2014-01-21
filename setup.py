@@ -1,3 +1,10 @@
+# setup.py
+# Copyright (C) 2012 the ColanderAlchemy authors and contributors
+# <see AUTHORS file>
+#
+# This module is part of ColanderAlchemy and is released under
+# the MIT License: http://www.opensource.org/licenses/mit-license.php
+
 import os
 import sys
 from setuptools import setup, find_packages

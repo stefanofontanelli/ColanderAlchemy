@@ -1,4 +1,4 @@
-# types.py
+# schema.py
 # Copyright (C) 2012 the ColanderAlchemy authors and contributors
 # <see AUTHORS file>
 #
@@ -23,6 +23,7 @@ from sqlalchemy import (Boolean,
                         Numeric,
                         Time)
 from sqlalchemy.schema import (FetchedValue, ColumnDefault)
+from sqlalchemy.orm import (ColumnProperty, RelationshipProperty)
 import colander
 import logging
 
@@ -30,6 +31,17 @@ import logging
 __all__ = ['SQLAlchemySchemaNode']
 
 log = logging.getLogger(__name__)
+
+
+def _creation_order(obj):
+    """
+    Used for sorting SQLAlchemy attributes in the order that 
+    they were defined
+    """
+    if isinstance(obj, ColumnProperty):
+        return obj.columns[0]._creation_order
+    else:
+        return obj._creation_order
 
 
 class SQLAlchemySchemaNode(colander.SchemaNode):
@@ -113,7 +125,9 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
     def add_nodes(self, includes, excludes, overrides):
 
-        for prop in self.inspector.attrs:
+        # sorted to maintain the order in which the attributes
+        # are defined
+        for prop in sorted(self.inspector.attrs, key=_creation_order):
 
             name = prop.key
 
@@ -124,20 +138,30 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             if name in excludes or (includes and name not in includes):
                 log.debug('Attribute %s skipped imperatively', name)
                 continue
+            
+            name_overrides_copy = overrides.get(name,{}).copy()
 
-            try:
-                getattr(self.inspector.column_attrs, name)
-                factory = 'get_schema_from_column'
-
-            except AttributeError:
-                getattr(self.inspector.relationships, name)
-                factory = 'get_schema_from_relationship'
-
-            node = getattr(self, factory)(prop, overrides.get(name,{}).copy())
-            if node is None:
+            if isinstance(prop, ColumnProperty):
+                node = self.get_schema_from_column(
+                    prop, 
+                    name_overrides_copy
+                )
+            elif isinstance(prop, RelationshipProperty):
+                node = self.get_schema_from_relationship(
+                    prop, 
+                    name_overrides_copy
+                )
+            else:
+                log.debug(
+                    'Attribute %s skipped due to not being '
+                    'a ColumnProperty or RelationshipProperty', 
+                    name
+                )
                 continue
+                
+            if node is not None:
+                self.add(node)
 
-            self.add(node)
 
     def get_schema_from_column(self, prop, overrides):
         """ Build and return a :class:`colander.SchemaNode` for a given Column.
@@ -159,6 +183,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         # The name of the SchemaNode is the ColumnProperty key.
         name = prop.key
+        kwargs = dict(name=name)
         column = prop.columns[0]
         declarative_overrides = column.info.get(self.sqla_info_key, {}).copy()
         self.declarative_overrides[name] = declarative_overrides.copy()
@@ -178,9 +203,6 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         # The SchemaNode built using the ColumnProperty has no children.
         children = []
-
-        # The SchemaNode has no validator.
-        validator = None
 
         # The type of the SchemaNode will be evaluated using the Column type.
         # User can overridden the default type via Column.info or 
@@ -219,7 +241,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         elif isinstance(column_type, Enum):
             type_ = colander.String()
-            validator = colander.OneOf(column.type.enums)
+            kwargs["validator"] = colander.OneOf(column.type.enums)
 
         elif isinstance(column_type, Float):
             type_ = colander.Float()
@@ -229,7 +251,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         elif isinstance(column_type, String):
             type_ = colander.String()
-            validator = colander.Length(0, column.type.length)
+            kwargs["validator"] = colander.Length(0, column.type.length)
 
         elif isinstance(column_type, Numeric):
             type_ = colander.Decimal()
@@ -255,14 +277,13 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         all values for server_default should be ignored for 
         Colander default
         """
-        default = null # no default value for Colander
         if isinstance(column.default, ColumnDefault):
             if column.default.is_callable:
                 # SQLA wraps both 0 or 1 arg functions into
                 # a 1 arg function accepting an ExecutionContext
-                default = column.default.arg(None)
+                kwargs["default"] = column.default.arg(None)
             elif column.default.is_scalar:
-                default = column.default.arg
+                kwargs["default"] = column.default.arg
 
         """
         Add missing values
@@ -284,20 +305,19 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         
         autoincrement results in drop
         """
-        missing = required # default missing value in Colander
         if isinstance(column.default, ColumnDefault):
             if column.default.is_callable:
                 # SQLA wraps both 0 or 1 arg functions into
                 # a 1 arg function accepting an ExecutionContext
-                missing = column.default.arg(None)
+                kwargs["missing"] = column.default.arg(None)
             elif column.default.is_clause_element: # SQL expression
-                missing = drop
+                kwargs["missing"] = drop
             elif column.default.is_scalar:
-                missing = column.default.arg
+                kwargs["missing"] = column.default.arg
         elif column.nullable:
-            missing = None
+            kwargs["missing"] = None
         elif isinstance(column.server_default, FetchedValue):
-            missing = drop # value generated by SQLA backend
+            kwargs["missing"] = drop # value generated by SQLA backend
         elif column.autoincrement and isinstance(column_type, Integer) and column.primary_key:
             # autoincrement only has an effect if:
             #  - Integer derived
@@ -306,14 +326,9 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             #    value is specified as 'ignore_fk' (SQLA >= 0.7.4)
             #    [TODO - need to cover this case]
             #  - has no server side or client side defaults
-            missing = drop
+            kwargs["missing"] = drop
 
 
-        kwargs = dict(name=name,
-                      title=name,
-                      default=default,
-                      missing=missing,
-                      validator=validator)
         kwargs.update(declarative_overrides)
         kwargs.update(overrides)
 
@@ -351,14 +366,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         # The name of the SchemaNode is the ColumnProperty key.
         name = prop.key
+        kwargs = dict(name=name)
         declarative_overrides = prop.info.get(self.sqla_info_key, {}).copy()
         self.declarative_overrides[name] = declarative_overrides.copy()
 
-        if isfunction(prop.argument):
-            class_ = prop.argument()
-
-        else:
-            class_ = prop.argument
+        class_ = prop.mapper
 
         if declarative_overrides.pop('exclude', False):
             log.debug('Relationship %s skipped due to declarative overrides',
@@ -440,17 +452,15 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         # Add default values for missing parameters.
         if prop.innerjoin:
             #Inner joined relationships imply it is mandatory
-            missing = required
+            kwargs["missing"] = required
         else:
             #Any other join is thus optional
             if prop.uselist:
-                missing = []
+                kwargs["missing"] = []
             else:
-                missing = None
+                kwargs["missing"] = None
 
 
-        kwargs = dict(name=name,
-                      missing=missing)
         kwargs.update(declarative_overrides)
         kwargs.update(overrides)
 
@@ -463,11 +473,10 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             return SchemaNode(Mapping(), *children, **kwargs)
 
         node = SQLAlchemySchemaNode(class_,
-                                    name=name,
                                     includes=includes,
                                     excludes=excludes,
                                     overrides=rel_overrides,
-                                    missing=missing)
+                                    **kwargs)
 
         if prop.uselist:
             node = SchemaNode(Sequence(), node, **kwargs)

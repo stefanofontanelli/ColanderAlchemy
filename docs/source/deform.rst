@@ -29,7 +29,7 @@ reflect the configuration on the mapped class, as shown in the code below::
         id = Column(Integer, primary_key=True)
         name = Column(Unicode(128), nullable=False)
         surname = Column(Unicode(128), nullable=False)
-        phones = relationship('Phone')
+        phones = relationship(Phone)
 
 
     schema = SQLAlchemySchemaNode(Person)
@@ -41,7 +41,8 @@ be produced by constructing the following ``Colander`` schema by hand::
 
 
     class Phone(colander.MappingSchema):
-        person_id = colander.SchemaNode(colander.Int())
+        person_id = colander.SchemaNode(colander.Int(), 
+                                        missing=colander.drop)
         number = colander.SchemaNode(colander.String(),
                                      validator=colander.Length(0, 128))
         location = colander.SchemaNode(colander.String(),
@@ -50,17 +51,19 @@ be produced by constructing the following ``Colander`` schema by hand::
 
 
     class Phones(colander.SequenceSchema):
-        phone = Phone()
+        phones = Phone(missing=[])
 
 
     class Person(colander.MappingSchema):
-        id = colander.SchemaNode(colander.Int())
+        id = colander.SchemaNode(colander.Int(), missing=colander.drop)
         name = colander.SchemaNode(colander.String(),
                                    validator=colander.Length(0, 128))
         surname = colander.SchemaNode(colander.String(),
                                       validator=colander.Length(0, 128))
-        phones = Phones(missing=[], default=[])
+        phones = Phones(missing=[])
 
+
+    schema = Person()
 
 Note the various configuration aspects like field length and the like
 will automatically be mapped. This means that getting a ``Deform`` form

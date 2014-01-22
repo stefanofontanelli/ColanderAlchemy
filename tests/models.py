@@ -6,7 +6,7 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 import colander
-from colanderalchemy import SQLAlchemySchemaNode
+from colanderalchemy import (SQLAlchemySchemaNode, setup_schema)
 from sqlalchemy import (Boolean,
                         Column,
                         Date,
@@ -17,15 +17,17 @@ from sqlalchemy import (Boolean,
                         Integer,
                         Numeric,
                         Time,
-                        Unicode)
+                        Unicode,
+                        event)
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import (relationship, mapper)
 import datetime
 
 
 Base = declarative_base()
 key = SQLAlchemySchemaNode.sqla_info_key
 
+event.listen(mapper, 'mapper_configured', setup_schema)
 
 class Account(Base):
 

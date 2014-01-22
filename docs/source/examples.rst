@@ -20,6 +20,20 @@ Suppose you have these SQLAlchemy mapped classes::
     Base = declarative_base()
 
 
+    class Phone(Base):
+        __tablename__ = 'phones'
+
+        person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
+        number = Column(Unicode(128), primary_key=True)
+        location = Column(Enum(u'home', u'work'))
+
+    class Friend(Base):
+        __tablename__ = 'friends'
+
+        person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
+        friend_of = Column(Integer, ForeignKey('persons.id'), primary_key=True)
+        rank = Column(Integer, default=0)
+    
     class Person(Base):
         __tablename__ = 'persons'
 
@@ -28,24 +42,8 @@ Suppose you have these SQLAlchemy mapped classes::
         surname = Column(Unicode(128), nullable=False)
         gender = Column(Enum(u'M', u'F'))
         age = Column(Integer)
-        phones = relationship('Phone')
-        friends = relationship('Friend', foreign_keys="[Friend.person_id]")
-
-
-    class Phone(Base):
-        __tablename__ = 'phones'
-
-        person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
-        number = Column(Unicode(128), primary_key=True)
-        location = Column(Enum(u'home', u'work'))
-
-
-    class Friend(Base):
-        __tablename__ = 'friends'
-
-        person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
-        friend_of = Column(Integer, ForeignKey('persons.id'), primary_key=True)
-        rank = Column(Integer, default=0)
+        phones = relationship(Phone)
+        friends = relationship(Friend, foreign_keys=[Friend.person_id])
 
 
 The code you need to create the Colander schema for ``Person`` would be::
@@ -54,13 +52,18 @@ The code you need to create the Colander schema for ``Person`` would be::
 
 
     class Friend(colander.MappingSchema):
-        person_id = colander.SchemaNode(colander.Int())
-        friend_of = colander.SchemaNode(colander.Int())
-        rank = colander.SchemaNode(colander.Int(), missing=0, default=0)
+        person_id = colander.SchemaNode(colander.Int(),
+                                        missing=colander.drop)
+        friend_of = colander.SchemaNode(colander.Int(),
+                                        missing=colander.drop)
+        rank = colander.SchemaNode(colander.Int(), 
+                                   missing=0, 
+                                   default=0)
 
 
     class Phone(colander.MappingSchema):
-        person_id = colander.SchemaNode(colander.Int())
+        person_id = colander.SchemaNode(colander.Int(),
+                                        missing=colander.drop)
         number = colander.SchemaNode(colander.String(),
                                      validator=colander.Length(0, 128))
         location = colander.SchemaNode(colander.String(),
@@ -69,28 +72,30 @@ The code you need to create the Colander schema for ``Person`` would be::
 
 
     class Friends(colander.SequenceSchema):
-        friend = Friend()
+        friends = Friend(missing=[])
 
 
     class Phones(colander.SequenceSchema):
-        phone = Phone()
+        phones = Phone(missing=[])
 
 
     class Person(colander.MappingSchema):
-        id = colander.SchemaNode(colander.Int())
+        id = colander.SchemaNode(colander.Int(),
+                                 missing=colander.drop)
         name = colander.SchemaNode(colander.String(),
                                    validator=colander.Length(0, 128))
         surname = colander.SchemaNode(colander.String(),
                                       validator=colander.Length(0, 128))
-        age = colander.SchemaNode(colander.Int(), missing=None)
         gender = colander.SchemaNode(colander.String(),
                                      validator=colander.OneOf(['M', 'F']),
                                      missing=None)
-        friends = Friends(missing=[], default=[])
-        phones = Phones(missing=[], default=[])
+        age = colander.SchemaNode(colander.Int(), missing=None)
+        phones = Phones(missing=[])
+        friends = Friends(missing=[])
 
 
     person = Person()
+
 
 By contrast, all you need to obtain the same Colander schema for the ``Person`` mapped class using ``ColanderAlchemy`` is simply::
 

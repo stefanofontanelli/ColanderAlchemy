@@ -1,4 +1,4 @@
-# test_declarative.py
+# test_schema.py
 # Copyright (C) 2012 the ColanderAlchemy authors and contributors
 # <see AUTHORS file>
 #
@@ -14,11 +14,15 @@ from sqlalchemy import (Column,
                         Integer,
                         BigInteger,
                         TIMESTAMP,
-                        String)
+                        String,
+                        Enum)
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.hybrid import (hybrid_property,
+                                   hybrid_method)
 from sqlalchemy.orm import (mapper,
-                            relationship)
+                            relationship,
+                            synonym)
 from sqlalchemy.sql.expression import (text, 
                                        func,
                                        true,
@@ -46,27 +50,31 @@ log = logging.getLogger(__name__)
 class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
     def setUp(self):
-        event.listen(mapper, 'mapper_configured', setup_schema)
+        pass
+
 
     def tearDown(self):
         pass
 
+
     def test_setup_schema(self):
         for cls in [Account, Person, Address]:
-            self.assertEqual(isinstance(cls.__colanderalchemy__,
-                                        SQLAlchemySchemaNode),
-                             True)
+            self.assertIsInstance(cls.__colanderalchemy__,
+                                  SQLAlchemySchemaNode)
+
 
     def test_add_nodes_exceptions(self):
         includes = ('email',)
         excludes = ('email',)
         self.assertRaises(ValueError, SQLAlchemySchemaNode, Account, includes, excludes)
 
+
     def test_default_strategy_for_columns_and_relationships_include_all(self):
         account_schema = SQLAlchemySchemaNode(Account)
         m = sqlalchemy.inspect(Account)
         for attr in m.attrs:
             self.assertIn(attr.key, account_schema)
+
 
     def test_default_strategy_for_included_relationships_schema(self):
         account_schema = SQLAlchemySchemaNode(Account)
@@ -76,6 +84,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
         for attr in m.relationships:
             self.assertNotIn(attr.key, account_schema['person'])
+
 
     def test_imperative_includes(self):
         m = sqlalchemy.inspect(Account)
@@ -95,6 +104,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         for attr in m.relationships:
             self.assertIn(attr.key, account_schema)
 
+
     def test_imperative_excludes(self):
         m = sqlalchemy.inspect(Account)
         excludes = [attr.key for attr in m.column_attrs]
@@ -105,6 +115,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         for attr in m.relationships:
             self.assertIn(attr.key, account_schema)
 
+
     def test_declarative_excludes(self):
         m = sqlalchemy.inspect(Address)
         address_schema = SQLAlchemySchemaNode(Address)
@@ -113,6 +124,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         for attr in m.attrs:
             if attr.key not in ('city', 'person'):
                 self.assertIn(attr.key, address_schema)
+
 
     def test_imperative_colums_overrides(self):
         overrides = {
@@ -134,6 +146,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         }
         self.assertRaises(ValueError, SQLAlchemySchemaNode, Account, None, None, overrides)
 
+
     def test_declarative_colums_overrides(self):
         key = SQLAlchemySchemaNode.sqla_info_key
         Base = declarative_base()
@@ -154,6 +167,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             del WrongColumnOverrides.__mapper__._configure_failed
         except AttributeError:
             pass
+
 
     def test_imperative_relationships_overrides(self):
         overrides = {
@@ -213,8 +227,8 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema = SQLAlchemySchemaNode(Person, overrides=overrides)
         self.assertTrue(isinstance(schema['addresses'].children[0]['id'].typ, colander.String))
 
-    def test_declarative_relationships_overrides(self):
 
+    def test_declarative_relationships_overrides(self):
         key = SQLAlchemySchemaNode.sqla_info_key
         Base = declarative_base()
 
@@ -289,6 +303,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema = SQLAlchemySchemaNode(Person)
         self.assertTrue(isinstance(schema['addresses'].children[0]['id'].typ, colander.Float))
 
+
     def _prep_schema(self):
         overrides = {
             'person': {
@@ -310,6 +325,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         #Add a non-SQLAlchemy field
         schema.add(colander.SchemaNode(colander.String, name='non_sql'))
         return schema
+
 
     def test_dictify(self):
         schema = self._prep_schema()
@@ -334,6 +350,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                 for k in kws:
                     self.assertIn(k, dictified[key])
 
+
     def test_objectify(self):
         """ Test converting a dictionary or data structure into objects.
         """
@@ -356,6 +373,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertIsInstance(objectified.person, Person)
         self.assertEqual(objectified.person.name, 'My Name')
         self.assertFalse(hasattr(objectified, 'foobar'))
+
 
     def test_objectify_context(self):
         """ Test converting a data structure into objects, using a context.
@@ -388,6 +406,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual([node.name for node in schema.children],
                          [node.name for node in cloned.children])
 
+
     def test_schemanode_arguments(self):
         """ Test that any arguments to SchemaNode are accepted.
         """
@@ -399,6 +418,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual(schema.title, 'Dummy')
         self.assertEqual(schema.non_standard, 'Not a Colander arg')
 
+
     def test_read_mapping_configuration(self):
         """ Test using ``__colanderalchemy_config__`` for a mapped class.
         """
@@ -408,6 +428,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         #Related models will be configured as well
         self.assertEqual(schema['person'].widget, 'DummyWidget')
         self.assertEqual(schema['person'].title, 'Person Object')
+
 
     def test_missing_mapping_configuration(self):
         """ Test to check ``missing`` is set to an SQLAlchemy-suitable value.
@@ -419,6 +440,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                                            'timeout': '09:44:33'})
         self.assertIsNone(deserialized['person_id'])
         self.assertIsNone(deserialized['person'])
+
 
     def test_relationship_mapping_configuration(self):
         """Test to ensure ``missing`` is set to required accordingly.
@@ -438,6 +460,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         #Group may have members
         self.assertFalse(schema['members'].required)
         self.assertEqual(schema['members'].missing, [])
+
 
     def test_defaultmissing_primarykey(self):
         """Ensure proper handling of empty values on primary keys
@@ -475,6 +498,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         serialized = schema.serialize({})
         self.assertIn('id', serialized)
         self.assertEqual(serialized['id'], colander.null)
+
 
     def test_default_clause(self):
         """Test proper handling of default and server_default values
@@ -533,3 +557,237 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual(serialized['scalar_number'], str(3))
         self.assertIn('pyfunc_test', serialized)
         self.assertEqual(serialized['pyfunc_test'], str(3))
+
+
+    def test_unsupported_column_types(self):
+        """
+        Issue #35 - ColanderAlchemy throws when encountering synonyms
+        
+        ColanderAlchemy should ignore synonyms
+        """
+        Base = declarative_base()
+        
+        # example taken from SQLAlchemy docs
+        class MyClass(Base):
+            __tablename__ = 'my_table'
+
+            id = Column(Integer, primary_key=True)
+            job_status = Column(String(50))
+
+            status = synonym("job_status")
+
+        schema = SQLAlchemySchemaNode(MyClass)
+
+        self.assertIn('id', schema)
+        self.assertIn('job_status', schema)
+        self.assertNotIn('status', schema)
+
+
+    def test_hybrid_attributes(self):
+        Base = declarative_base()
+
+        class Interval(Base):
+            __tablename__ = 'interval'
+
+            id = Column(Integer, primary_key=True, info={'id':'id'})
+            start = Column(Integer, nullable=False, info={'start':'start'})
+            end = Column(Integer, nullable=False, info={'end':'end'})
+
+            def __init__(self, start, end):
+                self.start = start
+                self.end = end
+
+            @hybrid_property
+            def length(self):
+                return self.end - self.start
+
+            @hybrid_method
+            def contains(self, point):
+                return (self.start <= point) & (point < self.end)
+
+            @hybrid_method
+            def intersects(self, other):
+                return self.contains(other.start) | self.contains(other.end)
+                
+            @length.setter
+            def length(self, value):
+                self.end = self.start + value
+        
+        
+        schema = SQLAlchemySchemaNode(Interval)
+        
+        self.assertIn('id', schema)
+        self.assertIn('start', schema)
+        self.assertIn('end', schema)
+        self.assertNotIn('length', schema)
+        self.assertNotIn('contains', schema)
+        self.assertNotIn('intersects', schema)
+
+
+    def test_doc_example_deform(self):
+        """
+        Test 'using ColanderAlchemy with Deform' example found
+        in docs/source/deform.rst
+        """
+        Base = declarative_base()
+
+
+        class Phone(Base):
+            __tablename__ = 'phones'
+
+            person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
+            number = Column(Unicode(128), primary_key=True)
+            location = Column(Enum(u'home', u'work'))
+
+
+        class Person(Base):
+            __tablename__ = 'persons'
+
+            id = Column(Integer, primary_key=True)
+            name = Column(Unicode(128), nullable=False)
+            surname = Column(Unicode(128), nullable=False)
+            phones = relationship(Phone)
+        
+        
+        schema = SQLAlchemySchemaNode(Person)
+        
+        
+        # because of naming clashes, we need to do this in another function
+        def generate_colander():
+            class Phone(colander.MappingSchema):
+                person_id = colander.SchemaNode(colander.Int(), 
+                                                missing=colander.drop)
+                number = colander.SchemaNode(colander.String(),
+                                             validator=colander.Length(0, 128))
+                location = colander.SchemaNode(colander.String(),
+                                               validator=colander.OneOf(['home', 'work']),
+                                               missing=None)
+
+
+            class Phones(colander.SequenceSchema):
+                phones = Phone(missing=[])
+
+
+            class Person(colander.MappingSchema):
+                id = colander.SchemaNode(colander.Int(), missing=colander.drop)
+                name = colander.SchemaNode(colander.String(),
+                                           validator=colander.Length(0, 128))
+                surname = colander.SchemaNode(colander.String(),
+                                              validator=colander.Length(0, 128))
+                phones = Phones(missing=[])
+                
+            
+            return Person()
+        
+        schema2 = generate_colander()
+        
+        self.is_equal_schema_test(schema, schema2)
+
+
+    def test_doc_example_less_boilerplate(self):
+        """
+        Test 'Examples: Less boilerplate' example
+        found in docs/source/examples.rst
+        """
+        Base = declarative_base()
+
+
+
+        class Phone(Base):
+            __tablename__ = 'phones'
+
+            person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
+            number = Column(Unicode(128), primary_key=True)
+            location = Column(Enum(u'home', u'work'))
+
+        class Friend(Base):
+            __tablename__ = 'friends'
+
+            person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
+            friend_of = Column(Integer, ForeignKey('persons.id'), primary_key=True)
+            rank = Column(Integer, default=0)
+        
+        class Person(Base):
+            __tablename__ = 'persons'
+
+            id = Column(Integer, primary_key=True)
+            name = Column(Unicode(128), nullable=False)
+            surname = Column(Unicode(128), nullable=False)
+            gender = Column(Enum(u'M', u'F'))
+            age = Column(Integer)
+            phones = relationship(Phone)
+            friends = relationship(Friend, foreign_keys=[Friend.person_id])
+
+        schema = SQLAlchemySchemaNode(Person)
+
+
+
+        # because of naming clashes, we need to do this in another function
+        def generate_colander():
+            class Friend(colander.MappingSchema):
+                person_id = colander.SchemaNode(colander.Int(),
+                                                missing=colander.drop)
+                friend_of = colander.SchemaNode(colander.Int(),
+                                                missing=colander.drop)
+                rank = colander.SchemaNode(colander.Int(), 
+                                           missing=0, 
+                                           default=0)
+
+
+            class Phone(colander.MappingSchema):
+                person_id = colander.SchemaNode(colander.Int(),
+                                                missing=colander.drop)
+                number = colander.SchemaNode(colander.String(),
+                                             validator=colander.Length(0, 128))
+                location = colander.SchemaNode(colander.String(),
+                                               validator=colander.OneOf(['home', 'work']),
+                                               missing=None)
+
+
+            class Friends(colander.SequenceSchema):
+                friends = Friend(missing=[])
+
+
+            class Phones(colander.SequenceSchema):
+                phones = Phone(missing=[])
+
+
+            class Person(colander.MappingSchema):
+                id = colander.SchemaNode(colander.Int(),
+                                         missing=colander.drop)
+                name = colander.SchemaNode(colander.String(),
+                                           validator=colander.Length(0, 128))
+                surname = colander.SchemaNode(colander.String(),
+                                              validator=colander.Length(0, 128))
+                gender = colander.SchemaNode(colander.String(),
+                                             validator=colander.OneOf(['M', 'F']),
+                                             missing=None)
+                age = colander.SchemaNode(colander.Int(), missing=None)
+                phones = Phones(missing=[])
+                friends = Friends(missing=[])
+
+
+            return Person()
+
+
+        schema2 = generate_colander()
+        
+        self.is_equal_schema_test(schema, schema2)
+        
+        
+    def is_equal_schema_test(self, schema, schema2):
+        self.assertEqual(type(schema.typ), type(schema2.typ))
+        self.assertEqual(schema.title, schema2.title)
+        self.assertEqual(schema.name, schema2.name)
+        self.assertEqual(schema.description, schema2.description)
+        self.assertEqual(schema.missing, schema2.missing)
+        self.assertEqual(schema.default, schema2.default)
+        
+        self.assertEqual(len(schema.children), len(schema2.children))
+        
+        # test children and test that they're in the right order
+        for i, node in enumerate(schema.children):
+            self.assertEqual(node.name, schema2.children[i].name)
+            
+            self.is_equal_schema_test(node, schema2.children[i])
+

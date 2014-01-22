@@ -1,6 +1,18 @@
 Change Log
 ==========
 
+0.3.1dev (Unreleased)
+----------------
+
+- maintain the order of SQLAlchemy object attributes in the 
+  Colander schema [tisdall]
+- use Colander defaults wherever explicit settings are
+  not given [tisdall]
+- added tests for confirming documentation examples [tisdall]
+- added fix and test for issue #35 (thrown exception on 
+  encountering synonym() ) [tisdall]
+- made changes to accommodate SQLAlchemy >= 0.9a [tisdall]
+
 0.3 (2013-11-04)
 ----------------
 

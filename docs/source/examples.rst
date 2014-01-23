@@ -52,31 +52,28 @@ The code you need to create the Colander schema for ``Person`` would be::
 
 
     class Friend(colander.MappingSchema):
-        person_id = colander.SchemaNode(colander.Int(),
-                                        missing=colander.drop)
-        friend_of = colander.SchemaNode(colander.Int(),
-                                        missing=colander.drop)
+        person_id = colander.SchemaNode(colander.Int())
+        friend_of = colander.SchemaNode(colander.Int())
         rank = colander.SchemaNode(colander.Int(), 
                                    missing=0, 
                                    default=0)
 
 
     class Phone(colander.MappingSchema):
-        person_id = colander.SchemaNode(colander.Int(),
-                                        missing=colander.drop)
+        person_id = colander.SchemaNode(colander.Int())
         number = colander.SchemaNode(colander.String(),
                                      validator=colander.Length(0, 128))
         location = colander.SchemaNode(colander.String(),
                                        validator=colander.OneOf(['home', 'work']),
-                                       missing=None)
+                                       missing=colander.drop)
 
 
     class Friends(colander.SequenceSchema):
-        friends = Friend(missing=[])
+        friends = Friend(missing=colander.drop)
 
 
     class Phones(colander.SequenceSchema):
-        phones = Phone(missing=[])
+        phones = Phone(missing=colander.drop)
 
 
     class Person(colander.MappingSchema):
@@ -88,10 +85,11 @@ The code you need to create the Colander schema for ``Person`` would be::
                                       validator=colander.Length(0, 128))
         gender = colander.SchemaNode(colander.String(),
                                      validator=colander.OneOf(['M', 'F']),
-                                     missing=None)
-        age = colander.SchemaNode(colander.Int(), missing=None)
-        phones = Phones(missing=[])
-        friends = Friends(missing=[])
+                                     missing=colander.drop)
+        age = colander.SchemaNode(colander.Int(), 
+                                  missing=colander.drop)
+        phones = Phones(missing=colander.drop)
+        friends = Friends(missing=colander.drop)
 
 
     person = Person()

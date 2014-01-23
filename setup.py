@@ -15,11 +15,12 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
+tests_require = []
+
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
     # In Python < 2.7 use unittest2.
-    tests_require=['unittest2']
-else:
-    tests_require=[]
+    tests_require.append('unittest2')
+
 
 setup(name='ColanderAlchemy',
       version=version,
@@ -43,9 +44,8 @@ setup(name='ColanderAlchemy',
       packages=find_packages(),
       include_package_data=True,
       zip_safe=True,
-      install_requires=[
-            'colander >= 0.9.8',
-            'SQLAlchemy >= 0.8dev'],
+      install_requires=['colander >= 0.9.8',
+                        'SQLAlchemy >= 0.8dev'],
       tests_require=tests_require,
       test_suite='tests',
       )

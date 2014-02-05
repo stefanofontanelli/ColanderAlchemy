@@ -119,9 +119,9 @@ How it works
           Essentially it's required unless SQLAlchemy can derive a value for you 
           automatically if it's missing.
         * ``colander.SchemaNode`` has ``default=colander.null`` unless there is
-          a client side default.  Client side defaults include scalar values
-          and callable functions.  (*Note: a callable default will only be called 
-          _once_ when generating the schema*)
+          a column default which is a static scalar value.  Callable function defaults
+          and server defaults are ignored for the purposes of generating a 
+          colander schema
 
     3) The schema has a ``colander.SchemaNode`` for each `relationship`
        (``sqlalchemy.orm.relationship`` or those from

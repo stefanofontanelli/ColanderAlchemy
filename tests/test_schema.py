@@ -133,18 +133,24 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             }
         }
         account_schema = SQLAlchemySchemaNode(Account, overrides=overrides)
-        self.assertNotEqual(isinstance(account_schema['email'].typ,
-                                       colander.String),
-                            True)
-        self.assertEqual(isinstance(account_schema['email'].typ,
-                                    colander.Integer),
-                         True)
+        self.assertTrue(
+            isinstance(account_schema['email'].typ, colander.Integer)
+        )
+        overrides = {
+            'email': {
+                'name': 'Name'
+            }
+        }
+        self.assertRaises(ValueError, SQLAlchemySchemaNode, Account, 
+            None, None, overrides)
+
         overrides = {
             'email': {
                 'children': []
             }
         }
-        self.assertRaises(ValueError, SQLAlchemySchemaNode, Account, None, None, overrides)
+        # following shouldn't raise an exception allowing the test to pass
+        SQLAlchemySchemaNode(Account, None, None, overrides)
 
 
     def test_declarative_colums_overrides(self):

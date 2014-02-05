@@ -197,8 +197,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             log.debug('Column %s skipped due to imperative overrides', name)
             return None
 
-        if key == 'name': 
-            self.check_overrides(name, key, declarative_overrides, overrides)
+        self.check_overrides(name, 'name', declarative_overrides, overrides)
 
         # The SchemaNode built using the ColumnProperty has no children.
         children = []

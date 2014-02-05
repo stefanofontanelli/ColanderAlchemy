@@ -104,7 +104,6 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
            See http://docs.pylonsproject.org/projects/colander/en/latest/basics.html for more information.
         """
 
-        log.debug('SQLAlchemySchemaNode.__init__: %s', class_)
 
         self.inspector = inspect(class_)
         kwargs = kw.copy()
@@ -198,7 +197,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             log.debug('Column %s skipped due to imperative overrides', name)
             return None
 
-        for key in ['name', 'children']:
+        if key == 'name': 
             self.check_overrides(name, key, declarative_overrides, overrides)
 
         # The SchemaNode built using the ColumnProperty has no children.
@@ -424,6 +423,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         else:
             excludes = None
 
+        # see issue #25 in ColanderAlchemy for possible patch
         if includes is None and excludes is None:
             includes = [p.key for p in inspect(class_).column_attrs]
 

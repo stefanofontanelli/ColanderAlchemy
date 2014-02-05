@@ -270,17 +270,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
               - leave default blank and allow SQLA to fill
          3. Python callable with 0 or 1 args
             1 arg version takes ExecutionContext
-              - call function to get value for default [ <- should this be changed to null default ]
+              - leave default blank and allow SQLA to fill
               
         all values for server_default should be ignored for 
         Colander default
         """
-        if isinstance(column.default, ColumnDefault):
-            if column.default.is_callable:
-                # SQLA wraps both 0 or 1 arg functions into
-                # a 1 arg function accepting an ExecutionContext
-                kwargs["default"] = column.default.arg(None)
-            elif column.default.is_scalar:
+        if isinstance(column.default, ColumnDefault) and column.default.is_scalar:
                 kwargs["default"] = column.default.arg
 
         """
@@ -305,9 +300,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         """
         if isinstance(column.default, ColumnDefault):
             if column.default.is_callable:
-                # SQLA wraps both 0 or 1 arg functions into
-                # a 1 arg function accepting an ExecutionContext
-                kwargs["missing"] = column.default.arg(None)
+                kwargs["missing"] = drop
             elif column.default.is_clause_element: # SQL expression
                 kwargs["missing"] = drop
             elif column.default.is_scalar:

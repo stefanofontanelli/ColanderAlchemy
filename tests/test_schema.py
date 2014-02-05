@@ -585,19 +585,18 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual(schema['received_timestamp'].missing, colander.drop)
         self.assertEqual(schema['some_number'].missing, colander.drop)
         self.assertEqual(schema['scalar_number'].missing, 3)
-        self.assertEqual(schema['pyfunc_test'].missing, 3)
+        self.assertEqual(schema['pyfunc_test'].missing, colander.drop)
         deserialized = schema.deserialize({})
         self.assertIn('scalar_number', deserialized)
         self.assertEqual(deserialized['scalar_number'], 3)
-        self.assertIn('pyfunc_test', deserialized)
-        self.assertEqual(deserialized['pyfunc_test'], 3)
+        self.assertNotIn('pyfunc_test', deserialized)
 
         # from SQLA result into <FORM>; tests default
         self.assertEqual(schema['id'].default, colander.null)
         self.assertEqual(schema['received_timestamp'].default, colander.null)
         self.assertEqual(schema['some_number'].default, colander.null)
         self.assertEqual(schema['scalar_number'].default, 3)
-        self.assertEqual(schema['pyfunc_test'].default, 3)
+        self.assertEqual(schema['pyfunc_test'].default, colander.null)
         serialized = schema.serialize({})
         self.assertIn('id', serialized)
         self.assertEqual(serialized['id'], colander.null)
@@ -608,7 +607,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertIn('scalar_number', serialized)
         self.assertEqual(serialized['scalar_number'], str(3))
         self.assertIn('pyfunc_test', serialized)
-        self.assertEqual(serialized['pyfunc_test'], str(3))
+        self.assertEqual(serialized['pyfunc_test'], colander.null)
 
 
     def test_unsupported_column_types(self):

@@ -22,7 +22,8 @@ from sqlalchemy.ext.hybrid import (hybrid_property,
                                    hybrid_method)
 from sqlalchemy.orm import (mapper,
                             relationship,
-                            synonym)
+                            synonym,
+                            aliased)
 from sqlalchemy.sql.expression import (text, 
                                        func,
                                        true,
@@ -633,6 +634,30 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertIn('job_status', schema)
         self.assertNotIn('status', schema)
 
+    def test_aliased_view(self):
+        """tests aliased view that was broken in 0.3.1
+        """
+        Base = declarative_base()
+
+        class Person(Base):
+            __tablename__ = 'person'
+
+            id = Column(Integer, primary_key=True)
+            parent_id = Column(Integer, ForeignKey('person.id'))
+
+        class ParentView(Base):
+            _parent_table = Person.__table__
+            _child_table = aliased(_parent_table)
+
+            __mapper_args__ = {
+                'primary_key': [_child_table.c.id,],
+                'include_properties': [_child_table.c.id,],
+            }
+
+            __table__ = _parent_table.join(_child_table, _child_table.c.parent_id == _parent_table.c.id)
+
+        schema = SQLAlchemySchemaNode(ParentView)
+        self.assertIn('id', schema)
 
     def test_hybrid_attributes(self):
         Base = declarative_base()

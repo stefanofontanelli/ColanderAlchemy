@@ -82,7 +82,7 @@ A full worked example could be like this::
         #Fully customised schema node
         id = Column(sqlalchemy.Integer,
                     primary_key=True,
-                    info={'colanderalchemy': {'type': colander.Float(),
+                    info={'colanderalchemy': {'typ': colander.Float(),
                                               'name': 'ID',
                                               'title': 'Person ID',
                                               'description': 'The Person identifier.',
@@ -110,7 +110,7 @@ definition should look like how it was mentioned above in :ref:`info_argument`.
 
 This means you can customise options like:
 
-    * ``type``
+    * ``typ``
     * ``children``
     * ``default``
     * ``missing``

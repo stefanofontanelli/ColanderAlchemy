@@ -12,6 +12,12 @@ Change Log
 - added fix and test for issue #35 (thrown exception on 
   encountering synonym() ) [tisdall]
 - made changes to accommodate SQLAlchemy >= 0.9a [tisdall]
+- allows "children" override (#44) [tisdall]
+- no longer call callable SQLAlchemy defaults to fill in
+  colander default values (#43) [tisdall]
+- fixed some minor issues with colander default and missing values
+  to ensure transitive relationships (such as dictify/objectify)
+  [tisdall]
 
 0.3 (2013-11-04)
 ----------------

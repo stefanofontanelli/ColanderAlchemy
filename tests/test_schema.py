@@ -43,7 +43,7 @@ if sys.version_info[0] == 2 and sys.version_info[1] < 7:
 else:
     import unittest
 
-
+logging.basicConfig(level=logging.WARNING)
 log = logging.getLogger(__name__)
 
 
@@ -731,7 +731,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         
         schema2 = generate_colander()
         
-        self.is_equal_schema_test(schema, schema2)
+        self.is_equal_schema(schema, schema2)
 
 
     def test_doc_example_less_boilerplate(self):
@@ -819,10 +819,10 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
         schema2 = generate_colander()
         
-        self.is_equal_schema_test(schema, schema2)
+        self.is_equal_schema(schema, schema2)
         
         
-    def is_equal_schema_test(self, schema, schema2, schema_path=None):
+    def is_equal_schema(self, schema, schema2, schema_path=None):
         if schema_path is None:
             schema_path = []
         else:
@@ -840,5 +840,5 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         for i, node in enumerate(schema.children):
             self.assertEqual(node.name, schema2.children[i].name, msg=".".join(schema_path))
             
-            self.is_equal_schema_test(node, schema2.children[i], schema_path[:])
+            self.is_equal_schema(node, schema2.children[i], schema_path[:])
 

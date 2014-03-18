@@ -83,7 +83,6 @@ A full worked example could be like this::
         id = Column(sqlalchemy.Integer,
                     primary_key=True,
                     info={'colanderalchemy': {'typ': colander.Float(),
-                                              'name': 'ID',
                                               'title': 'Person ID',
                                               'description': 'The Person identifier.',
                                               'widget': 'Empty Widget'}})

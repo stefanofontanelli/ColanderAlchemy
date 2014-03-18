@@ -44,7 +44,7 @@ if sys.version_info[0] == 2 and sys.version_info[1] < 7:
 else:
     import unittest
 
-
+logging.basicConfig(level=logging.WARNING)
 log = logging.getLogger(__name__)
 
 
@@ -756,7 +756,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         
         schema2 = generate_colander()
         
-        self.is_equal_schema_test(schema, schema2)
+        self.is_equal_schema(schema, schema2)
 
 
     def test_doc_example_less_boilerplate(self):
@@ -844,10 +844,66 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
         schema2 = generate_colander()
         
-        self.is_equal_schema_test(schema, schema2)
+        self.is_equal_schema(schema, schema2)
+
+
+    def test_doc_example_Configuring_within_SQLAlchemy(self):
+        """
+        Test 'Configuring within SQLAlchemy models' example
+        found in docs/source/customization.rst
+        """
         
+        Base = declarative_base()
+
+
+        class Person(Base):
+            __tablename__ = 'person'
+            #Fully customised schema node
+            id = Column(sqlalchemy.Integer,
+                        primary_key=True,
+                        info={'colanderalchemy': {'typ': colander.Float(),
+                                                  'title': 'Person ID',
+                                                  'description': 'The Person identifier.',
+                                                  'widget': 'Empty Widget'}})
+            #Explicitly set as a default field
+            name = Column(sqlalchemy.Unicode(128),
+                          nullable=False,
+                          info={'colanderalchemy': {'default': colander.required}})
+            #Explicitly excluded from resulting schema
+            surname = Column(sqlalchemy.Unicode(128),
+                             nullable=False,
+                             info={'colanderalchemy': {'exclude': True}})
+
+        schema = SQLAlchemySchemaNode(Person)
+
+        # because of naming clashes, we need to do this in another function
+        def generate_colander():
+            class Person(colander.MappingSchema):
+                id = colander.SchemaNode(colander.Float(),
+                                         title='Person ID',
+                                         description='The Person identifier.',
+                                         missing=colander.drop,
+                                         widget='Empty Widget')
+                name = colander.SchemaNode(colander.String(),
+                                           validator=colander.Length(0, 128),
+                                           default=colander.required)
+
+            return Person()
+
+        schema2 = generate_colander()
         
-    def is_equal_schema_test(self, schema, schema2, schema_path=None):
+        self.is_equal_schema(schema, schema2)
+
+
+    def is_equal_schema(self, schema, schema2, schema_path=None):
+        '''method to compare two colander schema for testing 
+        purposes
+        
+         - does not compare preparer, validator, after_bind, missing_msg
+         - does not do a proper comparison on widgets, but it is
+           sufficient for this test suite
+        '''
+        
         if schema_path is None:
             schema_path = []
         else:
@@ -858,6 +914,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual(schema.description, schema2.description, msg=".".join(schema_path))
         self.assertEqual(schema.missing, schema2.missing, msg=".".join(schema_path))
         self.assertEqual(schema.default, schema2.default, msg=".".join(schema_path))
+        self.assertEqual(schema.widget, schema2.widget, msg=".".join(schema_path))
         
         self.assertEqual(len(schema.children), len(schema2.children))
         
@@ -865,5 +922,5 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         for i, node in enumerate(schema.children):
             self.assertEqual(node.name, schema2.children[i].name, msg=".".join(schema_path))
             
-            self.is_equal_schema_test(node, schema2.children[i], schema_path[:])
+            self.is_equal_schema(node, schema2.children[i], schema_path[:])
 

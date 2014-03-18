@@ -39,7 +39,7 @@ Fork the development version on
 `GitHub <https://github.com/stefanofontanelli/ColanderAlchemy>`_.
 
 The branch '0.1' contains the old version of ColanderAlchemy: 0.1x
-The branch 'master' contains the new version of ColanderAlchemy: 0.2x
+The branch 'master' contains the new version of ColanderAlchemy: 0.3x
 
 Support
 -------

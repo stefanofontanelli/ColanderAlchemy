@@ -2,24 +2,27 @@ Change Log
 ==========
 
 0.3.1 (2014-03-19)
-----------------
+------------------
 
 - maintain the order of SQLAlchemy object attributes in the 
   Colander schema [tisdall]
 - use Colander defaults wherever explicit settings are
   not given [tisdall]
 - added tests for confirming documentation examples [tisdall]
-- added fix and test for issue #35 (thrown exception on 
-  encountering synonym() ) [tisdall]
+- added fix and test for `issue 35 
+  <https://github.com/Pylons/colander/issues/31>`_ (thrown exception 
+  on encountering synonym() ) [tisdall]
 - made changes to accommodate SQLAlchemy >= 0.9a [tisdall]
-- allows "children" override (#44) [tisdall]
+- allows "children" override 
+  (https://github.com/Pylons/colander/issues/44) [tisdall]
 - no longer call callable SQLAlchemy defaults to fill in
-  colander default values (#43) [tisdall]
+  colander default values (https://github.com/Pylons/colander/issues/43)
+  [tisdall]
 - fixed some minor issues with colander default and missing values
   to ensure transitive relationships (such as dictify/objectify)
   [tisdall]
 - require colander 1.0b1 or greater to support `colander.drop`
-  (#52) [tisdall]
+  (https://github.com/Pylons/colander/issues/52) [tisdall]
 
 0.3 (2013-11-04)
 ----------------

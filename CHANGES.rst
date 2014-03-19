@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-0.3.1dev (Unreleased)
+0.3.1 (2014-03-19)
 ----------------
 
 - maintain the order of SQLAlchemy object attributes in the 
@@ -18,6 +18,8 @@ Change Log
 - fixed some minor issues with colander default and missing values
   to ensure transitive relationships (such as dictify/objectify)
   [tisdall]
+- require colander 1.0b1 or greater to support `colander.drop`
+  (#52) [tisdall]
 
 0.3 (2013-11-04)
 ----------------

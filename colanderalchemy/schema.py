@@ -334,6 +334,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
     def get_schema_from_relationship(self, prop, overrides):
         """ Build and return a :class:`colander.SchemaNode` for a relationship.
 
+        The mapping process will translate an x-to-many relationship from
+        SQLAlchemy into a ``Sequence`` of ``Mapping`` nodes in Colander, and
+        translate an x-to-one relationship into a ``Mapping`` of ``Mapping``
+        nodes in Colander.  The related class will be recursively mapped by Co
+
         This method uses information stored in the relationship within
         the ``info`` that was passed to the relationship on creation.
         This means that ``Colander`` options can be specified
@@ -341,13 +346,22 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         argument that you can pass to
         :meth:`sqlalchemy.orm.relationship`.
 
+        For all relationships, the settings will only be applied to the outer
+        Sequence or Mapping. To customise the inner schema node, create the
+        attribute ``__colanderalchemy_config__`` on the related model with a
+        dict-like structure corresponding to the Colander options that should
+        be customised.
+
         Arguments/Keywords
 
         prop
             A given :class:`sqlalchemy.orm.properties.RelationshipProperty`
             instance that represents the relationship being mapped.
         overrides
-            XXX Add something.
+            A dict-like structure that consists of schema aspects to override.
+            Example keys include ``children``, ``includes``, ``excludes``,
+            ``overrides``. Values contained within this argument will be
+            declaratively-defined settings.
         """
 
         # The name of the SchemaNode is the ColumnProperty key.
@@ -439,11 +453,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         # Add default values for missing parameters.
         if prop.innerjoin:
             #Inner joined relationships imply it is mandatory
-            kwargs["missing"] = required
+            missing = required
         else:
             #Any other join is thus optional
-            kwargs["missing"] = drop
-
+            missing = drop
+        kwargs['missing'] = missing
 
         kwargs.update(declarative_overrides)
         kwargs.update(overrides)
@@ -457,10 +471,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                 return SchemaNode(Mapping(), *children, **kwargs)
 
         node = SQLAlchemySchemaNode(class_,
+                                    name=name,
                                     includes=includes,
                                     excludes=excludes,
                                     overrides=rel_overrides,
-                                    **kwargs)
+                                    missing=missing)
 
         if prop.uselist:
             node = SchemaNode(Sequence(), node, **kwargs)

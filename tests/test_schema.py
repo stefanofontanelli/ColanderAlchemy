@@ -32,7 +32,8 @@ from sqlalchemy.schema import DefaultClause
 from tests.models import (Account,
                           Person,
                           Address,
-                          Group)
+                          Group,
+                          has_unique_addresses)
 import colander
 import datetime
 import logging
@@ -514,6 +515,30 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertFalse(schema['members'].required)
         self.assertEqual(schema['members'].missing, colander.drop)
 
+    def test_relationship_declarative_configuration(self):
+        """ Ensure relationship mapping correctly applies configuration.
+
+        A one-to-many relationship (use_list in SQLAlchemy) maps to a Sequence
+        of Mapping objects in Colander. Declarative settings applied to the
+        relationship in SQLAlchemy should apply only to the outer Sequence and
+        not automatically be applied to the underlying Mapping.  Typically,
+        one would use ``__colanderalchemy_config__`` on the related class
+        to configure the Mapping.
+        """
+        schema = SQLAlchemySchemaNode(Person)
+
+        # Settings should be applied to outer Sequence only
+        addresses = schema['addresses']
+        self.assertEqual(addresses.title, 'Your addresses')
+        self.assertEqual(addresses.validator, has_unique_addresses)
+        address_mapping = addresses.children[0]
+        self.assertEqual(address_mapping.title, 'address')
+        self.assertIsNone(address_mapping.validator)
+
+        # Underlying Mapping should have independent settings applied
+        self.assertEqual(address_mapping.description,
+                         'A location associated with a person.')
+        self.assertEqual(address_mapping.widget, 'dummy')
 
     def test_defaultmissing_primarykey(self):
         """Ensure proper handling of empty values on primary keys

@@ -4,7 +4,10 @@ Change Log
 0.3.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Only apply declaratively defined settings to the outer Sequence when
+  mapping an SQLAlchemy relationship. Previously, overrides were applied
+  to both the Sequence and Mapping nodes, leading to unexpected behaviour.
+  [davidjb]
 
 
 0.3.1 (2014-03-19)

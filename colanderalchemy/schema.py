@@ -82,7 +82,9 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
            Incompatible with :attr:`includes`. Default: None.
         overrides
-           XXX Add something.
+            A dict-like structure that consists of schema attributes to
+            override imperatively. Values provides as part of :attr:`overrides`
+            will take precendence over all others.
         unknown
            Represents the `unknown` argument passed to
            :class:`colander.Mapping`.
@@ -177,7 +179,9 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             A given :class:`sqlalchemy.orm.properties.ColumnProperty`
             instance that represents the column being mapped.
         overrides
-            XXX Add something.
+            A dict-like structure that consists of schema attributes to
+            override imperatively. Values provides as part of :attr:`overrides`
+            will take precendence over all others.
         """
 
         # The name of the SchemaNode is the ColumnProperty key.
@@ -334,10 +338,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
     def get_schema_from_relationship(self, prop, overrides):
         """ Build and return a :class:`colander.SchemaNode` for a relationship.
 
-        The mapping process will translate an x-to-many relationship from
-        SQLAlchemy into a ``Sequence`` of ``Mapping`` nodes in Colander, and
-        translate an x-to-one relationship into a ``Mapping`` of ``Mapping``
-        nodes in Colander.  The related class will be recursively mapped by Co
+        The mapping process will translate one-to-many and many-to-many
+        relationships from SQLAlchemy into a ``Sequence`` of ``Mapping`` nodes
+        in Colander, and translate one-to-one and many-to-one relationships
+        into a ``Mapping`` node in Colander.  The related class involved in the
+        relationship will be recursively mapped by ColanderAlchemy as part of
+        this process, following the same mapping process.
 
         This method uses information stored in the relationship within
         the ``info`` that was passed to the relationship on creation.
@@ -358,10 +364,10 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             A given :class:`sqlalchemy.orm.properties.RelationshipProperty`
             instance that represents the relationship being mapped.
         overrides
-            A dict-like structure that consists of schema aspects to override.
-            Example keys include ``children``, ``includes``, ``excludes``,
-            ``overrides``. Values contained within this argument will be
-            declaratively-defined settings.
+            A dict-like structure that consists of schema attributes to
+            override imperatively. Values provides as part of :attr:`overrides`
+            will take precendence over all others.  Example keys include
+            ``children``, ``includes``, ``excludes``, ``overrides``.
         """
 
         # The name of the SchemaNode is the ColumnProperty key.

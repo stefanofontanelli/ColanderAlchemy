@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-0.3.2 (unreleased)
+0.3.2dev (unreleased)
 ------------------
 
 - Only apply declaratively defined settings to the outer Sequence when

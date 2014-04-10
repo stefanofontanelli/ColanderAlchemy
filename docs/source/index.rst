@@ -122,6 +122,9 @@ How it works
           a column default which is a static scalar value.  Callable function defaults
           and server defaults are ignored for the purposes of generating a 
           colander schema
+        * Customisations to the resulting ``colander.SchemaNode`` are applied,
+          if defined as part of the ``info`` structure on the
+          ``sqlalchemy.Column``.
 
     3) The schema has a ``colander.SchemaNode`` for each `relationship`
        (``sqlalchemy.orm.relationship`` or those from
@@ -133,9 +136,17 @@ How it works
               relationships
             * A ``colander.Sequence`` of ``colander.Mapping`` for `ManyToMany`
               and `OneToMany` relationships
+            * Customisations to the resulting ``colander.SchemaNode`` are
+              applied, if defined as part of the ``info`` structure on the
+              ``sqlalchemy.orm.relationship``.
 
-        For both kind of relationships, the ``colander.Mapping`` is built using
-        `rule 2` on the mapped class referenced by relationship.
+        For both kind of relationships, the ``colander.Mapping`` is
+        built recursively by applying this same set of rules to the mapped class
+        referenced by the relationship.
+
+    4) Customisations to the resulting ``Colander`` schema are applied using
+       configuration stored in the ``__colanderalchemy_config__`` attribute
+       on the class definition.
 
 Read the section :ref:`customization` to see how change these rules and how to
 customize the Colander schema returned by ColanderAlchemy.

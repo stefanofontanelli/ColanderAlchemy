@@ -51,7 +51,9 @@ if you prefer.
 using the ``info`` argument that you can pass to either
 :class:`sqlalchemy.Column` or :meth:`sqlalchemy.orm.relationship`.  ``info``
 accepts any and all options that :class:`colander.SchemaNode` objects do and
-should be specified like so::
+should be specified like so:
+
+.. code:: python
 
     name = Column('name', info={'colanderalchemy': {'title': 'Your name',
                                                     'description': 'Test',
@@ -62,10 +64,43 @@ should be specified like so::
 and you can add any number of other options into the ``dict`` structure as
 described above.  So, anything you want passed to the resulting mapped
 :class`colander.SchemaNode` should be added here.  This also includes
-things like ``widget``, which, whilst not part of ``Colander`` by default, is
-useful for a library like ``Deform``.
+arbitrary attributes like ``widget``, which, whilst not part of ``Colander`` by
+default, is useful for a library like ``Deform``.
 
-A full worked example could be like this::
+Note that for a relationship, these configured attributes will only apply to
+the outer mapped :class:`colander.SchemaNode`; this *outer* node being a
+:class:`colander.Sequence` or :class:`colander.Mapping`, depending on whether
+the SQLAlchemy relationship is x-to-many or x-to-one, respectively. 
+
+To customise the inner mapped class, use the special attribute
+``__colanderalchemy_config__`` on the class itself and define this as a
+dict-like structure of options that will be passed to
+:class:`colander.SchemaNode`, like so:
+
+.. code:: python
+
+    from sqlalchemy.ext.declarative import declarative_base
+
+    Base = declarative_base()
+
+    def address_validator(node, value):
+       # Validate address node
+       pass
+
+    class Address(Base):
+        __colanderalchemy_config__ = {'title': 'An address',
+                                      'description': 'Enter an address.',
+                                      'validator': address_validator}
+        # Other SQLAlchemy columns are defined here
+
+
+
+Worked example
+--------------
+
+A full worked example could be like this:
+
+.. code:: python
 
     from sqlalchemy import Integer
     from sqlalchemy import Unicode
@@ -136,8 +171,10 @@ what ``ColanderAlchemy`` itself does:
       Extremely useful for keeping a ``Column`` or ``relationship`` out of
       a schema.  For instance, an internal field that shouldn't be made
       available on a ``Deform`` form.
-    * ``children`` - XXX
-    * ``name`` - XXX
-    * ``typ`` - XXX
+    * ``children`` - An iterable (such as a list or tuple) of child nodes
+      that should be used explicitly rather than mapping the current
+      SQLAlchemy aspect.
+    * ``name`` - Identifier for the resulting mapped Colander node.
+    * ``typ`` - An explicitly-configured Colander node type.
 
 

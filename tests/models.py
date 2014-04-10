@@ -29,6 +29,12 @@ key = SQLAlchemySchemaNode.sqla_info_key
 
 event.listen(mapper, 'mapper_configured', setup_schema)
 
+
+def has_unique_addresses(node, value):
+    """ Dummy validator for schema. """
+    pass
+
+
 class Account(Base):
 
     __tablename__ = 'accounts'
@@ -55,6 +61,8 @@ class Person(Base):
     addresses = relationship('Address',
                              info={
                                 key: {
+                                    'title': 'Your addresses',
+                                    'validator': has_unique_addresses,
                                     'overrides': {
                                         'id': {
                                             'typ': colander.Float
@@ -90,6 +98,10 @@ class GroupAssociations(Base):
 class Address(Base):
 
     __tablename__ = 'addresses'
+    __colanderalchemy_config__ = \
+        {'title': 'address',
+         'description': 'A location associated with a person.',
+         'widget': 'dummy'}
 
     id = Column(Integer, primary_key=True)
     street = Column(Unicode(64), nullable=False)

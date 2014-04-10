@@ -9,7 +9,7 @@ import os
 import sys
 from setuptools import setup, find_packages
 
-version = '0.3.2.dev0'
+version = '0.3.2dev'
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
@@ -33,6 +33,7 @@ setup(name='ColanderAlchemy',
                    'Programming Language :: Python :: 2.7',
                    'Programming Language :: Python :: 3.2',
                    'Programming Language :: Python :: 3.3',
+                   'Programming Language :: Python :: 3.4',
                    'License :: OSI Approved :: MIT License',
                    'Operating System :: OS Independent',
                    'Topic :: Database'],

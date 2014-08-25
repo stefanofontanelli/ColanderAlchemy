@@ -14,7 +14,7 @@ arguments ``includes``, ``excludes``, and ``overrides``.
 
 Refer to the API for :class:`colanderalchemy.SQLAlchemySchemaNode` and the
 `tests
-<https://github.com/stefanofontanelli/ColanderAlchemy/blob/master/tests.py>`_
+<https://github.com/stefanofontanelli/ColanderAlchemy/tree/master/tests>`_
 to understand how they work.
 
 This class also accepts all keyword arguments that could normally be passed to

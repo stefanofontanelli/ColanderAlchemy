@@ -29,6 +29,7 @@ from sqlalchemy.sql.expression import (text,
                                        true,
                                        false)
 from sqlalchemy.schema import DefaultClause
+from sqlalchemy.types import TypeDecorator
 from tests.models import (Account,
                           Person,
                           Address,
@@ -949,3 +950,40 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             
             self.is_equal_schema(node, schema2.children[i], schema_path[:])
 
+    def test_sqlalchemy_type_overwrite(self):
+        key = SQLAlchemySchemaNode.sqla_info_key
+        Base = declarative_base()
+
+        class MyIntType(TypeDecorator):
+            impl = Integer
+            __colanderalchemy_config__ = {'typ': colander.String(),
+                                          'missing': 'doom'}
+
+        def string_validator(node, value):
+            """A dummy validator."""
+            pass
+
+        class MyString(TypeDecorator):
+            impl = Unicode
+            __colanderalchemy_config__ = {'validator': string_validator}
+
+        class World(Base):
+            __tablename__ = 'world'
+            id = Column(Integer, primary_key=True)
+            not_a_number = Column(MyIntType)
+            number = Column(MyIntType, info={key:
+                                             {'typ': colander.Integer}})
+            name = Column(MyString(5))
+
+
+        world_schema = SQLAlchemySchemaNode(World)
+
+        self.assertTrue(
+            isinstance(world_schema['not_a_number'].typ, colander.String))
+        # should be overwritten by the column properties
+        self.assertFalse(world_schema['not_a_number'].missing == 'doom')
+        # should be overwritten by the key
+        self.assertFalse(isinstance(world_schema['number'].typ, colander.String))
+
+        # test if validator is not overwritten by ColanderAlchemy
+        self.assertEqual(world_schema['name'].validator, string_validator)

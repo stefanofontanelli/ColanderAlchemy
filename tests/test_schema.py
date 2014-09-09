@@ -987,3 +987,36 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
         # test if validator is not overwritten by ColanderAlchemy
         self.assertEqual(world_schema['name'].validator, string_validator)
+
+
+    def test_example_type_overwrite(self):
+        Base = declarative_base()
+
+        class Email(TypeDecorator):
+            impl = Unicode
+            __colanderalchemy_config__ = {'validator': colander.Email}
+
+        class User(Base):
+            __tablename__ = 'user'
+            id = Column(Integer, primary_key=True)
+            email = Column(Email, nullable=False)
+            second_email = Column(Email)
+
+        schema = SQLAlchemySchemaNode(User)
+
+        # because of naming clashes, we need to do this in another function
+        def generate_colander():
+            class User(colander.MappingSchema):
+                id = colander.SchemaNode(colander.Integer(),
+                                         missing=colander.drop)
+                email = colander.SchemaNode(colander.String(),
+                                            validator=colander.Email())
+                second_email = colander.SchemaNode(colander.String(),
+                                                   validator=colander.Email(),
+                                                   missing=colander.drop)
+
+            return User()
+
+        schema2 = generate_colander()
+
+        self.is_equal_schema(schema, schema2)

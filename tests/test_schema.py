@@ -1020,3 +1020,18 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema2 = generate_colander()
 
         self.is_equal_schema(schema, schema2)
+
+
+    def test_type_override_name(self):
+        Base = declarative_base()
+
+        class WrongType(TypeDecorator):
+            impl = String
+            __colanderalchemy_config__ = {'name': 'Wrong!'}
+
+        class BadTable(Base):
+            __tablename__ = 'badtable'
+            nasty_column = Column(WrongType, primary_key=True)
+
+        self.assertRaises(ValueError, SQLAlchemySchemaNode, BadTable,
+            None, None, None)

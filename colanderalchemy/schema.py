@@ -190,7 +190,6 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         name = prop.key
         column = prop.columns[0]
         kwargs = getattr(column.type, self.ca_class_key, {}).copy()
-        kwargs['name'] = name
         declarative_overrides = column.info.get(self.sqla_info_key, {}).copy()
         self.declarative_overrides[name] = declarative_overrides.copy()
 
@@ -210,7 +209,10 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             log.debug('Column %s skipped due to imperative overrides', name)
             return None
 
-        self.check_overrides(name, 'name', declarative_overrides, overrides)
+        self.check_overrides(name, 'name', kwargs, declarative_overrides,
+                             overrides)
+
+        kwargs['name'] = name
 
         # The SchemaNode built using the ColumnProperty has no children.
         children = []
@@ -343,8 +345,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         return colander.SchemaNode(type_, *children, **kwargs)
 
-    def check_overrides(self, name, arg, declarative_overrides, overrides):
+    def check_overrides(self, name, arg, type_overrides,
+                        declarative_overrides, overrides):
         msg = None
+        if arg in type_overrides:
+            msg = ('%s: argument %s cannot be overrriden in the TypeDecorator'
+                   'type.')
         if arg in declarative_overrides:
             msg = '%s: argument %s cannot be overridden via info kwarg.'
 
@@ -403,7 +409,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             return None
 
         for key in ['name', 'typ']:
-            self.check_overrides(name, key, declarative_overrides, overrides)
+            self.check_overrides(name, key, {}, declarative_overrides,
+                                 overrides)
 
         key = 'children'
         imperative_children = overrides.pop(key, None)

@@ -5,6 +5,8 @@
 # This module is part of ColanderAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
+import itertools
+
 from colander import (Mapping,
                       null,
                       drop,
@@ -186,12 +188,19 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         # The name of the SchemaNode is the ColumnProperty key.
         name = prop.key
-        kwargs = dict(name=name)
         column = prop.columns[0]
+        kwargs = getattr(column.type, self.ca_class_key, {}).copy()
+        kwargs['name'] = name
         declarative_overrides = column.info.get(self.sqla_info_key, {}).copy()
         self.declarative_overrides[name] = declarative_overrides.copy()
 
         key = 'exclude'
+
+        if key not in itertools.chain(declarative_overrides, overrides) \
+           and kwargs.pop(key, False):
+            log.debug('Column %s skipped due to sqlalchemy type overrides',
+                      name)
+            return None
 
         if key not in overrides and declarative_overrides.pop(key, False):
             log.debug('Column %s skipped due to declarative overrides', name)
@@ -215,6 +224,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         imperative_type = overrides.pop('typ', None)
         declarative_type = declarative_overrides.pop('typ', None)
+        sqlalchemy_type_type = kwargs.pop('typ', None)
 
         if imperative_type is not None:
             if hasattr(imperative_type, '__call__'):
@@ -232,6 +242,14 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             log.debug('Column %s: type overridden via declarative: %s.', 
                         name, type_)
 
+        elif sqlalchemy_type_type is not None:
+            if hasattr(sqlalchemy_type_type, '__call__'):
+                type_ = sqlalchemy_type_type()
+            else:
+                type_ = sqlalchemy_type_type
+            log.debug('Column %s: type overridden in sqlalchemy type: %s.',
+                      name, type_)
+
         elif isinstance(column_type, Boolean):
             type_ = colander.Boolean()
 
@@ -243,7 +261,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         elif isinstance(column_type, Enum):
             type_ = colander.String()
-            kwargs["validator"] = colander.OneOf(column.type.enums)
+            kwargs.setdefault("validator", colander.OneOf(column.type.enums))
 
         elif isinstance(column_type, Float):
             type_ = colander.Float()
@@ -253,7 +271,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         elif isinstance(column_type, String):
             type_ = colander.String()
-            kwargs["validator"] = colander.Length(0, column.type.length)
+            kwargs.setdefault("validator",
+                              colander.Length(0, column.type.length))
 
         elif isinstance(column_type, Numeric):
             type_ = colander.Decimal()

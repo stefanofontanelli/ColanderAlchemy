@@ -10,6 +10,6 @@ python:
   - 3.4
   - pypy3
 
-install: python setup.py dev
+#install: python setup.py develop
 
 script: python setup.py test -q

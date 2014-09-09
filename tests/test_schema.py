@@ -1022,6 +1022,33 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.is_equal_schema(schema, schema2)
 
 
+    def test_validator_type_override(self):
+        Base = declarative_base()
+
+        def location_validator(value, node):
+            """A dummy validator."""
+            pass
+
+        class LocationEnum(TypeDecorator):
+            impl = Enum
+            __colanderalchemy_config__ = {'validator': location_validator}
+
+        class LocationString(TypeDecorator):
+            impl = String
+            __colanderalchemy_config__ = {'validator': location_validator}
+
+        class House(Base):
+            __tablename__ = 'house'
+            id = Column(Integer, primary_key=True)
+            door = Column(LocationEnum(['back', 'front']))
+            window = Column(LocationString(128))
+
+        schema = SQLAlchemySchemaNode(House)
+
+        self.assertEqual(schema['door'].validator, location_validator)
+        self.assertEqual(schema['window'].validator, location_validator)
+
+
     def test_type_override_name(self):
         Base = declarative_base()
 

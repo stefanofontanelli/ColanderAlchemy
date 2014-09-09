@@ -196,7 +196,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         key = 'exclude'
 
         if key not in itertools.chain(declarative_overrides, overrides) \
-           and kwargs.pop(key, False):
+           and kwargs.get(key, False):
             log.debug('Column %s skipped due to sqlalchemy type overrides',
                       name)
             return None

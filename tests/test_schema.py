@@ -1049,6 +1049,25 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual(schema['window'].validator, location_validator)
 
 
+    def test_default_type_override(self):
+        Base = declarative_base()
+
+        class MyInt(TypeDecorator):
+            impl = Integer
+            __colanderalchemy_config__ = {'default': 42}
+
+        class Numbers(Base):
+            __tablename__ = 'numbers'
+            id = Column(Integer, primary_key=True)
+            number1 = Column(MyInt)
+            number2 = Column(MyInt, default=0)
+
+        schema = SQLAlchemySchemaNode(Numbers)
+
+        self.assertEqual(schema['number1'].default, 42)
+        self.assertEqual(schema['number2'].default, 0)
+
+
     def test_type_override_name(self):
         Base = declarative_base()
 

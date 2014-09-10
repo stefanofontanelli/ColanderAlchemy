@@ -950,14 +950,13 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             
             self.is_equal_schema(node, schema2.children[i], schema_path[:])
 
-    def test_sqlalchemy_type_overwrite(self):
+    def test_typedecorator_overwrite(self):
         key = SQLAlchemySchemaNode.sqla_info_key
         Base = declarative_base()
 
         class MyIntType(TypeDecorator):
             impl = Integer
-            __colanderalchemy_config__ = {'typ': colander.String(),
-                                          'missing': 'doom'}
+            __colanderalchemy_config__ = {'typ': colander.String()}
 
         def string_validator(node, value):
             """A dummy validator."""
@@ -980,8 +979,6 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
         self.assertTrue(
             isinstance(world_schema['not_a_number'].typ, colander.String))
-        # should be overwritten by the column properties
-        self.assertFalse(world_schema['not_a_number'].missing == 'doom')
         # should be overwritten by the key
         self.assertFalse(isinstance(world_schema['number'].typ, colander.String))
 
@@ -989,7 +986,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual(world_schema['name'].validator, string_validator)
 
 
-    def test_example_type_overwrite(self):
+    def test_example_typedecorator_overwrite(self):
         Base = declarative_base()
 
         class Email(TypeDecorator):
@@ -1022,7 +1019,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.is_equal_schema(schema, schema2)
 
 
-    def test_validator_type_override(self):
+    def test_validator_typedecorator_override(self):
         Base = declarative_base()
 
         def location_validator(value, node):
@@ -1049,7 +1046,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual(schema['window'].validator, location_validator)
 
 
-    def test_default_type_override(self):
+    def test_default_typedecorator_override(self):
         Base = declarative_base()
 
         class MyInt(TypeDecorator):
@@ -1060,15 +1057,24 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             __tablename__ = 'numbers'
             id = Column(Integer, primary_key=True)
             number1 = Column(MyInt)
-            number2 = Column(MyInt, default=0)
 
-        schema = SQLAlchemySchemaNode(Numbers)
+        self.assertRaises(ValueError, SQLAlchemySchemaNode, Numbers,
+            None, None, None)
 
-        self.assertEqual(schema['number1'].default, 42)
-        self.assertEqual(schema['number2'].default, 0)
+        """ SQLAlchemy gives sqlalchemy.exc.InvalidRequestError errors for
+            subsequent tests because this mapper is not always garbage
+            collected quick enough.  By removing the _configured_failed
+            flag on the mapper this allows later tests to function
+            properly.
+        """
+        try:
+            del Numbers.__mapper__._configure_failed
+        except AttributeError:
+            pass
 
 
-    def test_type_override_name(self):
+
+    def test_typedecorator_override_name(self):
         Base = declarative_base()
 
         class WrongType(TypeDecorator):
@@ -1081,3 +1087,14 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
         self.assertRaises(ValueError, SQLAlchemySchemaNode, BadTable,
             None, None, None)
+
+        """ SQLAlchemy gives sqlalchemy.exc.InvalidRequestError errors for
+            subsequent tests because this mapper is not always garbage
+            collected quick enough.  By removing the _configured_failed
+            flag on the mapper this allows later tests to function
+            properly.
+        """
+        try:
+            del BadTable.__mapper__._configure_failed
+        except AttributeError:
+            pass

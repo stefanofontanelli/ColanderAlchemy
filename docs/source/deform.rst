@@ -20,7 +20,7 @@ reflect the configuration on the mapped class, as shown in the code below::
 
         person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
         number = Column(Unicode(128), primary_key=True)
-        location = Column(Enum(u'home', u'work'))
+        location = Column(Enum('home', 'work'))
 
 
     class Person(Base):

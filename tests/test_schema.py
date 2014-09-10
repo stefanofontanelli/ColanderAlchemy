@@ -1072,6 +1072,31 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         except AttributeError:
             pass
 
+    def test_missing_typedecorator_override(self):
+        Base = declarative_base()
+
+        class MyInt(TypeDecorator):
+            impl = Integer
+            __colanderalchemy_config__ = {'missing': 42}
+
+        class Numbers(Base):
+            __tablename__ = 'numbers'
+            id = Column(Integer, primary_key=True)
+            number1 = Column(MyInt)
+
+        self.assertRaises(ValueError, SQLAlchemySchemaNode, Numbers,
+            None, None, None)
+
+        """ SQLAlchemy gives sqlalchemy.exc.InvalidRequestError errors for
+            subsequent tests because this mapper is not always garbage
+            collected quick enough.  By removing the _configured_failed
+            flag on the mapper this allows later tests to function
+            properly.
+        """
+        try:
+            del Numbers.__mapper__._configure_failed
+        except AttributeError:
+            pass
 
 
     def test_typedecorator_override_name(self):

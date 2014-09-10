@@ -25,7 +25,7 @@ Suppose you have these SQLAlchemy mapped classes::
 
         person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
         number = Column(Unicode(128), primary_key=True)
-        location = Column(Enum(u'home', u'work'))
+        location = Column(Enum('home', 'work'))
 
     class Friend(Base):
         __tablename__ = 'friends'
@@ -40,7 +40,7 @@ Suppose you have these SQLAlchemy mapped classes::
         id = Column(Integer, primary_key=True)
         name = Column(Unicode(128), nullable=False)
         surname = Column(Unicode(128), nullable=False)
-        gender = Column(Enum(u'M', u'F'))
+        gender = Column(Enum('M', 'F'))
         age = Column(Integer)
         phones = relationship(Phone)
         friends = relationship(Friend, foreign_keys=[Friend.person_id])

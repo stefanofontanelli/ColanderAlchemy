@@ -113,6 +113,8 @@ How it works
           is an instance of either ``sqlalchemy.types.Enum`` or 
           ``sqlalchemy.types.String``.  ``Enum`` is checked with ``colander.OneOf``
           and ``String`` is checked with ``colander.Length``
+        * Customization stored in the ``__colanderalchemy_config__`` attribute of the
+          SQLAlchemy type are applied.
         * ``colander.SchemaNode`` has ``missing=colander.required`` except for
           the when ``default`` is set, ``nullable=True``, there's a ``server_default``,
           or the field is an auto incrementing integer used as part of a primary key.

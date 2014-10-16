@@ -8,6 +8,7 @@ Change Log
   mapping an SQLAlchemy relationship. Previously, overrides were applied
   to both the Sequence and Mapping nodes, leading to unexpected behaviour.
   [davidjb]
+- Allow setting ColanderAlchemy options in sqlalchemy type. [pieterproigia]
 
 
 0.3.1 (2014-03-19)

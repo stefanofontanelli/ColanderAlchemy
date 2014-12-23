@@ -1,6 +1,12 @@
 ColanderAlchemy
 ===============
 
+.. image:: https://travis-ci.org/stefanofontanelli/ColanderAlchemy.png?branch=master
+    :target: https://travis-ci.org/stefanofontanelli/ColanderAlchemy
+
+.. image:: https://readthedocs.org/projects/colanderalchemy/badge/
+    :target: http://colanderalchemy.readthedocs.org/en/latest/
+
 `ColanderAlchemy` helps you to auto-generate `Colander
 <http://docs.pylonsproject.org/projects/colander/en/latest/>`_ schemas
 that are based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped classes.

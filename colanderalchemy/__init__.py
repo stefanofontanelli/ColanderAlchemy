@@ -19,7 +19,7 @@ def setup_schema(mapper, class_):
     This method is designed to be attached to the ``mapper_configured``
     event from SQLAlchemy.
 
-    See http://docs.sqlalchemy.org/ru/latest/orm/events.html#sqlalchemy.orm.events.MapperEvents.mapper_configured for more information about event handling.
+    See http://docs.sqlalchemy.org/en/latest/orm/events.html#sqlalchemy.orm.events.MapperEvents.mapper_configured for more information about event handling.
 
     Arguments/Keywords
 

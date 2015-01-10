@@ -39,7 +39,7 @@ definitions.
 By associating ``ColanderAlchemy`` configuration with your mapped class,
 its columns, and its relationships, you can tell ``ColanderAlchemy``
 how to generate each and every part of your mapped schema - including things
-like titles, descriptions, preparers, validators, widgets, and more. 
+like titles, descriptions, preparers, validators, widgets, and more.
 
 Check out :ref:`info_argument` for more information on how.
 
@@ -68,7 +68,7 @@ mapped class like so:
    SomeClass.__colanderalchemy__ #A Colander schema for you to use
 
 If you already have a mapped class available, you can just pass it as is - you
-don't need to redefine another schema. 
+don't need to redefine another schema.
 
 Also, if you'd like even more control over your generated schema, then
 use :class:`colanderalchemy.SQLAlchemySchemaNode` directly like so:
@@ -81,7 +81,28 @@ use :class:`colanderalchemy.SQLAlchemySchemaNode` directly like so:
     schema = SQLAlchemySchemaNode(SomeClass,
                                   includes=['name', 'biography'],
                                   excludes=['id'],
-                                  title='Some class') 
+                                  title='Some class')
+
+Or include custom field:
+
+.. code-block:: python
+
+    import deform
+    import colander
+    from colanderalchemy import SQLAlchemySchemaNode
+    from my.project import SomeClass
+
+    typ = colander.String()
+    widget = deform.widget.SelectWidget(values=(('foo', 'a'),
+                                                ('bar', 'b'),
+                                                ('baz', 'c')))
+    column = colander.SchemaNode(typ,
+                                 name='customfield',
+                                 widget=widget)
+    schema = SQLAlchemySchemaNode(SomeClass,
+                                  includes=['name', column, 'biography'],
+                                  excludes=['id'],
+                                  title='Some class')
 
 Note the various arguments you can pass when creating your mapped schema -
 you have full control over how the schema is generated and what fields

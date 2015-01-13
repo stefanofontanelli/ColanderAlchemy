@@ -6,11 +6,9 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 import logging
-from inspect import isfunction
 
 import colander
 from colander import (Mapping,
-                      null,
                       drop,
                       required,
                       SchemaNode,

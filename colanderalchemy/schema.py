@@ -136,10 +136,6 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         for name in includes or [item.key for item in properties]:
             prop = self.inspector.attrs.get(name, name)
 
-            if name in excludes and name in includes:
-                msg = 'excludes and includes are mutually exclusive.'
-                raise ValueError(msg)
-
             if name in excludes or (includes and name not in includes):
                 log.debug('Attribute %s skipped imperatively', name)
                 continue

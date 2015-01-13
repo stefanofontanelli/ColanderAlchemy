@@ -976,9 +976,6 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertNotIn('foo', schema)
 
     def test_non_text_includes(self):
-        """
-        TODO: need the doc there
-        """
         Base = declarative_base()
 
         # example taken from SQLAlchemy docs

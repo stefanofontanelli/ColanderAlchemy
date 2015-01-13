@@ -83,6 +83,27 @@ use :class:`colanderalchemy.SQLAlchemySchemaNode` directly like so:
                                   excludes=['id'],
                                   title='Some class') 
 
+Or include custom field:
+
+.. code-block:: python
+
+    import deform
+    import colander
+    from colanderalchemy import SQLAlchemySchemaNode
+    from my.project import SomeClass
+
+    typ = colander.String()
+    widget = deform.widget.SelectWidget(values=(('foo', 'a'),
+                                                ('bar', 'b'),
+                                                ('baz', 'c')))
+    column = colander.SchemaNode(typ,
+                                 name='customfield',
+                                 widget=widget)
+    schema = SQLAlchemySchemaNode(SomeClass,
+                                  includes=['name', column, 'biography'],
+                                  excludes=['id'],
+                                  title='Some class')
+
 Note the various arguments you can pass when creating your mapped schema -
 you have full control over how the schema is generated and what fields
 are included, which are excluded, and more. See the

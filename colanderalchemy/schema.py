@@ -126,11 +126,15 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
     def add_nodes(self, includes, excludes, overrides):
 
+        if set(excludes) & set(includes):
+            msg = 'excludes and includes are mutually exclusive.'
+            raise ValueError(msg)
+
+        properties = sorted(self.inspector.attrs, key=_creation_order)
         # sorted to maintain the order in which the attributes
         # are defined
-        for prop in sorted(self.inspector.attrs, key=_creation_order):
-
-            name = prop.key
+        for name in includes or [item.key for item in properties]:
+            prop = self.inspector.attrs.get(name, name)
 
             if name in excludes and name in includes:
                 msg = 'excludes and includes are mutually exclusive.'
@@ -152,6 +156,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                     prop, 
                     name_overrides_copy
                 )
+            elif isinstance(prop, colander.SchemaNode):
+                node = prop
             else:
                 log.debug(
                     'Attribute %s skipped due to not being '

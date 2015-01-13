@@ -5,13 +5,16 @@
 # This module is part of ColanderAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
+import logging
+from inspect import isfunction
+
+import colander
 from colander import (Mapping,
                       null,
                       drop,
                       required,
                       SchemaNode,
                       Sequence)
-from inspect import isfunction
 from sqlalchemy import (Boolean,
                         Date,
                         DateTime,
@@ -24,8 +27,6 @@ from sqlalchemy import (Boolean,
                         Time)
 from sqlalchemy.schema import (FetchedValue, ColumnDefault)
 from sqlalchemy.orm import (ColumnProperty, RelationshipProperty)
-import colander
-import logging
 
 
 __all__ = ['SQLAlchemySchemaNode']
@@ -35,7 +36,7 @@ log = logging.getLogger(__name__)
 
 def _creation_order(obj):
     """
-    Used for sorting SQLAlchemy attributes in the order that 
+    Used for sorting SQLAlchemy attributes in the order that
     they were defined
     """
     if isinstance(obj, ColumnProperty):
@@ -103,9 +104,10 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
            ``title='My Model'`` means the returned schema will have its
            ``title`` attribute set accordingly.
 
-           See http://docs.pylonsproject.org/projects/colander/en/latest/basics.html for more information.
+           See
+           http://docs.pylonsproject.org/projects/colander/en/latest/basics.html
+           for more information.
         """
-
 
         self.inspector = inspect(class_)
         kwargs = kw.copy()
@@ -139,30 +141,29 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             if name in excludes or (includes and name not in includes):
                 log.debug('Attribute %s skipped imperatively', name)
                 continue
-            
-            name_overrides_copy = overrides.get(name,{}).copy()
+
+            name_overrides_copy = overrides.get(name, {}).copy()
 
             if isinstance(prop, ColumnProperty):
                 node = self.get_schema_from_column(
-                    prop, 
+                    prop,
                     name_overrides_copy
                 )
             elif isinstance(prop, RelationshipProperty):
                 node = self.get_schema_from_relationship(
-                    prop, 
+                    prop,
                     name_overrides_copy
                 )
             else:
                 log.debug(
                     'Attribute %s skipped due to not being '
-                    'a ColumnProperty or RelationshipProperty', 
+                    'a ColumnProperty or RelationshipProperty',
                     name
                 )
                 continue
-                
+
             if node is not None:
                 self.add(node)
-
 
     def get_schema_from_column(self, prop, overrides):
         """ Build and return a :class:`colander.SchemaNode` for a given Column.
@@ -207,7 +208,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         children = []
 
         # The type of the SchemaNode will be evaluated using the Column type.
-        # User can overridden the default type via Column.info or 
+        # User can overridden the default type via Column.info or
         # imperatively using overrides arg in SQLAlchemySchemaNode.__init__
 
         # Support sqlalchemy.types.TypeDecorator
@@ -221,16 +222,16 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                 type_ = imperative_type()
             else:
                 type_ = imperative_type
-            log.debug('Column %s: type overridden imperatively: %s.', 
-                        name, type_)
+            log.debug('Column %s: type overridden imperatively: %s.',
+                      name, type_)
 
         elif declarative_type is not None:
             if hasattr(declarative_type, '__call__'):
                 type_ = declarative_type()
             else:
                 type_ = declarative_type
-            log.debug('Column %s: type overridden via declarative: %s.', 
-                        name, type_)
+            log.debug('Column %s: type overridden via declarative: %s.',
+                      name, type_)
 
         elif isinstance(column_type, Boolean):
             type_ = colander.Boolean()
@@ -266,7 +267,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         """
         Add default values
-        
+
         possible values for default in SQLA:
          1. plain non-callable Python value
               - give to Colander as a default
@@ -275,16 +276,17 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
          3. Python callable with 0 or 1 args
             1 arg version takes ExecutionContext
               - leave default blank and allow SQLA to fill
-              
-        all values for server_default should be ignored for 
+
+        all values for server_default should be ignored for
         Colander default
         """
-        if isinstance(column.default, ColumnDefault) and column.default.is_scalar:
-                kwargs["default"] = column.default.arg
+        if (isinstance(column.default, ColumnDefault)
+                and column.default.is_scalar):
+            kwargs["default"] = column.default.arg
 
         """
         Add missing values
-        
+
         possible values for default in SQLA:
          1. plain non-callable Python value
               - give to Colander as a missing unless nullable
@@ -293,31 +295,33 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                 and make it an unrequired field
          3. Python callable with 0 or 1 args
             1 arg version takes ExecutionContext
-              - call function to get value for missing [ <- should this be changed to missing = drop ]
-        
+              - call function to get value for missing [ <- should this
+                                                            be changed to
+                                                            missing = drop ]
+
         if nullable, then allowing missing = drop
-        
-        all values for server_default should result in 'drop' 
+
+        all values for server_default should result in 'drop'
         for Colander missing
-        
+
         autoincrement results in drop
         """
         if isinstance(column.default, ColumnDefault):
             if column.default.is_callable:
                 kwargs["missing"] = drop
-            elif column.default.is_clause_element: # SQL expression
+            elif column.default.is_clause_element:  # SQL expression
                 kwargs["missing"] = drop
             elif column.default.is_scalar:
                 kwargs["missing"] = column.default.arg
         elif column.nullable:
             kwargs["missing"] = drop
         elif isinstance(column.server_default, FetchedValue):
-            kwargs["missing"] = drop # value generated by SQLA backend
-        elif hasattr(column.table, "_autoincrement_column") and id(column.table._autoincrement_column) == id(column):
+            kwargs["missing"] = drop  # value generated by SQLA backend
+        elif (hasattr(column.table, "_autoincrement_column")
+              and id(column.table._autoincrement_column) == id(column)):
             # this column is the autoincrement column, so we can drop
             # it if it's missing and let the database generate it
             kwargs["missing"] = drop
-
 
         kwargs.update(declarative_overrides)
         kwargs.update(overrides)
@@ -458,10 +462,10 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         # Add default values for missing parameters.
         if prop.innerjoin:
-            #Inner joined relationships imply it is mandatory
+            # Inner joined relationships imply it is mandatory
             missing = required
         else:
-            #Any other join is thus optional
+            # Any other join is thus optional
             missing = drop
         kwargs['missing'] = missing
 
@@ -492,7 +496,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
     def dictify(self, obj):
         """ Return a dictified version of `obj` using schema information.
-        
+
         The schema will be used to choose what attributes will be
         included in the returned dict.
 
@@ -573,7 +577,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             attributes.
 
             This is a perfect fit for something like a CRUD environment.
-            
+
             Default: ``None``.  Defaults to instantiating a new instance of the
             mapped class associated with this schema.
         """

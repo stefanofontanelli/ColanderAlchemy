@@ -293,7 +293,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                 and make it an unrequired field
          3. Python callable with 0 or 1 args
             1 arg version takes ExecutionContext
-              - call function to get value for missing [ <- should this be changed to missing = drop ]
+              - set missing to 'drop' to allow SQLA to fill this in
+                and make it an unrequired field
         
         if nullable, then allowing missing = drop
         

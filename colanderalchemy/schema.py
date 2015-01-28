@@ -597,9 +597,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                 setattr(context, attr, value)
             else:
                 # Ignore attributes if they are not mapped
-                msg = 'SQLAlchemySchemaNode.objectify: %s not found on %s. ' \
-                      'This property has been ignored.'
-                log.debug(msg, attr, self)
+                log.debug(
+                    'SQLAlchemySchemaNode.objectify: %s not found on '
+                    '%s. This property has been ignored.',
+                    attr, self
+                )
                 continue
 
         return context

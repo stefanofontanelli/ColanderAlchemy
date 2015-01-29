@@ -488,12 +488,12 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         """ Test to check ``missing`` is set to an SQLAlchemy-suitable value.
         """
         schema = SQLAlchemySchemaNode(Account)
-        self.assertEqual(schema['person_id'].missing, colander.drop)
-        self.assertEqual(schema['person'].missing, colander.drop)
+        self.assertEqual(schema['person_id'].missing, colander.null)
+        self.assertEqual(schema['person'].missing, [])
         deserialized = schema.deserialize({'email': 'test@example.com',
                                            'timeout': '09:44:33'})
-        self.assertNotIn('person_id', deserialized)
-        self.assertNotIn('person', deserialized)
+        self.assertEqual(deserialized['person_id'], colander.null)
+        self.assertEqual(deserialized['person'], [])
 
 
     def test_relationship_mapping_configuration(self):
@@ -513,7 +513,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
         #Group may have members
         self.assertFalse(schema['members'].required)
-        self.assertEqual(schema['members'].missing, colander.drop)
+        self.assertEqual(schema['members'].missing, [])
 
     def test_relationship_declarative_configuration(self):
         """ Ensure relationship mapping correctly applies configuration.
@@ -761,11 +761,11 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                                              validator=colander.Length(0, 128))
                 location = colander.SchemaNode(colander.String(),
                                                validator=colander.OneOf(['home', 'work']),
-                                               missing=colander.drop)
+                                               missing=colander.null)
 
 
             class Phones(colander.SequenceSchema):
-                phones = Phone(missing=colander.drop)
+                phones = Phone(missing=[])
 
 
             class Person(colander.MappingSchema):
@@ -774,7 +774,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                                            validator=colander.Length(0, 128))
                 surname = colander.SchemaNode(colander.String(),
                                               validator=colander.Length(0, 128))
-                phones = Phones(missing=colander.drop)
+                phones = Phones(missing=[])
                 
             
             return Person()
@@ -837,15 +837,15 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                                              validator=colander.Length(0, 128))
                 location = colander.SchemaNode(colander.String(),
                                                validator=colander.OneOf(['home', 'work']),
-                                               missing=colander.drop)
+                                               missing=colander.null)
 
 
             class Friends(colander.SequenceSchema):
-                friends = Friend(missing=colander.drop)
+                friends = Friend(missing=[])
 
 
             class Phones(colander.SequenceSchema):
-                phones = Phone(missing=colander.drop)
+                phones = Phone(missing=[])
 
 
             class Person(colander.MappingSchema):
@@ -857,11 +857,11 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                                               validator=colander.Length(0, 128))
                 gender = colander.SchemaNode(colander.String(),
                                              validator=colander.OneOf(['M', 'F']),
-                                             missing=colander.drop)
+                                             missing=colander.null)
                 age = colander.SchemaNode(colander.Int(), 
-                                          missing=colander.drop)
-                phones = Phones(missing=colander.drop)
-                friends = Friends(missing=colander.drop)
+                                          missing=colander.null)
+                phones = Phones(missing=[])
+                friends = Friends(missing=[])
 
 
             return Person()

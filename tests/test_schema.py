@@ -693,8 +693,8 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             lastname = Column(String(50))
             fullname = column_property(firstname + " " + lastname)
             address_count = column_property(
-                select([func.count(Address.id)]).\
-                where(Address.user_id==id).\
+                select([func.count(Address.id)]).
+                where(Address.user_id == id).
                 correlate_except(Address)
             )
 

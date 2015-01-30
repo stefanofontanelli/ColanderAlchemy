@@ -114,7 +114,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         kwargs.update(getattr(self.inspector.class_, self.ca_class_key, {}))
 
         # The default type of this SchemaNode is Mapping.
-        colander.SchemaNode.__init__(self, Mapping(unknown), **kwargs)
+        super(SQLAlchemySchemaNode, self).__init__(Mapping(unknown), **kwargs)
         self.class_ = class_
         self.includes = includes or {}
         self.excludes = excludes or {}
@@ -142,7 +142,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
             name_overrides_copy = overrides.get(name, {}).copy()
 
-            if isinstance(prop, ColumnProperty) and isinstance(prop.columns[0], Column):
+            if (isinstance(prop, ColumnProperty)
+                    and isinstance(prop.columns[0], Column)):
                 node = self.get_schema_from_column(
                     prop,
                     name_overrides_copy

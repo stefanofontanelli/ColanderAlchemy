@@ -429,6 +429,42 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertFalse(hasattr(objectified, 'foobar'))
 
 
+    def test_null_issues(self):
+        """ Make sure nullable values are set properly when null
+        
+        #42 introduced an issue where values may not have been properly
+        set if the value is supposed to be set to null
+        """
+        Base = declarative_base()
+
+        class Person(Base):
+            __tablename__ = 'person'
+            id = Column(Integer, primary_key=True)
+            fullname = Column(String, nullable=True)
+            age = Column(Integer, nullable=True)
+
+        schema = SQLAlchemySchemaNode(Person)
+
+        person = Person(
+            id=7,
+            fullname="Joe Smith",
+            age=35,
+        )
+
+        # dict coming from a form submission
+        update_cstruct = {
+            'id': '7',
+            'fullname': '',
+            'age': '',
+        }
+        update_appstruct = schema.deserialize(update_cstruct)
+        schema.objectify(update_appstruct, context=person)
+
+        self.assertEqual(person.id, 7)
+        self.assertEqual(person.fullname, None)
+        self.assertEqual(person.age, None)
+
+
     def test_objectify_context(self):
         """ Test converting a data structure into objects, using a context.
         """

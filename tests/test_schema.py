@@ -23,9 +23,11 @@ from sqlalchemy.ext.hybrid import (hybrid_property,
                                    hybrid_method)
 from sqlalchemy.orm import (relationship,
                             synonym,
+                            column_property,
                             aliased)
 from sqlalchemy.sql.expression import (text,
-                                       func)
+                                       func,
+                                       select)
 from sqlalchemy.schema import DefaultClause
 import colander
 
@@ -665,6 +667,43 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual(serialized['scalar_number'], str(3))
         self.assertIn('pyfunc_test', serialized)
         self.assertEqual(serialized['pyfunc_test'], colander.null)
+
+    def test_unsupported_column_property(self):
+        """
+        Issue #58 and #61 - ColanderAlchemy throws when encountering
+        ColumnProperty without a Column but e.g. an SQL Query
+        for examples see
+        http://docs.sqlalchemy.org/en/rel_0_9/orm/mapper_config.html#using-column-property-for-column-level-options
+
+        ColanderAlchemy should ignore ColumnProperty which
+        doesn't contain a valid Column
+        """
+        Base = declarative_base()
+
+        # example taken from SQLAlchemy docs
+        class Address(Base):
+            __tablename__ = 'address'
+            id = Column(Integer, primary_key=True)
+            user_id = Column(Integer, ForeignKey('user.id'))
+
+        class User(Base):
+            __tablename__ = 'user'
+            id = Column(Integer, primary_key=True)
+            firstname = Column(String(50))
+            lastname = Column(String(50))
+            fullname = column_property(firstname + " " + lastname)
+            address_count = column_property(
+                select([func.count(Address.id)]).\
+                where(Address.user_id==id).\
+                correlate_except(Address)
+            )
+
+        schema = SQLAlchemySchemaNode(User)
+
+        self.assertIn('id', schema)
+        self.assertIn('firstname', schema)
+        self.assertNotIn('fullname', schema)
+        self.assertNotIn('address_count', schema)
 
     def test_unsupported_column_types(self):
         """

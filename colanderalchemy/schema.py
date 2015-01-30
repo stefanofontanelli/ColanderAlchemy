@@ -23,7 +23,7 @@ from sqlalchemy import (Boolean,
                         String,
                         Numeric,
                         Time)
-from sqlalchemy.schema import (FetchedValue, ColumnDefault)
+from sqlalchemy.schema import (FetchedValue, ColumnDefault, Column)
 from sqlalchemy.orm import (ColumnProperty, RelationshipProperty)
 
 
@@ -37,7 +37,7 @@ def _creation_order(obj):
     Used for sorting SQLAlchemy attributes in the order that
     they were defined
     """
-    if isinstance(obj, ColumnProperty):
+    if isinstance(obj, ColumnProperty) and isinstance(obj.columns[0], Column):
         return obj.columns[0]._creation_order
     else:
         return obj._creation_order
@@ -142,7 +142,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
             name_overrides_copy = overrides.get(name, {}).copy()
 
-            if isinstance(prop, ColumnProperty):
+            if isinstance(prop, ColumnProperty) and isinstance(prop.columns[0], Column):
                 node = self.get_schema_from_column(
                     prop,
                     name_overrides_copy

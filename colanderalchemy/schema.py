@@ -139,17 +139,17 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             if name in excludes or (includes and name not in includes):
                 log.debug('Attribute %s skipped imperatively', name)
                 continue
-            
+
             name_overrides_copy = overrides.get(name,{}).copy()
 
             if isinstance(prop, ColumnProperty):
                 node = self.get_schema_from_column(
-                    prop, 
+                    prop,
                     name_overrides_copy
                 )
             elif isinstance(prop, RelationshipProperty):
                 node = self.get_schema_from_relationship(
-                    prop, 
+                    prop,
                     name_overrides_copy
                 )
             elif isinstance(prop, colander.SchemaNode):
@@ -157,11 +157,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             else:
                 log.debug(
                     'Attribute %s skipped due to not being '
-                    'a ColumnProperty or RelationshipProperty', 
+                    'a ColumnProperty or RelationshipProperty',
                     name
                 )
                 continue
-                
+
             if node is not None:
                 self.add(node)
 

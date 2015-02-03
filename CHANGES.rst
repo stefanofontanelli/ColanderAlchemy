@@ -8,6 +8,8 @@ Change Log
   mapping an SQLAlchemy relationship. Previously, overrides were applied
   to both the Sequence and Mapping nodes, leading to unexpected behaviour.
   [davidjb]
+- Added an order in which fields should be displayed (issue #45)
+- Added ability to override fields on their own (PR #69, #70)
 
 
 0.3.1 (2014-03-19)

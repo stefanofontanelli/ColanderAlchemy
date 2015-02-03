@@ -986,5 +986,52 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         # test children and test that they're in the right order
         for i, node in enumerate(schema.children):
             self.assertEqual(node.name, schema2.children[i].name, msg=".".join(schema_path))
-
             self.is_equal_schema(node, schema2.children[i], schema_path[:])
+
+
+    def test_specify_order_fields(self):
+        """
+        Test this issue:
+        How to specify the order in which fields should be displayed ? #45
+        """
+        Base = declarative_base()
+
+        # example taken from SQLAlchemy docs
+        class MyClass(Base):
+            __tablename__ = 'my_table'
+
+            id = Column(Integer, primary_key=True)
+            job_status = Column(String(50))
+
+            status = synonym("job_status")
+
+        schema = SQLAlchemySchemaNode(MyClass,
+                                      includes=['foo', 'job_status', 'id'])
+        self.assertEqual(['job_status', 'id'], [x.name for x in schema])
+        self.assertNotIn('foo', schema)
+
+        schema = SQLAlchemySchemaNode(MyClass,
+                                      includes=['id', 'foo', 'job_status'])
+        self.assertEqual(['id', 'job_status'], [x.name for x in schema])
+        self.assertNotIn('foo', schema)
+
+
+    def test_non_text_includes(self):
+        Base = declarative_base()
+
+        # example taken from SQLAlchemy docs
+        class MyClass(Base):
+            __tablename__ = 'my_table'
+
+            id = Column(Integer, primary_key=True)
+            job_status = Column(String(50))
+
+            status = synonym("job_status")
+        typ = colander.String()
+        column = colander.SchemaNode(typ,
+                                     name='customfield')
+        schema = SQLAlchemySchemaNode(MyClass,
+                                      includes=['foo', 'job_status', column, 'id'])
+        self.assertEqual(['job_status', 'customfield', 'id'],
+                         [x.name for x in schema])
+        self.assertNotIn('foo', schema)

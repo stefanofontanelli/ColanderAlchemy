@@ -1036,7 +1036,6 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                              msg=".".join(schema_path))
             self.is_equal_schema(node, schema2.children[i], schema_path[:])
 
-
     def test_specify_order_fields(self):
         """
         Test this issue:
@@ -1063,7 +1062,6 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual(['id', 'job_status'], [x.name for x in schema])
         self.assertNotIn('foo', schema)
 
-
     def test_non_text_includes(self):
         Base = declarative_base()
 
@@ -1079,7 +1077,12 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         column = colander.SchemaNode(typ,
                                      name='customfield')
         schema = SQLAlchemySchemaNode(MyClass,
-                                      includes=['foo', 'job_status', column, 'id'])
+                                      includes=[
+                                          'foo',
+                                          'job_status',
+                                          column,
+                                          'id'
+                                      ])
         self.assertEqual(['job_status', 'customfield', 'id'],
                          [x.name for x in schema])
         self.assertNotIn('foo', schema)

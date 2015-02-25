@@ -1112,13 +1112,14 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                                              {'typ': colander.Integer}})
             name = Column(MyString(5))
 
-
         world_schema = SQLAlchemySchemaNode(World)
 
         self.assertTrue(
             isinstance(world_schema['not_a_number'].typ, colander.String))
         # should be overwritten by the key
-        self.assertFalse(isinstance(world_schema['number'].typ, colander.String))
+        self.assertFalse(isinstance(
+            world_schema['number'].typ, colander.String
+        ))
 
         # test if validator is not overwritten by ColanderAlchemy
         self.assertEqual(world_schema['name'].validator, string_validator)
@@ -1194,7 +1195,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             number1 = Column(MyInt)
 
         self.assertRaises(ValueError, SQLAlchemySchemaNode, Numbers,
-            None, None, None)
+                          None, None, None)
 
         """ SQLAlchemy gives sqlalchemy.exc.InvalidRequestError errors for
             subsequent tests because this mapper is not always garbage
@@ -1220,7 +1221,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             number1 = Column(MyInt)
 
         self.assertRaises(ValueError, SQLAlchemySchemaNode, Numbers,
-            None, None, None)
+                          None, None, None)
 
         """ SQLAlchemy gives sqlalchemy.exc.InvalidRequestError errors for
             subsequent tests because this mapper is not always garbage
@@ -1245,7 +1246,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             nasty_column = Column(WrongType, primary_key=True)
 
         self.assertRaises(ValueError, SQLAlchemySchemaNode, BadTable,
-            None, None, None)
+                          None, None, None)
 
         """ SQLAlchemy gives sqlalchemy.exc.InvalidRequestError errors for
             subsequent tests because this mapper is not always garbage

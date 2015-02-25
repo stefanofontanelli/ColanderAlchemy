@@ -100,6 +100,26 @@ dict-like structure of options that will be passed to
                                       'validator': address_validator}
         # Other SQLAlchemy columns are defined here
 
+It is also possible to customize the column type, this is done in the same
+manner as above, using the ``__colanderalchemy_config__`` attribute, like so:
+
+.. code:: python
+
+    from sqlalchemy import types
+
+    def email_validator(node, value):
+        # Validate an e-mail address
+        pass
+
+    class Email(types.TypeDecorator):
+
+        impl = types.String
+        
+        __colanderalchemy_config__ = {'validator': email_validator}
+
+It should be noted that the ``default`` and ``missing`` colander options can
+not be set in a SQLAlchemy type.
+
 
 
 Worked example

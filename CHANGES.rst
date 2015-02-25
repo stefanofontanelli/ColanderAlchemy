@@ -16,6 +16,7 @@ Change Log
   `#69 <https://github.com/stefanofontanelli/ColanderAlchemy/pull/41>`_,
   `#70 <https://github.com/stefanofontanelli/ColanderAlchemy/pull/70>`_)
   [uralbash]
+- Allow setting ColanderAlchemy options in sqlalchemy type. [pieterproigia]
 
 
 0.3.1 (2014-03-19)

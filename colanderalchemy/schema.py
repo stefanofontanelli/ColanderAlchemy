@@ -6,6 +6,7 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 import logging
+import itertools
 
 import colander
 from colander import (Mapping,
@@ -190,10 +191,17 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         name = prop.key
         kwargs = dict(name=name)
         column = prop.columns[0]
+        typedecorator_overrides = getattr(column.type,
+                                          self.ca_class_key, {}).copy()
         declarative_overrides = column.info.get(self.sqla_info_key, {}).copy()
         self.declarative_overrides[name] = declarative_overrides.copy()
 
         key = 'exclude'
+
+        if key not in itertools.chain(declarative_overrides, overrides) \
+           and typedecorator_overrides.pop(key, False):
+            log.debug('Column %s skipped due to TypeDecorator overrides', name)
+            return None
 
         if key not in overrides and declarative_overrides.pop(key, False):
             log.debug('Column %s skipped due to declarative overrides', name)
@@ -203,7 +211,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             log.debug('Column %s skipped due to imperative overrides', name)
             return None
 
-        self.check_overrides(name, 'name', declarative_overrides, overrides)
+        self.check_overrides(name, 'name', typedecorator_overrides,
+                             declarative_overrides, overrides)
+
+        for key in ['missing', 'default']:
+            self.check_overrides(name, key, typedecorator_overrides, {}, {})
 
         # The SchemaNode built using the ColumnProperty has no children.
         children = []
@@ -217,6 +229,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         imperative_type = overrides.pop('typ', None)
         declarative_type = declarative_overrides.pop('typ', None)
+        typedecorator_type = typedecorator_overrides.pop('typ', None)
 
         if imperative_type is not None:
             if hasattr(imperative_type, '__call__'):
@@ -232,6 +245,14 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             else:
                 type_ = declarative_type
             log.debug('Column %s: type overridden via declarative: %s.',
+                      name, type_)
+
+        elif typedecorator_type is not None:
+            if hasattr(typedecorator_type, '__call__'):
+                type_ = typedecorator_type()
+            else:
+                type_ = typedecorator_type
+            log.debug('Column %s: type overridden via TypeDecorator: %s.',
                       name, type_)
 
         elif isinstance(column_type, Boolean):
@@ -323,14 +344,20 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             # it if it's missing and let the database generate it
             kwargs["missing"] = drop
 
+        kwargs.update(typedecorator_overrides)
         kwargs.update(declarative_overrides)
         kwargs.update(overrides)
 
         return colander.SchemaNode(type_, *children, **kwargs)
 
-    def check_overrides(self, name, arg, declarative_overrides, overrides):
+    def check_overrides(self, name, arg, typedecorator_overrides,
+                        declarative_overrides, overrides):
         msg = None
-        if arg in declarative_overrides:
+        if arg in typedecorator_overrides:
+            msg = ('%s: argument %s cannot be overridden in the TypeDecorator '
+                   'class.')
+
+        elif arg in declarative_overrides:
             msg = '%s: argument %s cannot be overridden via info kwarg.'
 
         elif arg in overrides:
@@ -388,7 +415,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             return None
 
         for key in ['name', 'typ']:
-            self.check_overrides(name, key, declarative_overrides, overrides)
+            self.check_overrides(name, key, {}, declarative_overrides,
+                                 overrides)
 
         key = 'children'
         imperative_children = overrides.pop(key, None)

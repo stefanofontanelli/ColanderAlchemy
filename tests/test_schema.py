@@ -29,6 +29,7 @@ from sqlalchemy.sql.expression import (text,
                                        func,
                                        select)
 from sqlalchemy.schema import DefaultClause
+from sqlalchemy.types import TypeDecorator
 import colander
 
 from colanderalchemy import SQLAlchemySchemaNode
@@ -1086,3 +1087,173 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual(['job_status', 'customfield', 'id'],
                          [x.name for x in schema])
         self.assertNotIn('foo', schema)
+
+    def test_typedecorator_overwrite(self):
+        key = SQLAlchemySchemaNode.sqla_info_key
+        Base = declarative_base()
+
+        class MyIntType(TypeDecorator):
+            impl = Integer
+            __colanderalchemy_config__ = {'typ': colander.String()}
+
+        def string_validator(node, value):
+            """A dummy validator."""
+            pass
+
+        class MyString(TypeDecorator):
+            impl = Unicode
+            __colanderalchemy_config__ = {'validator': string_validator}
+
+        class World(Base):
+            __tablename__ = 'world'
+            id = Column(Integer, primary_key=True)
+            not_a_number = Column(MyIntType)
+            number = Column(MyIntType, info={key:
+                                             {'typ': colander.Integer}})
+            name = Column(MyString(5))
+
+
+        world_schema = SQLAlchemySchemaNode(World)
+
+        self.assertTrue(
+            isinstance(world_schema['not_a_number'].typ, colander.String))
+        # should be overwritten by the key
+        self.assertFalse(isinstance(world_schema['number'].typ, colander.String))
+
+        # test if validator is not overwritten by ColanderAlchemy
+        self.assertEqual(world_schema['name'].validator, string_validator)
+
+    def test_example_typedecorator_overwrite(self):
+        Base = declarative_base()
+
+        class Email(TypeDecorator):
+            impl = Unicode
+            __colanderalchemy_config__ = {'validator': colander.Email}
+
+        class User(Base):
+            __tablename__ = 'user'
+            id = Column(Integer, primary_key=True)
+            email = Column(Email, nullable=False)
+            second_email = Column(Email)
+
+        schema = SQLAlchemySchemaNode(User)
+
+        # because of naming clashes, we need to do this in another function
+        def generate_colander():
+            class User(colander.MappingSchema):
+                id = colander.SchemaNode(colander.Integer(),
+                                         missing=colander.drop)
+                email = colander.SchemaNode(colander.String(),
+                                            validator=colander.Email())
+                second_email = colander.SchemaNode(colander.String(),
+                                                   validator=colander.Email(),
+                                                   missing=colander.drop)
+
+            return User()
+
+        schema2 = generate_colander()
+
+        self.is_equal_schema(schema, schema2)
+
+    def test_validator_typedecorator_override(self):
+        Base = declarative_base()
+
+        def location_validator(value, node):
+            """A dummy validator."""
+            pass
+
+        class LocationEnum(TypeDecorator):
+            impl = Enum
+            __colanderalchemy_config__ = {'validator': location_validator}
+
+        class LocationString(TypeDecorator):
+            impl = String
+            __colanderalchemy_config__ = {'validator': location_validator}
+
+        class House(Base):
+            __tablename__ = 'house'
+            id = Column(Integer, primary_key=True)
+            door = Column(LocationEnum(['back', 'front']))
+            window = Column(LocationString(128))
+
+        schema = SQLAlchemySchemaNode(House)
+
+        self.assertEqual(schema['door'].validator, location_validator)
+        self.assertEqual(schema['window'].validator, location_validator)
+
+    def test_default_typedecorator_override(self):
+        Base = declarative_base()
+
+        class MyInt(TypeDecorator):
+            impl = Integer
+            __colanderalchemy_config__ = {'default': 42}
+
+        class Numbers(Base):
+            __tablename__ = 'numbers'
+            id = Column(Integer, primary_key=True)
+            number1 = Column(MyInt)
+
+        self.assertRaises(ValueError, SQLAlchemySchemaNode, Numbers,
+            None, None, None)
+
+        """ SQLAlchemy gives sqlalchemy.exc.InvalidRequestError errors for
+            subsequent tests because this mapper is not always garbage
+            collected quick enough.  By removing the _configured_failed
+            flag on the mapper this allows later tests to function
+            properly.
+        """
+        try:
+            del Numbers.__mapper__._configure_failed
+        except AttributeError:
+            pass
+
+    def test_missing_typedecorator_override(self):
+        Base = declarative_base()
+
+        class MyInt(TypeDecorator):
+            impl = Integer
+            __colanderalchemy_config__ = {'missing': 42}
+
+        class Numbers(Base):
+            __tablename__ = 'numbers'
+            id = Column(Integer, primary_key=True)
+            number1 = Column(MyInt)
+
+        self.assertRaises(ValueError, SQLAlchemySchemaNode, Numbers,
+            None, None, None)
+
+        """ SQLAlchemy gives sqlalchemy.exc.InvalidRequestError errors for
+            subsequent tests because this mapper is not always garbage
+            collected quick enough.  By removing the _configured_failed
+            flag on the mapper this allows later tests to function
+            properly.
+        """
+        try:
+            del Numbers.__mapper__._configure_failed
+        except AttributeError:
+            pass
+
+    def test_typedecorator_override_name(self):
+        Base = declarative_base()
+
+        class WrongType(TypeDecorator):
+            impl = String
+            __colanderalchemy_config__ = {'name': 'Wrong!'}
+
+        class BadTable(Base):
+            __tablename__ = 'badtable'
+            nasty_column = Column(WrongType, primary_key=True)
+
+        self.assertRaises(ValueError, SQLAlchemySchemaNode, BadTable,
+            None, None, None)
+
+        """ SQLAlchemy gives sqlalchemy.exc.InvalidRequestError errors for
+            subsequent tests because this mapper is not always garbage
+            collected quick enough.  By removing the _configured_failed
+            flag on the mapper this allows later tests to function
+            properly.
+        """
+        try:
+            del BadTable.__mapper__._configure_failed
+        except AttributeError:
+            pass

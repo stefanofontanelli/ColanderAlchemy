@@ -56,11 +56,17 @@ should be specified like so:
 
 .. code:: python
 
-    name = Column('name', info={'colanderalchemy': {'title': 'Your name',
-                                                    'description': 'Test',
-                                                    'missing': 'Anonymous',
-                                                    ...}
-                               })
+    name = Column(
+        'name',
+        info={
+            'colanderalchemy': {
+                'title': 'Your name',
+                'description': 'Test',
+                'missing': 'Anonymous',
+                # ...  add your own!
+            }
+        }
+    )
 
 and you can add any number of other options into the ``dict`` structure as
 described above.  So, anything you want passed to the resulting mapped

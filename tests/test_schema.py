@@ -1183,7 +1183,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                                             validator=colander.Email())
                 second_email = colander.SchemaNode(colander.String(),
                                                    validator=colander.Email(),
-                                                   missing=colander.drop)
+                                                   missing=colander.null)
 
             return User()
 

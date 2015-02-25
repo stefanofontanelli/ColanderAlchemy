@@ -7,7 +7,7 @@ ColanderAlchemy
 ===============
 
 `ColanderAlchemy` helps you to automatically generate
-`Colander <https://github.com/Pylons/colander>`_ 
+`Colander <http://docs.pylonsproject.org/projects/colander/>`_
 schemas based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped classes.
 
 Quick start
@@ -33,7 +33,7 @@ Now, once you configure any mapped class, you'll automatically get a mapped
 Colander schema on the class as the attribute ``__colanderalchemy__``.
 Keep in mind that you should configure the event listener as soon as possible
 in your application, especially if you're using `declarative
-<http://docs.sqlalchemy.org/en/rel_0_8/orm/extensions/declarative.html>`_
+<http://docs.sqlalchemy.org/en/latest/orm/extensions/declarative/>`_
 definitions.
 
 By associating ``ColanderAlchemy`` configuration with your mapped class,
@@ -65,7 +65,7 @@ mapped class like so:
        biography =  Column(Text())
 
    setup_schema(None, SomeClass)
-   SomeClass.__colanderalchemy__ #A Colander schema for you to use
+   SomeClass.__colanderalchemy__  # A Colander schema for you to use
 
 If you already have a mapped class available, you can just pass it as is - you
 don't need to redefine another schema. 
@@ -82,6 +82,27 @@ use :class:`colanderalchemy.SQLAlchemySchemaNode` directly like so:
                                   includes=['name', 'biography'],
                                   excludes=['id'],
                                   title='Some class') 
+
+Or include custom field:
+
+.. code-block:: python
+
+    import deform
+    import colander
+    from colanderalchemy import SQLAlchemySchemaNode
+    from my.project import SomeClass
+
+    typ = colander.String()
+    widget = deform.widget.SelectWidget(values=(('foo', 'a'),
+                                                ('bar', 'b'),
+                                                ('baz', 'c')))
+    column = colander.SchemaNode(typ,
+                                 name='customfield',
+                                 widget=widget)
+    schema = SQLAlchemySchemaNode(SomeClass,
+                                  includes=['name', column, 'biography'],
+                                  excludes=['id'],
+                                  title='Some class')
 
 Note the various arguments you can pass when creating your mapped schema -
 you have full control over how the schema is generated and what fields
@@ -113,6 +134,8 @@ How it works
           is an instance of either ``sqlalchemy.types.Enum`` or 
           ``sqlalchemy.types.String``.  ``Enum`` is checked with ``colander.OneOf``
           and ``String`` is checked with ``colander.Length``
+        * Customization stored in the ``__colanderalchemy_config__`` attribute of the
+          SQLAlchemy type are applied.
         * ``colander.SchemaNode`` has ``missing=colander.required`` except for
           the when ``default`` is set, ``nullable=True``, there's a ``server_default``,
           or the field is an auto incrementing integer used as part of a primary key.

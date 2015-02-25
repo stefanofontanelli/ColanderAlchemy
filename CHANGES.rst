@@ -1,37 +1,51 @@
 Change Log
 ==========
 
-0.3.2dev (unreleased)
+0.3.2.dev1 (unreleased)
 ------------------
 
 - Only apply declaratively defined settings to the outer Sequence when
   mapping an SQLAlchemy relationship. Previously, overrides were applied
   to both the Sequence and Mapping nodes, leading to unexpected behaviour.
   [davidjb]
+- The order in which fields are added are now properly maintained
+  (`issue #45
+  <https://github.com/stefanofontanelli/ColanderAlchemy/issues/41>`_)
+  [uralbash]
+- Added ability to override fields on their own (PR
+  `#69 <https://github.com/stefanofontanelli/ColanderAlchemy/pull/41>`_,
+  `#70 <https://github.com/stefanofontanelli/ColanderAlchemy/pull/70>`_)
+  [uralbash]
+- Allow setting ColanderAlchemy options in sqlalchemy type. [pieterproigia]
 
 
 0.3.1 (2014-03-19)
 ------------------
 
-- maintain the order of SQLAlchemy object attributes in the 
+- maintain the order of SQLAlchemy object attributes in the
   Colander schema [tisdall]
 - use Colander defaults wherever explicit settings are
   not given [tisdall]
 - added tests for confirming documentation examples [tisdall]
-- added fix and test for `issue 35 
-  <https://github.com/Pylons/colander/issues/31>`_ (thrown exception 
-  on encountering synonym() ) [tisdall]
+- added fix and test for `issue #35
+  <https://github.com/stefanofontanelli/ColanderAlchemy/issues/31>`_
+  (thrown exception on encountering synonym() ) [tisdall]
 - made changes to accommodate SQLAlchemy >= 0.9a [tisdall]
-- allows "children" override 
-  (https://github.com/Pylons/colander/issues/44) [tisdall]
+- allows "children" override
+  (`issue #35
+  <https://github.com/stefanofontanelli/ColanderAlchemy/issues/44>`_)
+  [tisdall]
 - no longer call callable SQLAlchemy defaults to fill in
-  colander default values (https://github.com/Pylons/colander/issues/43)
+  colander default values (`issue #43
+  <https://github.com/stefanofontanelli/ColanderAlchemy/issues/43`_)
   [tisdall]
 - fixed some minor issues with colander default and missing values
   to ensure transitive relationships (such as dictify/objectify)
   [tisdall]
 - require colander 1.0b1 or greater to support `colander.drop`
-  (https://github.com/Pylons/colander/issues/52) [tisdall]
+  (`issue #52
+  <https://github.com/stefanofontanelli/ColanderAlchemy/issues/52`_)
+  [tisdall]
 
 0.3 (2013-11-04)
 ----------------
@@ -64,7 +78,7 @@ Change Log
   configurations.
 - Read Colander node init settings for a mapped class using the
   ``__colanderalchemy__`` attribute.  This allows for full customisation
-  of the resulting ``colander.Mapping`` SchemaNode. 
+  of the resulting ``colander.Mapping`` SchemaNode.
 - Allow non-SQLAlchemy schema nodes within ``SQLAlchemySchemaNode``.
   Previously, the ``dictify`` method would throw an ``AttributeError``.
 - Fix setup.py for python 3k

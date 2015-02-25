@@ -24,7 +24,8 @@ if sys.version_info[0] == 2 and sys.version_info[1] < 7:
 
 setup(name='ColanderAlchemy',
       version=version,
-      description="Autogenerate Colander schemas based on SQLAlchemy models.",
+      description="Autogenerate Colander schemas based on SQLAlchemy "
+                  "models.",
       long_description=README + '\n\n' + CHANGES,
       classifiers=['Development Status :: 4 - Beta',
                    'Intended Audience :: Developers',
@@ -37,7 +38,8 @@ setup(name='ColanderAlchemy',
                    'License :: OSI Approved :: MIT License',
                    'Operating System :: OS Independent',
                    'Topic :: Database'],
-      keywords='serialize deserialize validate schema validation colander sqlalchemy',
+      keywords='serialize deserialize validate schema validation '
+               'colander sqlalchemy',
       author='Stefano Fontanelli',
       author_email='s.fontanelli@asidev.com',
       url='https://github.com/stefanofontanelli/ColanderAlchemy',

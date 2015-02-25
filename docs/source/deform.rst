@@ -3,8 +3,10 @@
 Examples: using ColanderAlchemy with Deform
 ===========================================
 
-When using ``ColanderAlchemy``, the resulting ``Colander`` schema will
+When using ColanderAlchemy, the resulting Colander schema will
 reflect the configuration on the mapped class, as shown in the code below::
+
+.. code-block:: python
 
     from colanderalchemy import SQLAlchemySchemaNode
 
@@ -35,7 +37,9 @@ reflect the configuration on the mapped class, as shown in the code below::
     schema = SQLAlchemySchemaNode(Person)
 
 The resulting schema from the code above is the same as what would
-be produced by constructing the following ``Colander`` schema by hand::
+be produced by constructing the following Colander schema by hand::
+
+.. code-block:: python
 
     import colander
 
@@ -65,9 +69,11 @@ be produced by constructing the following ``Colander`` schema by hand::
     schema = Person()
 
 Note the various configuration aspects like field length and the like
-will automatically be mapped. This means that getting a ``Deform`` form
-to use ``ColanderAlchemy`` is as simple as using any other ``Colander``
+will automatically be mapped. This means that getting a Deform form
+to use ColanderAlchemy is as simple as using any other Colander
 schema::
+
+.. code-block:: python
 
     from colanderalchemy import SQLAlchemySchemaNode
     from deform import Form
@@ -77,13 +83,13 @@ schema::
 
     # Using ColanderAlchemy is easy!
     person = SQLAlchemySchemaNode(Person)
-    
+
     form = Form(person, buttons=('submit',))
 
 Keep in mind that if you want additional control over the resulting
-``Colander`` schema and nodes produced (such as controlling a node's `title`,
-`description`, `widget` or more), you are able to provide appropriate keyword
-arguments declaratively within the ``SQLAlchemy`` model as part of the
-respective ``info`` argument to a :class:`sqlalchemy.Column` or
-:meth:`sqlalchemy.orm.relationship` declaration. For more information, see
-:ref:`customization`.
+Colander schema and nodes produced (such as controlling a node's
+``title``, ``description``, ``widget`` or more), you are able to provide
+appropriate keyword arguments declaratively within the SQLAlchemy model
+as part of the respective ``info`` argument to a
+:class:`sqlalchemy.Column` or :meth:`sqlalchemy.orm.relationship`
+declaration. For more information, see :ref:`customization`.

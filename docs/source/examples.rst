@@ -6,11 +6,13 @@ Examples
 Less boilerplate
 ----------------
 
-The best way to illustrate the benefit of using ``ColanderAlchemy`` is to
-show a comparison between the code required to represent ``SQLAlchemy``
-model as a ``Colander`` schema.
+The best way to illustrate the benefit of using ColanderAlchemy is to
+show a comparison between the code required to represent SQLAlchemy
+model as a Colander schema.
 
 Suppose you have these SQLAlchemy mapped classes::
+
+.. code-block:: python
 
     from sqlalchemy import Column, Enum, ForeignKey, Integer, Unicode
     from sqlalchemy.ext.declarative import declarative_base
@@ -47,6 +49,8 @@ Suppose you have these SQLAlchemy mapped classes::
 
 
 The code you need to create the Colander schema for ``Person`` would be::
+
+.. code-block:: python
 
     import colander
 
@@ -95,17 +99,24 @@ The code you need to create the Colander schema for ``Person`` would be::
     person = Person()
 
 
-By contrast, all you need to obtain the same Colander schema for the ``Person`` mapped class using ``ColanderAlchemy`` is simply::
+By contrast, all you need to obtain the same Colander schema for the
+``Person`` mapped class using ColanderAlchemy is simply::
+
+.. code-block:: python
 
     from colanderalchemy import setup_schema
 
     setup_schema(None, Person)
     schema = Person.__colanderalchemy__
 
+
 Or alternatively, you may do this::
+
+.. code-block:: python
 
     from colanderalchemy import SQLAlchemySchemaNode
 
     schema = SQLAlchemySchemaNode(Person)
+
 
 As you can see, it's a lot simpler.

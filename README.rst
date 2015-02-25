@@ -5,14 +5,15 @@ ColanderAlchemy
     :target: https://travis-ci.org/stefanofontanelli/ColanderAlchemy
 
 .. image:: https://readthedocs.org/projects/colanderalchemy/badge/
-    :target: http://colanderalchemy.readthedocs.org/en/latest/
+    :target: http://colanderalchemy.readthedocs.org
 
 `ColanderAlchemy` helps you to auto-generate `Colander
-<http://docs.pylonsproject.org/projects/colander/en/latest/>`_ schemas
-that are based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped classes.
+<http://docs.pylonsproject.org/projects/colander/>`_ schemas
+that are based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped
+classes.
 
 Such `Colander` schemas can be used with libraries like `Deform
-<http://docs.pylonsproject.org/projects/deform/>`_ and helps remove the 
+<http://docs.pylonsproject.org/projects/deform/>`_ and helps remove the
 need for duplication of schema definitions.
 
 
@@ -20,7 +21,7 @@ Documentation
 -------------
 
 Latest documentation is at: `Read The Docs
-<http://readthedocs.org/docs/colanderalchemy/en/latest/index.html>`_.
+<http://colanderalchemy.readthedocs.org>`_.
 
 
 Installation

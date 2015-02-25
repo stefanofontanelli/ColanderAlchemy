@@ -33,7 +33,7 @@ Now, once you configure any mapped class, you'll automatically get a mapped
 Colander schema on the class as the attribute ``__colanderalchemy__``.
 Keep in mind that you should configure the event listener as soon as possible
 in your application, especially if you're using `declarative
-<http://docs.sqlalchemy.org/latest/orm/extensions/declarative/>`_
+<http://docs.sqlalchemy.org/en/latest/orm/extensions/declarative/>`_
 definitions.
 
 By associating ``ColanderAlchemy`` configuration with your mapped class,

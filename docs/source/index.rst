@@ -7,7 +7,7 @@ ColanderAlchemy
 ===============
 
 `ColanderAlchemy` helps you to automatically generate
-`Colander <https://github.com/Pylons/colander>`_ 
+`Colander <http://docs.pylonsproject.org/projects/colander/>`_
 schemas based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped classes.
 
 Quick start
@@ -33,7 +33,7 @@ Now, once you configure any mapped class, you'll automatically get a mapped
 Colander schema on the class as the attribute ``__colanderalchemy__``.
 Keep in mind that you should configure the event listener as soon as possible
 in your application, especially if you're using `declarative
-<http://docs.sqlalchemy.org/en/rel_0_8/orm/extensions/declarative.html>`_
+<http://docs.sqlalchemy.org/latest/orm/extensions/declarative/>`_
 definitions.
 
 By associating ``ColanderAlchemy`` configuration with your mapped class,
@@ -65,7 +65,7 @@ mapped class like so:
        biography =  Column(Text())
 
    setup_schema(None, SomeClass)
-   SomeClass.__colanderalchemy__ #A Colander schema for you to use
+   SomeClass.__colanderalchemy__  # A Colander schema for you to use
 
 If you already have a mapped class available, you can just pass it as is - you
 don't need to redefine another schema. 

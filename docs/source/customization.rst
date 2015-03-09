@@ -97,8 +97,14 @@ dict-like structure of options that will be passed to
     class Address(Base):
         __colanderalchemy_config__ = {'title': 'An address',
                                       'description': 'Enter an address.',
-                                      'validator': address_validator}
+                                      'validator': address_validator,
+                                      'unknown': 'preserve'}
         # Other SQLAlchemy columns are defined here
+
+Note that, in contrast to the other options in ``__colanderalchemy_config__``,
+the ``unknown`` option is not directly passed to :class:`colander.SchemaNode`.
+Instead, it is passed to the :class:`colander.Mapping` object, which itself is
+passed to :class:`colander.SchemaNode`.
 
 It is also possible to customize the column type, this is done in the same
 manner as above, using the ``__colanderalchemy_config__`` attribute, like so:

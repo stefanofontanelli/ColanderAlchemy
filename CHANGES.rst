@@ -17,7 +17,10 @@ Change Log
   `#70 <https://github.com/stefanofontanelli/ColanderAlchemy/pull/70>`_)
   [uralbash]
 - Allow setting ColanderAlchemy options in sqlalchemy type. [pieterproigia]
-
+- Make it possible to set the ``unknown`` ``colander.Mapping`` option
+  using ``__colanderalchemy_config__`` (PR
+  `#78 <https://github.com/stefanofontanelli/ColanderAlchemy/pull/78>`_)
+  [elemoine]
 
 0.3.1 (2014-03-19)
 ------------------

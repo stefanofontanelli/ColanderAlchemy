@@ -69,6 +69,23 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                    __colanderalchemy_config__ = {'title': 'Custom title',
                                                  'description': 'Sample'}
                    ...
+
+           The ``unknown`` argument passed to :class:`colander.Mapping`, which
+           defaults to ``'ignore'``, can be set by adding an ``unknown`` key to
+           the ``__colanderalchemy_config__`` dict. For example::
+
+               class MyModel(Base):
+                   __colanderalchemy_config__ = {'title': 'Custom title',
+                                                 'description': 'Sample',
+                                                 'unknown': 'preserve'}
+                   ...
+
+           In contrast to the other options in ``__colanderalchemy_config__``,
+           the ``unknown`` option is not directly passed to
+           :class:`colander.SchemaNode`. Instead, it is passed to the
+           :class:`colander.Mapping` object, which itself is passed to
+           :class:`colander.SchemaNode`.
+
         includes
            Iterable of attributes to include from the resulting schema. Using
            this option will ensure *only* the explicitly mentioned attributes
@@ -113,6 +130,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         # Obtain configuration specific from the mapped class
         kwargs.update(getattr(self.inspector.class_, self.ca_class_key, {}))
+        unknown = kwargs.pop('unknown', unknown)
 
         # The default type of this SchemaNode is Mapping.
         super(SQLAlchemySchemaNode, self).__init__(Mapping(unknown), **kwargs)

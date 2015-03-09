@@ -42,7 +42,8 @@ def has_unique_addresses(node, value):
 class Account(Base):
 
     __tablename__ = 'accounts'
-    __colanderalchemy_config__ = {'preparer': 'DummyPreparer'}
+    __colanderalchemy_config__ = {'preparer': 'DummyPreparer',
+                                  'unknown': 'raise'}
     email = Column(Unicode(64), primary_key=True)
     enabled = Column(Boolean, default=True)
     created = Column(DateTime, nullable=True,

@@ -492,6 +492,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         """
         schema = SQLAlchemySchemaNode(Account)
         self.assertEqual(schema.preparer, 'DummyPreparer')
+        self.assertEqual(schema.typ.unknown, 'raise')
 
         # Related models will be configured as well
         self.assertEqual(schema['person'].widget, 'DummyWidget')

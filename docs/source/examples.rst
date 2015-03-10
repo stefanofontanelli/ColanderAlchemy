@@ -10,7 +10,7 @@ The best way to illustrate the benefit of using ColanderAlchemy is to
 show a comparison between the code required to represent SQLAlchemy
 model as a Colander schema.
 
-Suppose you have these SQLAlchemy mapped classes::
+Suppose you have these SQLAlchemy mapped classes:
 
 .. code-block:: python
 
@@ -48,7 +48,7 @@ Suppose you have these SQLAlchemy mapped classes::
         friends = relationship(Friend, foreign_keys=[Friend.person_id])
 
 
-The code you need to create the Colander schema for ``Person`` would be::
+The code you need to create the Colander schema for ``Person`` would be:
 
 .. code-block:: python
 
@@ -100,7 +100,7 @@ The code you need to create the Colander schema for ``Person`` would be::
 
 
 By contrast, all you need to obtain the same Colander schema for the
-``Person`` mapped class using ColanderAlchemy is simply::
+``Person`` mapped class using ColanderAlchemy is simply:
 
 .. code-block:: python
 
@@ -110,7 +110,7 @@ By contrast, all you need to obtain the same Colander schema for the
     schema = Person.__colanderalchemy__
 
 
-Or alternatively, you may do this::
+Or alternatively, you may do this:
 
 .. code-block:: python
 

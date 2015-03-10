@@ -303,7 +303,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             type_ = colander.Time()
 
         else:
-            raise NotImplementedError('Unknown type: %s' % column_type)
+            raise NotImplementedError(
+                'Not able to derive a colander type from sqlalchemy '
+                'type: %s  Please explicitly provide a colander '
+                '`typ` for the "%s" Column.'
+                % (repr(column_type), name)
+            )
 
         """
         Add default values

@@ -4,7 +4,7 @@ Examples: using ColanderAlchemy with Deform
 ===========================================
 
 When using ColanderAlchemy, the resulting Colander schema will
-reflect the configuration on the mapped class, as shown in the code below::
+reflect the configuration on the mapped class, as shown in the code below:
 
 .. code-block:: python
 
@@ -37,7 +37,7 @@ reflect the configuration on the mapped class, as shown in the code below::
     schema = SQLAlchemySchemaNode(Person)
 
 The resulting schema from the code above is the same as what would
-be produced by constructing the following Colander schema by hand::
+be produced by constructing the following Colander schema by hand:
 
 .. code-block:: python
 
@@ -71,7 +71,7 @@ be produced by constructing the following Colander schema by hand::
 Note the various configuration aspects like field length and the like
 will automatically be mapped. This means that getting a Deform form
 to use ColanderAlchemy is as simple as using any other Colander
-schema::
+schema:
 
 .. code-block:: python
 

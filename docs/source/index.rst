@@ -144,7 +144,7 @@ How it works
         * ``colander.SchemaNode`` has ``default=colander.null`` unless there is
           a column default which is a static scalar value.  Callable function defaults
           and server defaults are ignored for the purposes of generating a 
-          colander schema
+          colander schema default value.
         * Customisations to the resulting ``colander.SchemaNode`` are applied,
           if defined as part of the ``info`` structure on the
           ``sqlalchemy.Column``.

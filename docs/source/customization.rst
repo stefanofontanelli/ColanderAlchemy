@@ -144,21 +144,24 @@ A full worked example could be like this:
 
     Base = declarative_base()
 
-
     class Person(Base):
         __tablename__ = 'person'
-        #Fully customised schema node
+        # Fully customised schema node
         id = Column(sqlalchemy.Integer,
                     primary_key=True,
-                    info={'colanderalchemy': {'typ': colander.Float(),
-                                              'title': 'Person ID',
-                                              'description': 'The Person identifier.',
-                                              'widget': 'Empty Widget'}})
-        #Explicitly set as a default field
+                    info={'colanderalchemy': {
+                        'typ': colander.Float(),
+                        'title': 'Person ID',
+                        'description': 'The Person identifier.',
+                        'widget': 'Empty Widget'
+                    }})
+        # Explicitly set as a default field
         name = Column(sqlalchemy.Unicode(128),
                       nullable=False,
-                      info={'colanderalchemy': {'default': colander.required}})
-        #Explicitly excluded from resulting schema
+                      info={'colanderalchemy': {
+                          'default': colander.required
+                      }})
+        # Explicitly excluded from resulting schema
         surname = Column(sqlalchemy.Unicode(128),
                          nullable=False,
                          info={'colanderalchemy': {'exclude': True}})

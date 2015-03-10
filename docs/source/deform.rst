@@ -16,14 +16,13 @@ reflect the configuration on the mapped class, as shown in the code below:
 
     Base = declarative_base()
 
-
     class Phone(Base):
         __tablename__ = 'phones'
 
-        person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
+        person_id = Column(Integer, ForeignKey('persons.id'),
+                           primary_key=True)
         number = Column(Unicode(128), primary_key=True)
         location = Column(Enum('home', 'work'))
-
 
     class Person(Base):
         __tablename__ = 'persons'
@@ -33,8 +32,8 @@ reflect the configuration on the mapped class, as shown in the code below:
         surname = Column(Unicode(128), nullable=False)
         phones = relationship(Phone)
 
-
     schema = SQLAlchemySchemaNode(Person)
+
 
 The resulting schema from the code above is the same as what would
 be produced by constructing the following Colander schema by hand:
@@ -46,25 +45,31 @@ be produced by constructing the following Colander schema by hand:
 
     class Phone(colander.MappingSchema):
         person_id = colander.SchemaNode(colander.Int())
-        number = colander.SchemaNode(colander.String(),
-                                     validator=colander.Length(0, 128))
-        location = colander.SchemaNode(colander.String(),
-                                       validator=colander.OneOf(['home', 'work']),
-                                       missing=colander.drop)
-
+        number = colander.SchemaNode(
+            colander.String(),
+            validator=colander.Length(0, 128)
+        )
+        location = colander.SchemaNode(
+            colander.String(),
+            validator=colander.OneOf(['home', 'work']),
+            missing=colander.null
+        )
 
     class Phones(colander.SequenceSchema):
-        phones = Phone(missing=colander.drop)
-
+        phones = Phone(missing=[])
 
     class Person(colander.MappingSchema):
-        id = colander.SchemaNode(colander.Int(), missing=colander.drop)
-        name = colander.SchemaNode(colander.String(),
-                                   validator=colander.Length(0, 128))
-        surname = colander.SchemaNode(colander.String(),
-                                      validator=colander.Length(0, 128))
-        phones = Phones(missing=colander.drop)
-
+        id = colander.SchemaNode(colander.Int(),
+                                 missing=colander.drop)
+        name = colander.SchemaNode(
+            colander.String(),
+            validator=colander.Length(0, 128)
+        )
+        surname = colander.SchemaNode(
+            colander.String(),
+            validator=colander.Length(0, 128)
+        )
+        phones = Phones(missing=[])
 
     schema = Person()
 

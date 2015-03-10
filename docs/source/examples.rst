@@ -21,21 +21,23 @@ Suppose you have these SQLAlchemy mapped classes:
 
     Base = declarative_base()
 
-
     class Phone(Base):
         __tablename__ = 'phones'
 
-        person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
+        person_id = Column(Integer, ForeignKey('persons.id'),
+                           primary_key=True)
         number = Column(Unicode(128), primary_key=True)
         location = Column(Enum('home', 'work'))
 
     class Friend(Base):
         __tablename__ = 'friends'
 
-        person_id = Column(Integer, ForeignKey('persons.id'), primary_key=True)
-        friend_of = Column(Integer, ForeignKey('persons.id'), primary_key=True)
+        person_id = Column(Integer, ForeignKey('persons.id'),
+                           primary_key=True)
+        friend_of = Column(Integer, ForeignKey('persons.id'),
+                           primary_key=True)
         rank = Column(Integer, default=0)
-    
+
     class Person(Base):
         __tablename__ = 'persons'
 
@@ -58,43 +60,52 @@ The code you need to create the Colander schema for ``Person`` would be:
     class Friend(colander.MappingSchema):
         person_id = colander.SchemaNode(colander.Int())
         friend_of = colander.SchemaNode(colander.Int())
-        rank = colander.SchemaNode(colander.Int(), 
-                                   missing=0, 
+        rank = colander.SchemaNode(colander.Int(),
+                                   missing=0,
                                    default=0)
-
 
     class Phone(colander.MappingSchema):
         person_id = colander.SchemaNode(colander.Int())
-        number = colander.SchemaNode(colander.String(),
-                                     validator=colander.Length(0, 128))
-        location = colander.SchemaNode(colander.String(),
-                                       validator=colander.OneOf(['home', 'work']),
-                                       missing=colander.drop)
-
+        number = colander.SchemaNode(
+            colander.String(),
+            validator=colander.Length(0, 128)
+        )
+        location = colander.SchemaNode(
+            colander.String(),
+            validator=colander.OneOf(['home', 'work']),
+            missing=colander.null
+        )
 
     class Friends(colander.SequenceSchema):
-        friends = Friend(missing=colander.drop)
-
+        friends = Friend(missing=[])
 
     class Phones(colander.SequenceSchema):
-        phones = Phone(missing=colander.drop)
-
+        phones = Phone(missing=[])
 
     class Person(colander.MappingSchema):
-        id = colander.SchemaNode(colander.Int(),
-                                 missing=colander.drop)
-        name = colander.SchemaNode(colander.String(),
-                                   validator=colander.Length(0, 128))
-        surname = colander.SchemaNode(colander.String(),
-                                      validator=colander.Length(0, 128))
-        gender = colander.SchemaNode(colander.String(),
-                                     validator=colander.OneOf(['M', 'F']),
-                                     missing=colander.drop)
-        age = colander.SchemaNode(colander.Int(), 
-                                  missing=colander.drop)
-        phones = Phones(missing=colander.drop)
-        friends = Friends(missing=colander.drop)
-
+        id = colander.SchemaNode(
+            colander.Int(),
+            missing=colander.drop
+        )
+        name = colander.SchemaNode(
+            colander.String(),
+            validator=colander.Length(0, 128)
+        )
+        surname = colander.SchemaNode(
+            colander.String(),
+            validator=colander.Length(0, 128)
+        )
+        gender = colander.SchemaNode(
+            colander.String(),
+            validator=colander.OneOf(['M', 'F']),
+            missing=colander.null
+        )
+        age = colander.SchemaNode(
+            colander.Int(),
+            missing=colander.null
+        )
+        phones = Phones(missing=[])
+        friends = Friends(missing=[])
 
     person = Person()
 

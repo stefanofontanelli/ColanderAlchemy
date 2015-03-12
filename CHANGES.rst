@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-0.3.2 (2014-03-11)
-------------------
+0.3.2.post1 (2014-03-11)
+------------------------
 
 - Only apply declaratively defined settings to the outer Sequence when
   mapping an SQLAlchemy relationship. Previously, overrides were applied
@@ -10,10 +10,10 @@ Change Log
   [davidjb]
 - The order in which fields are added are now properly maintained
   (`issue #45
-  <https://github.com/stefanofontanelli/ColanderAlchemy/issues/41>`_)
+  <https://github.com/stefanofontanelli/ColanderAlchemy/issues/45>`_)
   [uralbash]
 - Added ability to override fields on their own (PR
-  `#69 <https://github.com/stefanofontanelli/ColanderAlchemy/pull/41>`_,
+  `#69 <https://github.com/stefanofontanelli/ColanderAlchemy/pull/69>`_,
   `#70 <https://github.com/stefanofontanelli/ColanderAlchemy/pull/70>`_)
   [uralbash]
 - Allow setting ColanderAlchemy options in sqlalchemy type. [pieterproigia]
@@ -31,23 +31,23 @@ Change Log
   not given [tisdall]
 - added tests for confirming documentation examples [tisdall]
 - added fix and test for `issue #35
-  <https://github.com/stefanofontanelli/ColanderAlchemy/issues/31>`_
+  <https://github.com/stefanofontanelli/ColanderAlchemy/issues/35>`_
   (thrown exception on encountering synonym() ) [tisdall]
 - made changes to accommodate SQLAlchemy >= 0.9a [tisdall]
 - allows "children" override
-  (`issue #35
+  (`issue #44
   <https://github.com/stefanofontanelli/ColanderAlchemy/issues/44>`_)
   [tisdall]
 - no longer call callable SQLAlchemy defaults to fill in
   colander default values (`issue #43
-  <https://github.com/stefanofontanelli/ColanderAlchemy/issues/43`_)
+  <https://github.com/stefanofontanelli/ColanderAlchemy/issues/43>`_)
   [tisdall]
 - fixed some minor issues with colander default and missing values
   to ensure transitive relationships (such as dictify/objectify)
   [tisdall]
 - require colander 1.0b1 or greater to support `colander.drop`
   (`issue #52
-  <https://github.com/stefanofontanelli/ColanderAlchemy/issues/52`_)
+  <https://github.com/stefanofontanelli/ColanderAlchemy/issues/52>`_)
   [tisdall]
 
 0.3 (2013-11-04)

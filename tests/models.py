@@ -31,10 +31,6 @@ from colanderalchemy import (SQLAlchemySchemaNode, setup_schema)
 Base = declarative_base()
 key = SQLAlchemySchemaNode.sqla_info_key
 
-# Global listener for all model mapping events
-event.listen(mapper, 'mapper_configured', setup_schema)
-
-
 def has_unique_addresses(node, value):
     """ Dummy validator for schema. """
     pass
@@ -53,6 +49,7 @@ class Account(Base):
     person_id = Column(Integer, ForeignKey('people.id'))
     person = relationship('Person')
 
+event.listen(Account, 'mapper_configured', setup_schema)
 
 class Person(Base):
 
@@ -82,6 +79,7 @@ class Person(Base):
         }
     )
 
+event.listen(Person, 'mapper_configured', setup_schema)
 
 class Group(Base):
 
@@ -128,6 +126,7 @@ class Address(Base):
     person_id = Column(Integer, ForeignKey('people.id'))
     person = relationship(Person, info={key: {'exclude': True}})
 
+event.listen(Address, 'mapper_configured', setup_schema)
 
 class Cycle(Base):
 

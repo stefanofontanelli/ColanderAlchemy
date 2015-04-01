@@ -462,7 +462,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         declarative_overrides = prop.info.get(self.sqla_info_key, {}).copy()
         self.declarative_overrides[name] = declarative_overrides.copy()
 
-        class_ = prop.mapper
+        class_ = prop.mapper.class_
 
         if declarative_overrides.pop('exclude', False):
             log.debug('Relationship %s skipped due to declarative overrides',

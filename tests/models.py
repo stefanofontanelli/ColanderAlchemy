@@ -153,3 +153,21 @@ class CycleChildren2(Base):
     id = Column(Integer, primary_key=True)
     cycle = relationship('Cycle')
     cycle_id = Column(Integer, ForeignKey('cycle.id'))
+
+class Foo(Base):
+    __tablename__ = 'foos'
+    id = Column(Integer, primary_key=True)
+
+class Bar(Base):
+    __tablename__ = 'bars'
+    id = Column(Integer, primary_key=True)
+
+    foo_id = Column(Integer, ForeignKey('foos.id'))
+    foo = relationship('Foo', backref='bars')
+
+class Baz(Base):
+    __tablename__ = 'bazs'
+    id = Column(Integer, primary_key=True)
+
+    foo_id = Column(Integer, ForeignKey('foos.id'))
+    foo = relationship('Foo', backref='bazs')

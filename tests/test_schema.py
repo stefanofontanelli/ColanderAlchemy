@@ -38,6 +38,8 @@ from tests.models import (Account,
                           Address,
                           Group,
                           Cycle,
+                          Bar,
+                          Baz,
                           has_unique_addresses)
 
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
@@ -1358,3 +1360,11 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         schema = SQLAlchemySchemaNode(Cycle, overrides=overrides)
         self.assertTrue("cycle" in schema["cycle"]["cycle"])
         self.assertTrue("id" in schema["cycle"]["cycle"]["cycle"])
+
+    def test_relationship_infinite_recursion(self):
+        """Test to ensure infinite recursion does not occur when following backrefs
+        """
+
+        # Unpatched, creating a bar or baz schema node causes infinite recursion
+        schema = SQLAlchemySchemaNode(Bar)
+        schema = SQLAlchemySchemaNode(Baz)

@@ -4,6 +4,8 @@ Change Log
 0.3.3 (unreleased)
 ------------------
 
+- Clarify documentation for quickstart.
+  [davidjb]
 
 
 0.3.2.post1 (2014-03-11)

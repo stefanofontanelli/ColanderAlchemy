@@ -31,6 +31,7 @@ from colanderalchemy import (SQLAlchemySchemaNode, setup_schema)
 Base = declarative_base()
 key = SQLAlchemySchemaNode.sqla_info_key
 
+# Global listener for all model mapping events
 event.listen(mapper, 'mapper_configured', setup_schema)
 
 

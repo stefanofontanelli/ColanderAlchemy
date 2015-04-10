@@ -6,9 +6,9 @@
 ColanderAlchemy
 ===============
 
-`ColanderAlchemy` helps you to automatically generate
-`Colander <http://docs.pylonsproject.org/projects/colander/>`_
-schemas based on `SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped classes.
+`ColanderAlchemy` helps you to automatically generate `Colander
+<http://docs.pylonsproject.org/projects/colander/>`_ schemas based on
+`SQLAlchemy <http://www.sqlalchemy.org/>`_ mapped classes.
 
 Quick start
 -----------
@@ -19,29 +19,56 @@ schema to a mapped class for you, or else you can use
 :class:`colanderalchemy.SQLAlchemySchemaNode` to have more control over the
 auto-generated schema.
 
-The easiest way to get going is to set up an SQLAlchemy event listener.
-The :meth:`colanderalchemy.setup_schema` method is designed to be attached to
-the ``mapper_configured`` event:
+The easiest way to get going is to set up an SQLAlchemy event listener. There
+are two ways in which to have schemas automatically generated for your models.
 
-.. code-block:: python
+#. For individual SQLAlchemy models, configure the
+   :meth:`colanderalchemy.setup_schema` method to listen for the
+   ``mapper_configured`` event for your model class:
 
-    from sqlalchemy import event
-    from colanderalchemy import setup_schema
-    event.listen(mapper, 'mapper_configured', setup_schema)
+   .. code-block:: python
 
-Now, once you configure any mapped class, you'll automatically get a mapped
-Colander schema on the class as the attribute ``__colanderalchemy__``.
-Keep in mind that you should configure the event listener as soon as possible
-in your application, especially if you're using `declarative
-<http://docs.sqlalchemy.org/en/latest/orm/extensions/declarative/>`_
-definitions.
+      from sqlalchemy import event
+      from colanderalchemy import setup_schema
+      # MyModel is your SQLAlchemy model class
+      event.listen(MyModel, 'mapper_configured', setup_schema)
 
-By associating ``ColanderAlchemy`` configuration with your mapped class,
-its columns, and its relationships, you can tell ``ColanderAlchemy``
-how to generate each and every part of your mapped schema - including things
-like titles, descriptions, preparers, validators, widgets, and more. 
+   This is simplest and most efficient option if you know specifically which
+   models require Colander schemas attached.
 
-Check out :ref:`info_argument` for more information on how.
+#. To automatically create schemas for *all* mapped models, configure the
+   :meth:`colanderalchemy.setup_schema` method to listen for the
+   ``mapper_configured`` event for :class:`sqlalchemy.orm.mapper`:
+
+   .. code-block:: python
+
+      from sqlalchemy import event
+      from sqlalchemy.orm import mapper
+      from colanderalchemy import setup_schema
+      event.listen(mapper, 'mapper_configured', setup_schema)
+
+   Consider which Colander schemas you use directly because ``setup_schema``
+   will attach schemas to all models automatically. This may result in extra
+   overhead from generating Colander schemas that you do not use.
+
+In both cases, this will create a Colander schema from the given SQLAlchemy
+model, and attach it to the given class as the attribute
+``__colanderalchemy__``.  This event fires when the mapper for the given class
+is fully configured.
+
+.. note::
+
+   Keep in mind that you should configure the event listener as soon as
+   possible in your application, especially if you're using `declarative
+   <http://docs.sqlalchemy.org/en/latest/orm/extensions/declarative/>`_
+   definitions.  Adding the above code immediately after your SQLAlchemy model
+   class definition is advised.
+
+By associating ``ColanderAlchemy`` configuration with your mapped class, its
+columns, and its relationships, you can tell ``ColanderAlchemy`` how to
+generate each and every part of your mapped schema - including things like
+titles, descriptions, preparers, validators, widgets, and more.  See
+:ref:`info_argument` for more information on how to customise this process.
 
 Usage
 -----

@@ -19,20 +19,42 @@ schema to a mapped class for you, or else you can use
 :class:`colanderalchemy.SQLAlchemySchemaNode` to have more control over the
 auto-generated schema.
 
-The easiest way to get going is to set up an SQLAlchemy event listener.
-Attach the :meth:`colanderalchemy.setup_schema` method to
-the ``mapper_configured`` event for your SQLAlchemy model class, like so:
+The easiest way to get going is to set up an SQLAlchemy event listener. There
+are two ways in which to have schemas automatically generated for your models.
 
-.. code-block:: python
+#. For individual SQLAlchemy models, configure the
+   :meth:`colanderalchemy.setup_schema` method to listen for the
+   ``mapper_configured`` event for your model class:
 
-    from sqlalchemy import event
-    from colanderalchemy import setup_schema
-    # MyModel is your SQLAlchemy model class
-    event.listen(MyModel, 'mapper_configured', setup_schema)
+   .. code-block:: python
 
-This creates a Colander schema from the SQLAlchemy model, and attaches it to
-your class as the attribute ``__colanderalchemy__``.  This event fires when
-the mapper for your class is fully configured.
+      from sqlalchemy import event
+      from colanderalchemy import setup_schema
+      # MyModel is your SQLAlchemy model class
+      event.listen(MyModel, 'mapper_configured', setup_schema)
+
+   This is simplest and most efficient option if you know specifically which
+   models require Colander schemas attached.
+
+#. To automatically create schemas for *all* mapped models, configure the
+   :meth:`colanderalchemy.setup_schema` method to listen for the
+   ``mapper_configured`` event for :class:`sqlalchemy.orm.mapper`:
+
+   .. code-block:: python
+
+      from sqlalchemy import event
+      from sqlalchemy.orm import mapper
+      from colanderalchemy import setup_schema
+      event.listen(mapper, 'mapper_configured', setup_schema)
+
+   Consider which Colander schemas you use directly because ``setup_schema``
+   will attach schemas to all models automatically. This may result in extra
+   overhead from generating Colander schemas that you do not use.
+
+In both cases, this will create a Colander schema from the given SQLAlchemy
+model, and attach it to the given class as the attribute
+``__colanderalchemy__``.  This event fires when the mapper for the given class
+is fully configured.
 
 .. note::
 

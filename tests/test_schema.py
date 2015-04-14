@@ -120,6 +120,52 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             if attr.key not in ('city', 'person'):
                 self.assertIn(attr.key, address_schema)
 
+    def _create_declarative_class(self):
+        Base = declarative_base()
+
+        class Model(Base):
+            __tablename__ = 'models'
+            name = Column(Unicode(32), primary_key=True)
+            description = Column(Unicode(128))
+
+        return Model
+
+    def test_declarative_includes_class(self):
+        Model = self._create_declarative_class()
+        key = SQLAlchemySchemaNode.ca_class_key
+        setattr(Model, key, {'includes': ('description',)})
+        model_schema = SQLAlchemySchemaNode(Model)
+        self.assertNotIn('name', model_schema)
+
+    def test_declarative_excludes_class(self):
+        Model = self._create_declarative_class()
+        key = SQLAlchemySchemaNode.ca_class_key
+        setattr(Model, key, {'excludes': ('description',)})
+        model_schema = SQLAlchemySchemaNode(Model)
+        self.assertNotIn('description', model_schema)
+
+    def test_declarative_overrides_class(self):
+        Model = self._create_declarative_class()
+        key = SQLAlchemySchemaNode.ca_class_key
+        setattr(Model,
+                key,
+                {'overrides': {'name': {'typ': colander.Integer}}})
+        model_schema = SQLAlchemySchemaNode(Model)
+        self.assertIsInstance(model_schema['name'].typ, colander.Integer)
+
+    def test_declarative_class_precedence(self):
+        """ Ensure arguments to SQLAlchemySchemaNode take precedence.
+
+        Test to ensure that declarative options intended for outer schema
+        node are not copied to underlying children.
+        """
+        Model = self._create_declarative_class()
+        key = SQLAlchemySchemaNode.ca_class_key
+        setattr(Model, key, {'includes': ('description',)})
+        model_schema = SQLAlchemySchemaNode(Model, includes=('name',))
+        self.assertIn('name', model_schema)
+        self.assertNotIn('description', model_schema)
+
     def test_imperative_colums_overrides(self):
         overrides = {
             'email': {
@@ -127,9 +173,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             }
         }
         account_schema = SQLAlchemySchemaNode(Account, overrides=overrides)
-        self.assertTrue(
-            isinstance(account_schema['email'].typ, colander.Integer)
-        )
+        self.assertIsInstance(account_schema['email'].typ, colander.Integer)
         overrides = {
             'email': {
                 'name': 'Name'
@@ -227,10 +271,10 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             }
         }
         schema = SQLAlchemySchemaNode(Person, overrides=overrides)
-        self.assertTrue(isinstance(
+        self.assertIsInstance(
             schema['addresses'].children[0]['id'].typ,
             colander.String
-        ))
+        )
 
     def test_declarative_relationships_overrides(self):
         key = SQLAlchemySchemaNode.sqla_info_key
@@ -312,13 +356,13 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                 uselist=True
             )
         schema = SQLAlchemySchemaNode(UseListOverrides)
-        self.assertTrue(isinstance(schema['model'].typ, colander.Sequence))
+        self.assertIsInstance(schema['model'].typ, colander.Sequence)
         # Retrieve and check overrides kwarg.
         schema = SQLAlchemySchemaNode(Person)
-        self.assertTrue(isinstance(
+        self.assertIsInstance(
             schema['addresses'].children[0]['id'].typ,
             colander.Float
-        ))
+        )
 
     def _prep_schema(self):
         overrides = {
@@ -448,7 +492,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
     def test_null_issues(self):
         """ Make sure nullable values are set properly when null
-        
+
         #42 introduced an issue where values may not have been properly
         set if the value is supposed to be set to null
         """
@@ -1150,12 +1194,10 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
         world_schema = SQLAlchemySchemaNode(World)
 
-        self.assertTrue(
-            isinstance(world_schema['not_a_number'].typ, colander.String))
+        self.assertIsInstance(
+            world_schema['not_a_number'].typ, colander.String)
         # should be overwritten by the key
-        self.assertFalse(isinstance(
-            world_schema['number'].typ, colander.String
-        ))
+        self.assertNotIsInstance(world_schema['number'].typ, colander.String)
 
         # test if validator is not overwritten by ColanderAlchemy
         self.assertEqual(world_schema['name'].validator, string_validator)

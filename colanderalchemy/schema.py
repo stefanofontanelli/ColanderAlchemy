@@ -70,6 +70,44 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                                                  'description': 'Sample'}
                    ...
 
+
+        includes
+           Iterable of attributes to include from the resulting schema. Using
+           this option will ensure *only* the explicitly mentioned attributes
+           are included and *all others* are excluded.
+
+           ``includes`` can be included in the ``__colanderalchemy_config__``
+           dict on a class to declaratively customise the resulting schema.
+           Explicitly passing this option as an argument takes precedence over
+           the declarative configuration.
+
+           Incompatible with :attr:`excludes`. Default: None.
+        excludes
+           Iterable of attributes to exclude from the resulting schema. Using
+           this option will ensure *only* the explicitly mentioned attributes
+           are excluded and *all others* are included.
+
+           ``excludes`` can be included in the ``__colanderalchemy_config__``
+           dict on a class to declaratively customise the resulting schema.
+           Explicitly passing this option as an argument takes precedence over
+           the declarative configuration.
+
+           Incompatible with :attr:`includes`. Default: None.
+        overrides
+            A dict-like structure that consists of schema attributes to
+            override imperatively. Values provides as part of :attr:`overrides`
+            will take precendence over all others.
+
+           ``overrides`` can be included in the ``__colanderalchemy_config__``
+           dict on a class to declaratively customise the resulting schema.
+           Explicitly passing this option as an argument takes precedence over
+           the declarative configuration.
+
+           Default: None.
+        unknown
+           Represents the `unknown` argument passed to
+           :class:`colander.Mapping`.
+
            The ``unknown`` argument passed to :class:`colander.Mapping`, which
            defaults to ``'ignore'``, can be set by adding an ``unknown`` key to
            the ``__colanderalchemy_config__`` dict. For example::
@@ -85,26 +123,6 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
            :class:`colander.SchemaNode`. Instead, it is passed to the
            :class:`colander.Mapping` object, which itself is passed to
            :class:`colander.SchemaNode`.
-
-        includes
-           Iterable of attributes to include from the resulting schema. Using
-           this option will ensure *only* the explicitly mentioned attributes
-           are included and *all others* are excluded.
-
-           Incompatible with :attr:`excludes`. Default: None.
-        excludes
-           Iterable of attributes to exclude from the resulting schema. Using
-           this option will ensure *only* the explicitly mentioned attributes
-           are excluded and *all others* are included.
-
-           Incompatible with :attr:`includes`. Default: None.
-        overrides
-            A dict-like structure that consists of schema attributes to
-            override imperatively. Values provides as part of :attr:`overrides`
-            will take precendence over all others.
-        unknown
-           Represents the `unknown` argument passed to
-           :class:`colander.Mapping`.
 
            From Colander:
 
@@ -130,14 +148,17 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         # Obtain configuration specific from the mapped class
         kwargs.update(getattr(self.inspector.class_, self.ca_class_key, {}))
+        declarative_includes = kwargs.pop('includes', {})
+        declarative_excludes = kwargs.pop('excludes', {})
+        declarative_overrides = kwargs.pop('overrides', {})
         unknown = kwargs.pop('unknown', unknown)
 
         # The default type of this SchemaNode is Mapping.
         super(SQLAlchemySchemaNode, self).__init__(Mapping(unknown), **kwargs)
         self.class_ = class_
-        self.includes = includes or {}
-        self.excludes = excludes or {}
-        self.overrides = overrides or {}
+        self.includes = includes or declarative_includes
+        self.excludes = excludes or declarative_excludes
+        self.overrides = overrides or declarative_overrides
         self.unknown = unknown
         self.declarative_overrides = {}
         self.kwargs = kwargs or {}

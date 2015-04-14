@@ -4,9 +4,11 @@ Change Log
 0.3.3 (unreleased)
 ------------------
 
+- Allow ``includes``, ``excludes`` and ``overrides`` to be specified in
+  ``__colanderalchemy_config__`` and applied to the ``SchemaNode``.
+  [davidjb]
 - Clarify documentation for quickstart.
   [davidjb]
-
 
 0.3.2.post1 (2014-03-11)
 ------------------------

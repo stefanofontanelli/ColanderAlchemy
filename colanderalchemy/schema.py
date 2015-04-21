@@ -52,8 +52,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
     ca_class_key = '__colanderalchemy_config__'
 
     def __init__(self, class_, includes=None,
-                 excludes=None, overrides=None, unknown='ignore',
-                 parents_=None, **kw):
+                 excludes=None, overrides=None, unknown='ignore', **kw):
         """ Initialise the given mapped schema according to options provided.
 
         Arguments/Keywords
@@ -132,11 +131,6 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
            method of this instance.
 
            Default: 'ignore'
-        parents\_
-           An ``SQLAlchemySchemaNode`` parent list to avoid relationship circular
-           dependencies and thus prevent infinite recursion. Used internally.
-
-           Default: []
         \*\*kw
            Represents *all* other options able to be passed to a
            :class:`colander.SchemaNode`. Keywords passed will influence the
@@ -158,11 +152,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         declarative_excludes = kwargs.pop('excludes', {})
         declarative_overrides = kwargs.pop('overrides', {})
         unknown = kwargs.pop('unknown', unknown)
+        parents_ = kwargs.pop('parents_', [])
 
         # The default type of this SchemaNode is Mapping.
         super(SQLAlchemySchemaNode, self).__init__(Mapping(unknown), **kwargs)
         self.class_ = class_
-        self.parents_ = parents_ or []
+        self.parents_ = parents_
         self.includes = includes or declarative_includes
         self.excludes = excludes or declarative_excludes
         self.overrides = overrides or declarative_overrides

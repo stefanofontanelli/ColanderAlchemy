@@ -4,6 +4,8 @@ Change Log
 0.3.3 (unreleased)
 ------------------
 
+- Allow recursive schema creation (PR `#81 <https://github.com/stefanofontanelli/ColanderAlchemy/pull/81>`_).
+  [Ademan, offlinehacker]
 - Allow ``includes``, ``excludes`` and ``overrides`` to be specified in
   ``__colanderalchemy_config__`` and applied to the ``SchemaNode``.
   [davidjb]

@@ -37,6 +37,9 @@ from tests.models import (Account,
                           Person,
                           Address,
                           Group,
+                          Cycle,
+                          Bar,
+                          Baz,
                           has_unique_addresses)
 
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
@@ -81,7 +84,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             self.assertIn(attr.key, account_schema['person'])
 
         for attr in m.relationships:
-            self.assertNotIn(attr.key, account_schema['person'])
+            self.assertIn(attr.key, account_schema['person'])
 
     def test_imperative_includes(self):
         m = sqlalchemy.inspect(Account)
@@ -1336,3 +1339,32 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
             del BadTable.__mapper__._configure_failed
         except AttributeError:
             pass
+
+    def test_relationship_circular_dependencies(self):
+        """Test to ensure relationship circular dependencies are handled correctly
+        """
+        # Circular dependencies excluded by default
+        schema = SQLAlchemySchemaNode(Cycle)
+        self.assertFalse("cycle" in schema["cycle"]["cycle"])
+
+        # Imperatively include circular dependencies
+        overrides = {
+            'cycle': {
+                'overrides': {
+                    'cycle': {
+                        'includes': ['cycle']
+                    }
+                }
+            }
+        }
+        schema = SQLAlchemySchemaNode(Cycle, overrides=overrides)
+        self.assertTrue("cycle" in schema["cycle"]["cycle"])
+        self.assertTrue("id" in schema["cycle"]["cycle"]["cycle"])
+
+    def test_relationship_infinite_recursion(self):
+        """Test to ensure infinite recursion does not occur when following backrefs
+        """
+
+        # Unpatched, creating a bar or baz schema node causes infinite recursion
+        schema = SQLAlchemySchemaNode(Bar)
+        schema = SQLAlchemySchemaNode(Baz)

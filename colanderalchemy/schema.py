@@ -152,10 +152,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         declarative_excludes = kwargs.pop('excludes', {})
         declarative_overrides = kwargs.pop('overrides', {})
         unknown = kwargs.pop('unknown', unknown)
+        parents_ = kwargs.pop('parents_', [])
 
         # The default type of this SchemaNode is Mapping.
         super(SQLAlchemySchemaNode, self).__init__(Mapping(unknown), **kwargs)
         self.class_ = class_
+        self.parents_ = parents_
         self.includes = includes or declarative_includes
         self.excludes = excludes or declarative_excludes
         self.overrides = overrides or declarative_overrides
@@ -189,6 +191,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                     name_overrides_copy
                 )
             elif isinstance(prop, RelationshipProperty):
+                if prop.mapper.class_ in self.parents_ and name not in includes:
+                    continue
                 node = self.get_schema_from_relationship(
                     prop,
                     name_overrides_copy
@@ -453,7 +457,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         declarative_overrides = prop.info.get(self.sqla_info_key, {}).copy()
         self.declarative_overrides[name] = declarative_overrides.copy()
 
-        class_ = prop.mapper
+        class_ = prop.mapper.class_
 
         if declarative_overrides.pop('exclude', False):
             log.debug('Relationship %s skipped due to declarative overrides',
@@ -513,10 +517,6 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         else:
             excludes = None
 
-        # see issue #25 in ColanderAlchemy for possible patch
-        if includes is None and excludes is None:
-            includes = [p.key for p in inspect(class_).column_attrs]
-
         key = 'overrides'
         imperative_rel_overrides = overrides.pop(key, None)
         declarative_rel_overrides = declarative_overrides.pop(key, None)
@@ -559,7 +559,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                                     includes=includes,
                                     excludes=excludes,
                                     overrides=rel_overrides,
-                                    missing=missing)
+                                    missing=missing,
+                                    parents_=self.parents_ + [self.class_])
 
         if prop.uselist:
             node = SchemaNode(Sequence(), node, **kwargs)

@@ -31,10 +31,6 @@ from colanderalchemy import (SQLAlchemySchemaNode, setup_schema)
 Base = declarative_base()
 key = SQLAlchemySchemaNode.sqla_info_key
 
-# Global listener for all model mapping events
-event.listen(mapper, 'mapper_configured', setup_schema)
-
-
 def has_unique_addresses(node, value):
     """ Dummy validator for schema. """
     pass
@@ -53,6 +49,7 @@ class Account(Base):
     person_id = Column(Integer, ForeignKey('people.id'))
     person = relationship('Person')
 
+event.listen(Account, 'mapper_configured', setup_schema)
 
 class Person(Base):
 
@@ -82,6 +79,7 @@ class Person(Base):
         }
     )
 
+event.listen(Person, 'mapper_configured', setup_schema)
 
 class Group(Base):
 
@@ -127,3 +125,49 @@ class Address(Base):
     longitude = Column(Numeric, nullable=True)
     person_id = Column(Integer, ForeignKey('people.id'))
     person = relationship(Person, info={key: {'exclude': True}})
+
+event.listen(Address, 'mapper_configured', setup_schema)
+
+class Cycle(Base):
+
+    __tablename__ = 'cycle'
+
+    id = Column(Integer, primary_key=True)
+    cycle = relationship('CycleChildren')
+    cycle_id = Column(Integer, ForeignKey('cycle_children.id'))
+
+
+class CycleChildren(Base):
+
+    __tablename__ = 'cycle_children'
+
+    id = Column(Integer, primary_key=True)
+    cycle = relationship('CycleChildren2')
+    cycle_id = Column(Integer, ForeignKey('cycle_children2.id'))
+
+
+class CycleChildren2(Base):
+
+    __tablename__ = 'cycle_children2'
+
+    id = Column(Integer, primary_key=True)
+    cycle = relationship('Cycle')
+    cycle_id = Column(Integer, ForeignKey('cycle.id'))
+
+class Foo(Base):
+    __tablename__ = 'foos'
+    id = Column(Integer, primary_key=True)
+
+class Bar(Base):
+    __tablename__ = 'bars'
+    id = Column(Integer, primary_key=True)
+
+    foo_id = Column(Integer, ForeignKey('foos.id'))
+    foo = relationship('Foo', backref='bars')
+
+class Baz(Base):
+    __tablename__ = 'bazs'
+    id = Column(Integer, primary_key=True)
+
+    foo_id = Column(Integer, ForeignKey('foos.id'))
+    foo = relationship('Foo', backref='bazs')

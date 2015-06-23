@@ -12,7 +12,7 @@ Change Log
 - Clarify documentation for quickstart.
   [davidjb]
 
-0.3.2.post1 (2014-03-11)
+0.3.2.post1 (2015-03-11)
 ------------------------
 
 - Only apply declaratively defined settings to the outer Sequence when

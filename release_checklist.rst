@@ -6,9 +6,10 @@ RELEASE CHECKLIST
    - setup.py
    - CHANGES.rst *(add release date)*
    - docs/source/conf.py
-- commit version changes to git
-- tag last commit with version number
-   - ``git tag -a [version number]``
+- commit version changes to git and push to github
+- go to https://github.com/stefanofontanelli/ColanderAlchemy/releases
+  and "Draft a new release" with the tag and title being
+  "v[verion number]"
 - build distributions:
    - ``python setup.py sdist``
    - ``python setup.py bdist_wheel``
@@ -25,7 +26,7 @@ RELEASE CHECKLIST
 POST-RELEASE CHECKLIST
 ======================
 
-- update version to development version
+- update version to development version (increment and add '.dev1')
    - setup.py
    - CHANGES.rst
    - docs/source/conf.py

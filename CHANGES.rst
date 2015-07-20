@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-0.3.3 (unreleased)
+0.3.3 (2015-07-20)
 ------------------
 
 - Allow recursive schema creation (PR `#81 <https://github.com/stefanofontanelli/ColanderAlchemy/pull/81>`_).

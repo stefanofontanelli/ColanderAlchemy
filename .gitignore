@@ -3,6 +3,7 @@
 *.swp
 *.egg-info
 *.egg
+*.eggs
 *.EGG
 *.EGG-INFO
 bin

@@ -528,6 +528,34 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         self.assertEqual(person.fullname, None)
         self.assertEqual(person.age, None)
 
+    def test_objectify_null(self):
+        """ Make sure that `colander.null` is replaced with `None` for
+        mapped schemas.
+        """
+        Base = declarative_base()
+
+        class DocumentGeometry(Base):
+            __tablename__ = 'document_geometries'
+            id = Column(Integer, primary_key=True)
+            document_id = Column(
+                Integer, ForeignKey('documents.document_id'),
+                nullable=False)
+            geom = Column(String)
+
+        class Document(Base):
+            __tablename__ = 'documents'
+
+            document_id = Column(Integer, primary_key=True)
+            geometry = relationship(DocumentGeometry, uselist=False)
+
+        schema = SQLAlchemySchemaNode(Document)
+
+        dict_ = schema.dictify(Document(geometry=None))
+        self.assertEqual(dict_['geometry'], colander.null)
+
+        obj = schema.objectify(dict_)
+        self.assertEqual(obj.geometry, None)
+
     def test_objectify_context(self):
         """ Test converting a data structure into objects, using a context.
         """

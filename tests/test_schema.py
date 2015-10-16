@@ -370,7 +370,9 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
     def _prep_schema(self):
         overrides = {
             'person': {
-                'includes': ['name', 'surname', 'gender', 'addresses'],
+                'includes': [
+                    'name', 'surname', 'gender', 'addresses', 'phone_numbers'
+                ],
                 'overrides': {
                     'addresses': {
                         'includes': ['street', 'city'],
@@ -403,7 +405,8 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         address = Address(**address_args)
 
         person_args = dict(name='My Name', surname='My Surname',
-                           gender='M', addresses=[address])
+                           gender='M', addresses=[address],
+                           phone_numbers=['+12345', '+234567'])
         person = Person(**person_args)
 
         account_args = dict(email='mailbox@domain.tld',
@@ -476,7 +479,8 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
                     'city': 'My City',
                     'street': 'My Street'
                 }],
-                'name': 'My Name'
+                'name': 'My Name',
+                'phone_numbers': ['+123', '+234']
             },
             'enabled': True,
             'email': 'mailbox@domain.tld',

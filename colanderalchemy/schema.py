@@ -24,6 +24,7 @@ from sqlalchemy import (Boolean,
                         String,
                         Numeric,
                         Time)
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.schema import (FetchedValue, ColumnDefault, Column)
 from sqlalchemy.orm import (ColumnProperty, RelationshipProperty)
 
@@ -298,42 +299,16 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             log.debug('Column %s: type overridden via TypeDecorator: %s.',
                       name, type_)
 
-        elif isinstance(column_type, Boolean):
-            type_ = colander.Boolean()
-
-        elif isinstance(column_type, Date):
-            type_ = colander.Date()
-
-        elif isinstance(column_type, DateTime):
-            type_ = colander.DateTime(default_tzinfo=None)
-
-        elif isinstance(column_type, Enum):
-            type_ = colander.String()
-            kwargs["validator"] = colander.OneOf(column.type.enums)
-
-        elif isinstance(column_type, Float):
-            type_ = colander.Float()
-
-        elif isinstance(column_type, Integer):
-            type_ = colander.Integer()
-
-        elif isinstance(column_type, String):
-            type_ = colander.String()
-            kwargs["validator"] = colander.Length(0, column.type.length)
-
-        elif isinstance(column_type, Numeric):
-            type_ = colander.Decimal()
-
-        elif isinstance(column_type, Time):
-            type_ = colander.Time()
+        elif isinstance(column_type, ARRAY):
+            name_arr = name + '_array_typ'
+            kwargs_arr = dict(name=name_arr)
+            node = colander.SchemaNode(
+                self.get_type(name_arr, column_type.item_type, kwargs_arr))
+            children = [node]
+            type_ = Sequence()
 
         else:
-            raise NotImplementedError(
-                'Not able to derive a colander type from sqlalchemy '
-                'type: %s  Please explicitly provide a colander '
-                '`typ` for the "%s" Column.'
-                % (repr(column_type), name)
-            )
+            type_ = self.get_type(name, column_type, kwargs)
 
         """
         Add default values
@@ -399,6 +374,46 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         kwargs.update(overrides)
 
         return colander.SchemaNode(type_, *children, **kwargs)
+
+    def get_type(self, name, column_type, kwargs):
+        if isinstance(column_type, Boolean):
+            type_ = colander.Boolean()
+
+        elif isinstance(column_type, Date):
+            type_ = colander.Date()
+
+        elif isinstance(column_type, DateTime):
+            type_ = colander.DateTime(default_tzinfo=None)
+
+        elif isinstance(column_type, Enum):
+            type_ = colander.String()
+            kwargs["validator"] = colander.OneOf(column_type.enums)
+
+        elif isinstance(column_type, Float):
+            type_ = colander.Float()
+
+        elif isinstance(column_type, Integer):
+            type_ = colander.Integer()
+
+        elif isinstance(column_type, String):
+            type_ = colander.String()
+            kwargs["validator"] = colander.Length(0, column_type.length)
+
+        elif isinstance(column_type, Numeric):
+            type_ = colander.Decimal()
+
+        elif isinstance(column_type, Time):
+            type_ = colander.Time()
+
+        else:
+            raise NotImplementedError(
+                'Not able to derive a colander type from sqlalchemy '
+                'type: %s  Please explicitly provide a colander '
+                '`typ` for the "%s" Column.'
+                % (repr(column_type), name)
+            )
+
+        return type_
 
     def check_overrides(self, name, arg, typedecorator_overrides,
                         declarative_overrides, overrides):

@@ -5,7 +5,7 @@ ColanderAlchemy
     :target: https://travis-ci.org/stefanofontanelli/ColanderAlchemy
 
 .. image:: https://readthedocs.org/projects/colanderalchemy/badge/
-    :target: http://colanderalchemy.readthedocs.org
+    :target: https://colanderalchemy.readthedocs.io
 
 `ColanderAlchemy` helps you to auto-generate `Colander
 <http://docs.pylonsproject.org/projects/colander/>`_ schemas
@@ -21,7 +21,7 @@ Documentation
 -------------
 
 Latest documentation is at: `Read The Docs
-<http://colanderalchemy.readthedocs.org>`_.
+<https://colanderalchemy.readthedocs.io>`_.
 
 
 Installation

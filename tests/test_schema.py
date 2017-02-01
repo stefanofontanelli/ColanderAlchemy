@@ -1255,7 +1255,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         class House(Base):
             __tablename__ = 'house'
             id = Column(Integer, primary_key=True)
-            door = Column(LocationEnum(['back', 'front']))
+            door = Column(LocationEnum(('back', 'front')))
             window = Column(LocationString(128))
 
         schema = SQLAlchemySchemaNode(House)

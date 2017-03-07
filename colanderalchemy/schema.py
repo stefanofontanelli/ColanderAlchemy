@@ -559,7 +559,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                                     includes=includes,
                                     excludes=excludes,
                                     overrides=rel_overrides,
-                                    missing=missing,
+                                    missing=kwargs['missing'],
                                     parents_=self.parents_ + [self.class_])
 
         if prop.uselist:

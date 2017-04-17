@@ -34,4 +34,5 @@ def setup_schema(mapper, class_):
         attributes, related mapped classes (via SQLAlchemy relationships)
         and the like.
     """
-    setattr(class_, __colanderalchemy__, SQLAlchemySchemaNode(class_))
+    if not hasattr(class_, __colanderalchemy__):
+        setattr(class_, __colanderalchemy__, SQLAlchemySchemaNode(class_))

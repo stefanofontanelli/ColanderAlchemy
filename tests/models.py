@@ -17,6 +17,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    String,
     Numeric,
     Time,
     Unicode,
@@ -171,3 +172,4 @@ class Baz(Base):
 
     foo_id = Column(Integer, ForeignKey('foos.id'))
     foo = relationship('Foo', backref='bazs')
+    

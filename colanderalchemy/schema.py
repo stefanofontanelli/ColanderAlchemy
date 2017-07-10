@@ -731,9 +731,10 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                                 ) for obj in dict_[attr]]
                 else:
                     # relationship is x_to_one, value is scalar
+
                     subschema = self[attr]
                     obj = dict_[attr]
-                    subschema.objectify(
+                    value = subschema.objectify(
                         obj, 
                         get_context(obj, 
                                     session, 

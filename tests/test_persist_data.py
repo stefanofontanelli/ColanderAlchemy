@@ -44,7 +44,7 @@ class A(Base):
     v = Column(String())
     
     id_b = Column(Integer, ForeignKey('b.id'))
-    b = relationship('B', uselist=False)
+    bvalue = relationship('B')
     
     cvalues = relationship('C', 
                            secondary='acassociations', 
@@ -82,7 +82,7 @@ class ACAssociation(Base):
 class Tests_persist_relation(unittest.TestCase):
     
     def setUp(self):
-        engine = create_engine('sqlite:///:memory:', echo=False)
+        engine = create_engine('sqlite:///:memory:', echo=True)
         Session = sessionmaker(bind=engine)
         self.session = Session()
         Base.metadata.create_all(engine)
@@ -92,15 +92,19 @@ class Tests_persist_relation(unittest.TestCase):
         
     def test_persist_relation(self):
         # create an object
-        a_1 = A(v='a_1', b=B(v='b'), cvalues=[C(v='c_1'), C(v='c_2')])
+        a_1 = A(v='a_1', bvalue=B(v='b'), cvalues=[C(v='c_1'), C(v='c_2')])
+        #a_1 = A(v='a_1',  cvalues=[C(v='c_1'), C(v='c_2')])
         self.session.add(a_1)
         self.session.commit()
         
         # create a colanderalchemyschemanode
-        schema = colanderalchemy.SQLAlchemySchemaNode(A)
+        schema = colanderalchemy.SQLAlchemySchemaNode(A,
+            excludes={'id_b','b'}
+                )
         
         # get data from a_1
         appstruct = schema.dictify(a_1)
+        print(appstruct)
         
         # objectify appstruct to a_1
         schema.objectify(appstruct, a_1)

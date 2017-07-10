@@ -97,14 +97,11 @@ class Tests_persist_relation(unittest.TestCase):
         self.session.add(a_1)
         self.session.commit()
         
-        # create a colanderalchemyschemanode
-        schema = colanderalchemy.SQLAlchemySchemaNode(A,
-            excludes={'id_b','b'}
-                )
+        # create a SQLAlchemySchemaNode
+        schema = colanderalchemy.SQLAlchemySchemaNode(A)
         
         # get data from a_1
         appstruct = schema.dictify(a_1)
-        print(appstruct)
         
         # objectify appstruct to a_1
         schema.objectify(appstruct, a_1)

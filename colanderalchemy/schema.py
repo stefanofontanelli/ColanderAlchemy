@@ -706,8 +706,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         
         mapper = self.inspector
         context =  context if context else mapper.class_()
-        insp = inspect(context)
-        session = insp.session if insp.session else None
+        insp = inspect(context, raiseerr=False)            
+        session = insp.session if (insp and insp.session) else None
                         
         for attr in dict_:                
             if attr in mapper.relationships.keys():

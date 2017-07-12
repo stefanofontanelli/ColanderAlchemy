@@ -730,7 +730,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                                             )
                                 ) for obj in dict_[attr]]
                 else:
-                    # relationship is x_to_one, value is scalar
+                    # relationship is x_to_one, value is not a list
 
                     subschema = self[attr]
                     obj = dict_[attr]
@@ -755,7 +755,6 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                     '%s. This property has been ignored.',
                     attr, self
                 )
-                print('{a} is not mapped'.format(a=attr))
                 continue
             
             # persist value

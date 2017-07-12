@@ -1,4 +1,3 @@
-import colander
 import colanderalchemy
 
 from sqlalchemy import (
@@ -10,7 +9,7 @@ from sqlalchemy import (
     String,
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import (sessionmaker, relationship, mapper)
+from sqlalchemy.orm import (sessionmaker, relationship)
 from sqlalchemy.engine import Engine
 
 import logging

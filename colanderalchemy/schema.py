@@ -554,13 +554,13 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                 # xToOne relationships.
                 return SchemaNode(Mapping(), *children, **kwargs)
 
-        node = SQLAlchemySchemaNode(class_,
-                                    name=name,
-                                    includes=includes,
-                                    excludes=excludes,
-                                    overrides=rel_overrides,
-                                    missing=missing,
-                                    parents_=self.parents_ + [self.class_])
+        node = self.__class__(class_,
+                              name=name,
+                              includes=includes,
+                              excludes=excludes,
+                              overrides=rel_overrides,
+                              missing=missing,
+                              parents_=self.parents_ + [self.class_])
 
         if prop.uselist:
             node = SchemaNode(Sequence(), node, **kwargs)

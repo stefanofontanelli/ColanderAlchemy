@@ -193,8 +193,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             elif isinstance(prop, RelationshipProperty):
                 if prop.mapper.class_ in self.parents_ and name not in includes:
                     continue
+                property_includes = [ '.'.join(inc.split('.')[1:]) for inc in includes if inc.split('.')[0] == name and len(inc.split('.')) > 1 ]
+                if len(property_includes) == 0:
+                    property_includes = None
                 node = self.get_schema_from_relationship(
                     prop,
+                    property_includes,
                     name_overrides_copy
                 )
             elif isinstance(prop, colander.SchemaNode):
@@ -416,7 +420,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         if msg:
             raise ValueError(msg % (name, arg))
 
-    def get_schema_from_relationship(self, prop, overrides):
+    def get_schema_from_relationship(self, prop, includes, overrides):
         """ Build and return a :class:`colander.SchemaNode` for a relationship.
 
         The mapping process will translate one-to-many and many-to-many
@@ -488,17 +492,14 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         imperative_includes = overrides.pop(key, None)
         declarative_includes = declarative_overrides.pop(key, None)
         if imperative_includes is not None:
-            includes = imperative_includes
+            includes = includes or imperative_includes
             msg = 'Relationship %s: %s overridden imperatively.'
             log.debug(msg, name, key)
 
         elif declarative_includes is not None:
-            includes = declarative_includes
+            includes = includes or declarative_includes
             msg = 'Relationship %s: %s overridden via declarative.'
             log.debug(msg, name, key)
-
-        else:
-            includes = None
 
         key = 'excludes'
         imperative_excludes = overrides.pop(key, None)

@@ -453,6 +453,10 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             override imperatively. Values provides as part of :attr:`overrides`
             will take precendence over all others.  Example keys include
             ``children``, ``includes``, ``excludes``, ``overrides``.
+        includes
+            A list of strings that specify which nodes of the relationship
+            to include. A value of None will inspect the overrides for
+            includes. Defaults to None.
         """
 
         # The name of the SchemaNode is the ColumnProperty key.

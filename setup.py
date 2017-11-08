@@ -16,10 +16,17 @@ README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
 tests_require = []
+install_requires = [
+    'colander >= 1.0b1',
+]
 
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
     # In Python < 2.7 use unittest2.
     tests_require.append('unittest2')
+    # SQLAlchemy dropped 2.6 support in 1.2
+    install_requires.append('SQLAlchemy >= 0.8dev, < 1.2')
+else:
+    install_requires.append('SQLAlchemy >= 0.8dev')
 
 
 setup(name='ColanderAlchemy',
@@ -48,8 +55,7 @@ setup(name='ColanderAlchemy',
       packages=find_packages(exclude=['tests']),
       include_package_data=True,
       zip_safe=True,
-      install_requires=['colander >= 1.0b1',
-                        'SQLAlchemy >= 0.8dev'],
+      install_requires=install_requires,
       tests_require=tests_require,
       test_suite='tests',
       )

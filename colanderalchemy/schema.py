@@ -198,8 +198,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                     property_includes = None
                 node = self.get_schema_from_relationship(
                     prop,
-                    property_includes,
-                    name_overrides_copy
+                    name_overrides_copy,
+                    property_includes
                 )
             elif isinstance(prop, colander.SchemaNode):
                 node = prop
@@ -420,7 +420,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         if msg:
             raise ValueError(msg % (name, arg))
 
-    def get_schema_from_relationship(self, prop, includes, overrides):
+    def get_schema_from_relationship(self, prop, overrides, includes=None):
         """ Build and return a :class:`colander.SchemaNode` for a relationship.
 
         The mapping process will translate one-to-many and many-to-many

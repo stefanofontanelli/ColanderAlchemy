@@ -182,12 +182,6 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                 log.debug('Attribute %s skipped imperatively', name)
                 continue
 
-            key = 'exclude'
-            if overrides.get(name, {}).get(key, None):
-                log.debug('Attribute %s skipped due to imperative overrides',
-                          name)
-                continue
-
             name_overrides_copy = overrides.get(name, {}).copy()
 
             if (isinstance(prop, ColumnProperty)
@@ -247,12 +241,17 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         key = 'exclude'
 
-        if declarative_overrides.pop(key, False):
+        if key not in itertools.chain(declarative_overrides, overrides) \
+           and typedecorator_overrides.pop(key, False):
             log.debug('Column %s skipped due to TypeDecorator overrides', name)
             return None
 
-        if declarative_overrides.pop(key, False):
+        if key not in overrides and declarative_overrides.pop(key, False):
             log.debug('Column %s skipped due to declarative overrides', name)
+            return None
+
+        if overrides.pop(key, False):
+            log.debug('Column %s skipped due to imperative overrides', name)
             return None
 
         self.check_overrides(name, 'name', typedecorator_overrides,
@@ -368,12 +367,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             1 arg version takes ExecutionContext
               - set missing to 'drop' to allow SQLA to fill this in
                 and make it an unrequired field
-        
+
         if nullable, then missing = colander.null (this has to be
         the case since some colander types won't accept `None` as
         a value, but all accept `colander.null`)
-        
-        all values for server_default should result in 'drop' 
+
+        all values for server_default should result in 'drop'
         for Colander missing
 
         autoincrement results in drop
@@ -460,8 +459,14 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         class_ = prop.mapper.class_
 
-        if declarative_overrides.pop('exclude', False):
+        key = 'exclude'
+        if declarative_overrides.pop(key, False):
             log.debug('Relationship %s skipped due to declarative overrides',
+                      name)
+            return None
+
+        if overrides.pop(key, False):
+            log.debug('Relationship %s skipped due to imperative overrides',
                       name)
             return None
 

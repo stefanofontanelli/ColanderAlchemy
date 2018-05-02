@@ -1368,3 +1368,50 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         # Unpatched, creating a bar or baz schema node causes infinite recursion
         schema = SQLAlchemySchemaNode(Bar)
         schema = SQLAlchemySchemaNode(Baz)
+
+    def test_exclude_relationship(self):
+        overrides = {
+            'person': {
+                'includes': ['name', 'surname', 'gender', 'addresses'],
+                'overrides': {
+                    'addresses': {
+                        'exclude': True,
+                    }
+                }
+            }
+        }
+        includes = ['email', 'enabled', 'created', 'timeout', 'person']
+        account_schema = SQLAlchemySchemaNode(
+            Account, overrides=overrides, includes=includes)
+        address_args = dict(street='My Street', city='My City')
+        address = Address(**address_args)
+
+        person_args = dict(name='My Name', surname='My Surname',
+                           gender='M', addresses=[address])
+        person = Person(**person_args)
+
+        account_args = dict(email='mailbox@domain.tld',
+                            enabled=True,
+                            created=datetime.datetime.now(),
+                            timeout=datetime.time(hour=1, minute=0),
+                            person=person)
+        account = Account(**account_args)
+
+        appstruct = account_schema.dictify(account)
+        self.maxDiff = None
+
+        person_args.pop('addresses')
+        account_args['person'] = person_args
+        self.assertEqual(appstruct, account_args)
+        for account_key in account_args:
+            self.assertIn(account_key, appstruct)
+            if account_key == 'person':
+                for person_key in person_args:
+                    self.assertIn(person_key, appstruct[account_key])
+        cstruct = account_schema.serialize(appstruct=appstruct)
+        newappstruct = account_schema.deserialize(cstruct)
+        self.assertEqual(appstruct, newappstruct)
+
+        cstruct = account_schema.serialize(appstruct=appstruct)
+        newappstruct = account_schema.deserialize(cstruct)
+        self.assertEqual(appstruct, newappstruct)

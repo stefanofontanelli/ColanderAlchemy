@@ -182,6 +182,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                 log.debug('Attribute %s skipped imperatively', name)
                 continue
 
+            key = 'exclude'
+            if overrides.get(name, {}).get(key, None):
+                log.debug('Attribute %s skipped due to imperative overrides',
+                          name)
+                continue
+
             name_overrides_copy = overrides.get(name, {}).copy()
 
             if (isinstance(prop, ColumnProperty)
@@ -241,17 +247,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         key = 'exclude'
 
-        if key not in itertools.chain(declarative_overrides, overrides) \
-           and typedecorator_overrides.pop(key, False):
+        if declarative_overrides.pop(key, False):
             log.debug('Column %s skipped due to TypeDecorator overrides', name)
             return None
 
-        if key not in overrides and declarative_overrides.pop(key, False):
+        if declarative_overrides.pop(key, False):
             log.debug('Column %s skipped due to declarative overrides', name)
-            return None
-
-        if overrides.pop(key, False):
-            log.debug('Column %s skipped due to imperative overrides', name)
             return None
 
         self.check_overrides(name, 'name', typedecorator_overrides,

@@ -1415,3 +1415,41 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         cstruct = account_schema.serialize(appstruct=appstruct)
         newappstruct = account_schema.deserialize(cstruct)
         self.assertEqual(appstruct, newappstruct)
+
+    def test_empty_dict_relationship(self):
+        dict_ = {
+            'person': {},
+            'enabled': True,
+            'email': 'mailbox@domain.tld',
+            'timeout': datetime.time(hour=0, minute=0),
+            'created': datetime.datetime.now(),
+            'foobar': 'a fake value',  # Not present in schema
+            'buzbaz': {}  # Not present in schema
+        }
+        schema = self._prep_schema()
+
+        objectified = schema.objectify(dict_)
+        self.assertIsInstance(objectified, Account)
+        self.assertEqual(objectified.email, 'mailbox@domain.tld')
+        self.assertIsNone(objectified.person)
+        self.assertFalse(hasattr(objectified, 'foobar'))
+        self.assertFalse(hasattr(objectified, 'buzbaz'))
+
+    def test_none_relationship(self):
+        dict_ = {
+            'person': None,
+            'enabled': True,
+            'email': 'mailbox@domain.tld',
+            'timeout': datetime.time(hour=0, minute=0),
+            'created': datetime.datetime.now(),
+            'foobar': 'a fake value',  # Not present in schema
+            'buzbaz': None  # Not present in schema
+        }
+        schema = self._prep_schema()
+
+        objectified = schema.objectify(dict_)
+        self.assertIsInstance(objectified, Account)
+        self.assertEqual(objectified.email, 'mailbox@domain.tld')
+        self.assertIsNone(objectified.person)
+        self.assertFalse(hasattr(objectified, 'foobar'))
+        self.assertFalse(hasattr(objectified, 'buzbaz'))

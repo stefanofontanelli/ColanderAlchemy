@@ -707,7 +707,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                                  for obj in dict_[attr]]
                     else:
                         # Single object
-                        value = self[attr].objectify(dict_[attr])
+                        sub_dict = dict_[attr]
+                        if sub_dict:
+                            value = self[attr].objectify(sub_dict)
+                        else:
+                            value = None
                 else:
                      value = dict_[attr]
                      if value is colander.null:

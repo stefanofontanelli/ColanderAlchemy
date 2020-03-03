@@ -11,12 +11,11 @@ RELEASE CHECKLIST
   and "Draft a new release" with the tag and title being
   "v[verion number]"
 - build distributions:
-   - ``python setup.py sdist``
-   - ``python setup.py bdist_wheel``
+   - ``pip install wheel``
+   - ``python setup.py sdist bdist_wheel``
 - upload to pypi
-   - ``python setup.py register``
-   - ``python setup.py sdist upload``
-   - ``python setup.py bdist_wheel upload``
+   - have 'twine' installed with pypi API token in ~/.pypirc
+   - ``twine upload dist/*``
 - confirm README contents and such are properly rendered on PyPI.
   If rendering is incorrect, test RST files with an RST parsing
   program to test for bugs. (http://rst.ninjs.org/ will give error

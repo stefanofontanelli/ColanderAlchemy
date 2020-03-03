@@ -1,8 +1,13 @@
 Change Log
 ==========
 
-0.3.4 (2020-03-03)
+0.3.5.dev1 (unreleased)
 -----------------------
+
+
+
+0.3.4 (2020-03-03)
+------------------
 
 - no functional changes; updates to tests and supported versions
 

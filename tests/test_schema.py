@@ -460,7 +460,12 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         newappstruct = schema.deserialize(cstruct)
         newobj = schema.objectify(appstruct)
 
-        self.assertEqual(appstruct, newappstruct)
+        self.assertEqual(appstruct['sensor_id'], newappstruct['sensor_id'])
+        self.assertEqual(appstruct['sensor_label'], newappstruct['sensor_label'])
+        # institution_id is `None` in colander >= 1.7.0 and `null` in colander<=1.6
+        self.assertIn(appstruct['institution_id'], (None, colander.null))
+        self.assertEqual(newappstruct['institution_id'], colander.null)
+
         self.assertEqual(sensor.sensor_id, newobj.sensor_id)
         self.assertEqual(sensor.institution_id, newobj.institution_id)
         self.assertEqual(sensor.sensor_label, newobj.sensor_label)

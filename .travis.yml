@@ -11,6 +11,8 @@ python:
   - 3.5
   - pypy3
   - 3.6
+  - 3.7
+  - 3.8
 
 #install: python setup.py develop  # install doesn't seem to be needed for testing
 

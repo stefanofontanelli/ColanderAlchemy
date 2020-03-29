@@ -96,7 +96,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         overrides
             A dict-like structure that consists of schema attributes to
             override imperatively. Values provides as part of :attr:`overrides`
-            will take precendence over all others.
+            will take precedence over all others.
 
            ``overrides`` can be included in the ``__colanderalchemy_config__``
            dict on a class to declaratively customise the resulting schema.
@@ -227,7 +227,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         overrides
             A dict-like structure that consists of schema attributes to
             override imperatively. Values provides as part of :attr:`overrides`
-            will take precendence over all others.
+            will take precedence over all others.
         """
 
         # The name of the SchemaNode is the ColumnProperty key.
@@ -447,7 +447,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         overrides
             A dict-like structure that consists of schema attributes to
             override imperatively. Values provides as part of :attr:`overrides`
-            will take precendence over all others.  Example keys include
+            will take precedence over all others.  Example keys include
             ``children``, ``includes``, ``excludes``, ``overrides``.
         """
 

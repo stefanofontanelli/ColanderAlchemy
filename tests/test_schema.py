@@ -647,7 +647,7 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
 
         class User(Base):
             __tablename__ = 'user'
-            # the follwing is automatically made autoincrement=True
+            # the following is automatically made autoincrement=True
             id = Column(Integer, primary_key=True)
 
         schema = SQLAlchemySchemaNode(User)

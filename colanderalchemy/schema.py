@@ -682,28 +682,72 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             Default: ``None``.  Defaults to instantiating a new instance of the
             mapped class associated with this schema.
         """
+        
+
+        """ To persist related data, the recursive call to ``objectify`` needs
+            information about the corresponding sqlalchemy object that is to be
+            updated. This object is defined by the colanderalchemy obj, the
+            session it is defined in, the corresponding mapped class and
+            by the identity of the colanderalchemy object.
+            
+            If this identity is given by a primary key (pk), the corresponding
+            object can be constructed. If there is no primary key data on obj, 
+            it is a new object and needs to be added to the session.
+        """
+        def get_context(obj, session, class_, pk):
+            '''return context of obj in session'''
+            if isinstance(pk, tuple):
+                ident = tuple(obj.get(v,None) for v in pk)
+            else:
+                ident = obj.get(pk,None)
+            context = session.query(class_).get(ident) if ident else None
+            
+            return context
+        
         mapper = self.inspector
-        context = mapper.class_() if context is None else context
-        for attr in dict_:
-            if mapper.has_property(attr):
+        context =  context if context else mapper.class_()
+        insp = inspect(context, raiseerr=False)            
+        session = insp.session if (insp and insp.session) else None
+                        
+        for attr in dict_:                
+            if attr in mapper.relationships.keys():
+                # handle relationship
                 prop = mapper.get_property(attr)
-                if hasattr(prop, 'mapper'):
-                    cls = prop.mapper.class_
-                    if prop.uselist:
-                        # Sequence of objects
-                        value = [self[attr].children[0].objectify(obj)
-                                 for obj in dict_[attr]]
-                    else:
-                        # Single object
-                        value = self[attr].objectify(dict_[attr])
+                prop_class = prop.mapper.class_
+                prop_pk = tuple(v.key for v in inspect(prop_class).primary_key)
+                if len(prop_pk) == 1:
+                    prop_pk = prop_pk[0]
+                
+                if prop.uselist:
+                    # relationship is x_to_many, value is list
+                    subschema = self[attr].children[0]
+                    value = [subschema.objectify(
+                                obj,
+                                get_context(obj,
+                                            session,
+                                            prop_class,
+                                            prop_pk
+                                            )
+                                ) for obj in dict_[attr]]
                 else:
-                     value = dict_[attr]
-                     if value is colander.null:
-                         # `colander.null` is never an appropriate
-                         #  value to be placed on an SQLAlchemy object
-                         #  so we translate it into `None`.
-                         value = None
-                setattr(context, attr, value)
+                    # relationship is x_to_one, value is not a list
+
+                    subschema = self[attr]
+                    obj = dict_[attr]
+                    value = subschema.objectify(
+                        obj, 
+                        get_context(obj, 
+                                    session, 
+                                    prop_class, 
+                                    prop_pk)
+                        )
+                
+            elif attr in mapper.columns.keys():
+                # handle column
+                value = dict_[attr]
+                if value is colander.null:
+                    value = None
+
             else:
                 # Ignore attributes if they are not mapped
                 log.debug(
@@ -712,8 +756,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                     attr, self
                 )
                 continue
-
+            
+            # persist value
+            setattr(context, attr, value)
         return context
+        
 
     def clone(self):
         cloned = self.__class__(self.class_,

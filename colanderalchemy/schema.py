@@ -367,12 +367,12 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
             1 arg version takes ExecutionContext
               - set missing to 'drop' to allow SQLA to fill this in
                 and make it an unrequired field
-        
+
         if nullable, then missing = colander.null (this has to be
         the case since some colander types won't accept `None` as
         a value, but all accept `colander.null`)
-        
-        all values for server_default should result in 'drop' 
+
+        all values for server_default should result in 'drop'
         for Colander missing
 
         autoincrement results in drop
@@ -459,8 +459,14 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
 
         class_ = prop.mapper.class_
 
-        if declarative_overrides.pop('exclude', False):
+        key = 'exclude'
+        if declarative_overrides.pop(key, False):
             log.debug('Relationship %s skipped due to declarative overrides',
+                      name)
+            return None
+
+        if overrides.pop(key, False):
+            log.debug('Relationship %s skipped due to imperative overrides',
                       name)
             return None
 
@@ -554,16 +560,22 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                 # xToOne relationships.
                 return SchemaNode(Mapping(), *children, **kwargs)
 
-        node = SQLAlchemySchemaNode(class_,
-                                    name=name,
-                                    includes=includes,
-                                    excludes=excludes,
-                                    overrides=rel_overrides,
-                                    missing=missing,
-                                    parents_=self.parents_ + [self.class_])
-
         if prop.uselist:
+            node = SQLAlchemySchemaNode(class_,
+                                        name=name,
+                                        includes=includes,
+                                        excludes=excludes,
+                                        overrides=rel_overrides,
+                                        missing=missing,
+                                        parents_=self.parents_ + [self.class_])
             node = SchemaNode(Sequence(), node, **kwargs)
+        else:
+            kwargs['name'] = name
+            kwargs['includes'] = includes
+            kwargs['excludes'] = excludes
+            kwargs['overrides'] = rel_overrides
+            kwargs['parents_'] = self.parents_ + [self.class_]
+            node = SQLAlchemySchemaNode(class_, **kwargs)
 
         node.name = name
 
@@ -695,7 +707,11 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
                                  for obj in dict_[attr]]
                     else:
                         # Single object
-                        value = self[attr].objectify(dict_[attr])
+                        sub_dict = dict_[attr]
+                        if sub_dict:
+                            value = self[attr].objectify(sub_dict)
+                        else:
+                            value = None
                 else:
                      value = dict_[attr]
                      if value is colander.null:

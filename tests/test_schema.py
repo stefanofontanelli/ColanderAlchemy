@@ -41,6 +41,7 @@ from tests.models import (Account,
                           Bar,
                           Baz,
                           has_unique_addresses)
+from tests.transit_models import Route
 
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
     # In Python < 2.7 use unittest2.
@@ -1373,3 +1374,13 @@ class TestsSQLAlchemySchemaNode(unittest.TestCase):
         # Unpatched, creating a bar or baz schema node causes infinite recursion
         schema = SQLAlchemySchemaNode(Bar)
         schema = SQLAlchemySchemaNode(Baz)
+
+    def test_transit_dictify(self):
+        schema = SQLAlchemySchemaNode(Route, includes=['id', 'directions', 'directions.id', 'directions.patterns', 'directions.patterns.id', 'directions.patterns.locations'])
+        direction_sequence_schema = schema.get('directions', None)
+        direction_schema = direction_sequence_schema.get('directions', None)
+        pattern_sequence_schema = direction_schema.get('patterns', None)
+        pattern_schema = pattern_sequence_schema.get('patterns', None)
+        self.assertTrue(pattern_schema is not None)
+        routes_sequence_schema = direction_schema.get('routes', None)
+        self.assertTrue(routes_sequence_schema is None)

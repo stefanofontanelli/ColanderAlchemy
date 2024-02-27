@@ -4,7 +4,7 @@ Change Log
 0.3.5.dev1 (unreleased)
 -----------------------
 
-
+- Allow dot notation for includes to explicitly restrict recursive schema creation
 
 0.3.4 (2020-03-03)
 ------------------

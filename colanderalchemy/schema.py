@@ -142,7 +142,7 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
            http://docs.pylonsproject.org/projects/colander/en/latest/basics.html
            for more information.
         """
-
+        class_.__colanderalchemy__ = self
         self.inspector = inspect(class_)
         kwargs = kw.copy()
 
@@ -458,6 +458,8 @@ class SQLAlchemySchemaNode(colander.SchemaNode):
         self.declarative_overrides[name] = declarative_overrides.copy()
 
         class_ = prop.mapper.class_
+        if hasattr(class_, '__colanderalchemy__'):
+          return class_.__colanderalchemy__
 
         if declarative_overrides.pop('exclude', False):
             log.debug('Relationship %s skipped due to declarative overrides',

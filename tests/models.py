@@ -22,6 +22,7 @@ from sqlalchemy import (
     Unicode,
     event
 )
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import (relationship, mapper)
 
@@ -64,6 +65,7 @@ class Person(Base):
     gender = Column(Enum('M', 'F'), nullable=False)
     birthday = Column(Date, nullable=True)
     age = Column(Integer, nullable=True)
+    phone_numbers = Column(ARRAY(Unicode(32)))
     addresses = relationship(
         'Address',
         info={
